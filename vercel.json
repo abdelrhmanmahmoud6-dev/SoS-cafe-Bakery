@@ -2,7 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run vercel-build",
   "framework": "nextjs",
-  "_comment_regions": "Keep this close to the Neon database (aws-us-east-2). Every page is server-rendered and queries Postgres, so DB round-trip time dominates TTFB. iad1 is Vercel's default and is available on all plans.",
   "regions": ["iad1"],
   "headers": [
     {

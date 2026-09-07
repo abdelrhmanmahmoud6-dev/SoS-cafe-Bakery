@@ -58,6 +58,17 @@ schema stays portable; allowed values live in `src/lib/order-types.ts`.
    `prisma generate && prisma migrate deploy && next build` — migrations apply on
    each deploy. `src/generated/` is gitignored, so `postinstall` regenerates the
    client.
+
+   The region is pinned to `iad1` to sit near the Neon database in
+   `aws-us-east-2`. Every page is server-rendered and queries Postgres on each
+   request, so the Vercel-to-Neon round trip dominates TTFB; a European region
+   would put an Atlantic hop in front of every query. If you later move the Neon
+   project to `eu-central-1` (better for customers in Egypt), change this to
+   `fra1` at the same time — the two should always match.
+
+   Note that `vercel.json` is validated with `additionalProperties: false`, so it
+   accepts **no** comment or custom keys. Anything not in
+   <https://openapi.vercel.sh/vercel.json> fails the deploy outright.
 4. After the first deploy, run `npm run db:seed` once against the production
    database to load the menu.
 
