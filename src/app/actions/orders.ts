@@ -5,11 +5,14 @@ import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import type { OrderReceipt } from "@/lib/whatsapp";
 import {
-  DELIVERY_FEE,
   generateOrderCode,
+  isDeliveryArea,
   isOrderStatus,
   isOrderType,
   isPaymentMethod,
+  isWalletMethod,
+  resolveDeliveryFee,
+  type DeliveryArea,
   type OrderStatus,
 } from "@/lib/order-types";
 
@@ -28,6 +31,7 @@ export interface PlaceOrderInput {
   customerName: string;
   customerPhone: string;
   orderType: string;
+  deliveryArea?: string;
   paymentMethod: string;
   address?: string;
   notes?: string;
@@ -60,8 +64,19 @@ export async function placeOrder(
     return { ok: false, error: "ADDRESS_REQUIRED" };
   }
 
+  // Delivery area decides the fee, so it is required for delivery orders and
+  // ignored entirely for takeaway.
+  let deliveryArea: DeliveryArea | null = null;
+  if (input.orderType === "DELIVERY") {
+    if (!input.deliveryArea || !isDeliveryArea(input.deliveryArea)) {
+      return { ok: false, error: "AREA_REQUIRED" };
+    }
+    deliveryArea = input.deliveryArea;
+  }
+
+  // Every wallet needs a sender number / transaction reference; cash does not.
   const paymentRef = input.paymentRef?.trim() ?? "";
-  if (input.paymentMethod === "VODAFONE_CASH" && paymentRef.length < 4) {
+  if (isWalletMethod(input.paymentMethod) && paymentRef.length < 4) {
     return { ok: false, error: "PAYMENT_REF_REQUIRED" };
   }
 
@@ -146,7 +161,9 @@ export async function placeOrder(
   }
 
   const subtotal = built.reduce((s, l) => s + l.lineTotal, 0);
-  const deliveryFee = input.orderType === "DELIVERY" ? DELIVERY_FEE : 0;
+  // Outside the town this is 0 because the courier prices it on delivery — the
+  // stored deliveryArea is what tells the shop the difference.
+  const deliveryFee = resolveDeliveryFee(input.orderType, deliveryArea);
   const total = subtotal + deliveryFee;
 
   // ---- Persist -------------------------------------------------------------
@@ -159,8 +176,9 @@ export async function placeOrder(
           code,
           status: "PENDING",
           orderType: input.orderType,
+          deliveryArea,
           paymentMethod: input.paymentMethod,
-          paymentRef: input.paymentMethod === "VODAFONE_CASH" ? paymentRef : null,
+          paymentRef: isWalletMethod(input.paymentMethod) ? paymentRef : null,
           customerName: name,
           customerPhone: phone,
           address: input.orderType === "DELIVERY" ? address : null,
@@ -195,10 +213,10 @@ export async function placeOrder(
         customerName: name,
         customerPhone: phone,
         orderType: input.orderType as OrderReceipt["orderType"],
+        deliveryArea,
         address: input.orderType === "DELIVERY" ? address : null,
         paymentMethod: input.paymentMethod as OrderReceipt["paymentMethod"],
-        paymentRef:
-          input.paymentMethod === "VODAFONE_CASH" ? paymentRef : null,
+        paymentRef: isWalletMethod(input.paymentMethod) ? paymentRef : null,
         notes: input.notes?.trim() || null,
         items: built.map((l) => ({
           nameAr: l.nameAr,
@@ -238,6 +256,7 @@ export interface TrackedOrder {
   code: string;
   status: OrderStatus;
   orderType: string;
+  deliveryArea: string | null;
   paymentMethod: string;
   customerName: string;
   address: string | null;
@@ -275,6 +294,7 @@ export async function trackOrder(
     code: order.code,
     status: order.status as OrderStatus,
     orderType: order.orderType,
+    deliveryArea: order.deliveryArea,
     paymentMethod: order.paymentMethod,
     customerName: order.customerName,
     address: order.address,
@@ -337,6 +357,7 @@ export async function listOrders(opts?: {
     code: order.code,
     status: order.status as OrderStatus,
     orderType: order.orderType,
+    deliveryArea: order.deliveryArea,
     paymentMethod: order.paymentMethod,
     paymentRef: order.paymentRef,
     customerName: order.customerName,

@@ -3,11 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { ClipboardList, UtensilsCrossed, BarChart3, LogOut, Languages } from "lucide-react";
+import {
+  ClipboardList,
+  UtensilsCrossed,
+  BarChart3,
+  LogOut,
+  Languages,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { logoutAction } from "@/app/actions/admin";
 import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
+import { useAdminUi } from "@/store/admin-ui";
+import { playChime, unlockChime } from "@/lib/chime";
 
 const NAV = [
   { href: "/admin", key: "orders", icon: ClipboardList },
@@ -24,6 +34,25 @@ export function AdminShell({
 }) {
   const { sh, lang, toggleLang } = useI18n();
   const pathname = usePathname();
+  const soundOn = useAdminUi((s) => s.soundOn);
+  const setSoundOn = useAdminUi((s) => s.setSoundOn);
+  const audioUnlocked = useAdminUi((s) => s.audioUnlocked);
+  const markAudioUnlocked = useAdminUi((s) => s.markAudioUnlocked);
+
+  /**
+   * This click is the user gesture that satisfies the browser autoplay policy,
+   * so it both unlocks the AudioContext and previews the alert. Without it a
+   * later poll would try to play sound and be silently blocked.
+   */
+  function toggleSound() {
+    const next = !soundOn;
+    setSoundOn(next);
+    if (next) {
+      unlockChime();
+      markAudioUnlocked();
+      playChime();
+    }
+  }
 
   return (
     <div className="min-h-dvh bg-ink-950">
@@ -75,6 +104,36 @@ export function AdminShell({
           </nav>
 
           <div className="flex items-center gap-2">
+            {/* Sound alert toggle — also the autoplay unlock gesture. */}
+            <button
+              type="button"
+              onClick={toggleSound}
+              aria-pressed={soundOn}
+              title={sh.admin.orders.soundToggle}
+              className={cn(
+                "flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-3 text-sm font-bold transition-colors duration-200",
+                soundOn
+                  ? "border-gold-500/50 bg-gold-500/10 text-gold-500"
+                  : "border-ink-600 text-muted hover:text-cream"
+              )}
+            >
+              {soundOn ? (
+                <Volume2 aria-hidden className="size-4" />
+              ) : (
+                <VolumeX aria-hidden className="size-4" />
+              )}
+              <span className="hidden lg:inline">
+                {soundOn ? sh.admin.orders.soundOn : sh.admin.orders.soundOff}
+              </span>
+              {soundOn && !audioUnlocked && (
+                <span
+                  aria-hidden
+                  title="tap to enable audio"
+                  className="size-1.5 rounded-full bg-amber-400"
+                />
+              )}
+            </button>
+
             <button
               type="button"
               onClick={toggleLang}

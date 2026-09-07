@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Plus,
@@ -197,12 +196,15 @@ export function MenuManager({
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     {item.imageUrl ? (
-                      <Image
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
                         src={item.imageUrl}
                         alt=""
-                        width={40}
-                        height={40}
+                        loading="lazy"
                         className="size-10 shrink-0 rounded-lg object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
                       />
                     ) : (
                       <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-ink-800 text-muted-dim">
@@ -513,8 +515,19 @@ function ItemEditor({
             <div className="mt-5">
               <span className={labelClass}>{m.image}</span>
               <div className="flex items-center gap-4">
+                {/* Plain <img>: an admin can paste any host, and routing those
+                    through next/image would need remotePatterns and turn the
+                    optimiser into an open proxy. */}
                 {imageUrl ? (
-                  <Image src={imageUrl} alt="" width={80} height={80} className="size-20 rounded-xl object-cover" />
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={imageUrl}
+                    alt=""
+                    className="size-20 rounded-xl object-cover ring-1 ring-ink-600"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
                 ) : (
                   <span className="flex size-20 items-center justify-center rounded-xl bg-ink-800 text-muted-dim">
                     <ImageOff aria-hidden className="size-6" />
@@ -547,6 +560,27 @@ function ItemEditor({
                     </button>
                   )}
                 </div>
+              </div>
+
+              {/* Paste a URL instead of uploading — the only route that works
+                  on Vercel, where the filesystem is read-only. */}
+              <div className="mt-3">
+                <label htmlFor="f-imgurl" className={labelClass}>
+                  {m.imageUrl}
+                </label>
+                <input
+                  id="f-imgurl"
+                  dir="ltr"
+                  type="url"
+                  inputMode="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="https://example.com/waffle.jpg"
+                  className={cn(inputClass, "font-en text-start")}
+                />
+                <p className="mt-1.5 text-xs leading-relaxed text-muted-dim">
+                  {m.imageUrlHint}
+                </p>
               </div>
             </div>
 

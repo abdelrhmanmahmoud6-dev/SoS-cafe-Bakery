@@ -17,8 +17,43 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export const ORDER_TYPES = ["TAKEAWAY", "DELIVERY"] as const;
 export type OrderType = (typeof ORDER_TYPES)[number];
 
-export const PAYMENT_METHODS = ["CASH", "VODAFONE_CASH"] as const;
+/**
+ * VODAFONE_CASH predates the multi-wallet selector and is kept as a value so
+ * orders placed before it still read correctly. New orders pick any of the
+ * four wallets below.
+ */
+export const PAYMENT_METHODS = [
+  "CASH",
+  "VODAFONE_CASH",
+  "ORANGE_CASH",
+  "ETISALAT_CASH",
+  "WE_PAY",
+] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+/** The wallet options shown in checkout. CASH is handled separately. */
+export const WALLET_METHODS = [
+  "VODAFONE_CASH",
+  "ORANGE_CASH",
+  "ETISALAT_CASH",
+  "WE_PAY",
+] as const;
+export type WalletMethod = (typeof WALLET_METHODS)[number];
+
+export function isWalletMethod(v: string): v is WalletMethod {
+  return (WALLET_METHODS as readonly string[]).includes(v);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Delivery areas                                                            */
+/* -------------------------------------------------------------------------- */
+
+export const DELIVERY_AREAS = ["INSIDE", "OUTSIDE"] as const;
+export type DeliveryArea = (typeof DELIVERY_AREAS)[number];
+
+export function isDeliveryArea(v: string): v is DeliveryArea {
+  return (DELIVERY_AREAS as readonly string[]).includes(v);
+}
 
 export const SIZES = ["L", "XL"] as const;
 export type SizeKey = (typeof SIZES)[number];
@@ -33,11 +68,43 @@ export function isPaymentMethod(v: string): v is PaymentMethod {
   return (PAYMENT_METHODS as readonly string[]).includes(v);
 }
 
-/** Delivery fee, in EGP, applied to DELIVERY orders inside Housh Eissa. */
+/** Delivery fee, in EGP, for DELIVERY orders inside Housh Eissa. */
 export const DELIVERY_FEE = 15;
 
-/** Vodafone Cash wallet the customer transfers to. */
-export const VODAFONE_CASH_NUMBER = "01034326985";
+/**
+ * Resolves the fee actually charged at checkout.
+ *
+ * Orders outside Housh Eissa return 0 — not because delivery is free, but
+ * because the courier agrees the fee with the customer on the doorstep. The UI
+ * must therefore never render this 0 as "free"; use `isCourierPriced` to show
+ * "يحدد مع الطيار" instead.
+ */
+export function resolveDeliveryFee(
+  orderType: OrderType,
+  area: DeliveryArea | null
+): number {
+  if (orderType !== "DELIVERY") return 0;
+  return area === "INSIDE" ? DELIVERY_FEE : 0;
+}
+
+/** True when the delivery cost is settled with the courier, not by the site. */
+export function isCourierPriced(
+  orderType: OrderType,
+  area: DeliveryArea | null
+): boolean {
+  return orderType === "DELIVERY" && area === "OUTSIDE";
+}
+
+/**
+ * Wallet number customers transfer to. Deliberately separate from the
+ * WhatsApp ordering number so the shop can move money to a different line
+ * without changing where orders arrive. Override with NEXT_PUBLIC_WALLET_NUMBER.
+ */
+export const WALLET_TRANSFER_NUMBER =
+  process.env.NEXT_PUBLIC_WALLET_NUMBER ?? "01034326985";
+
+/** Kept for older imports; the wallet number is the canonical name now. */
+export const VODAFONE_CASH_NUMBER = WALLET_TRANSFER_NUMBER;
 
 /**
  * The four customer-visible tracking steps. CANCELLED is deliberately absent —
@@ -84,6 +151,25 @@ export const ORDER_TYPE_LABELS: Record<OrderType, Bilingual> = {
 export const PAYMENT_LABELS: Record<PaymentMethod, Bilingual> = {
   CASH: { ar: "الدفع عند الاستلام", en: "Cash on delivery / pickup" },
   VODAFONE_CASH: { ar: "فودافون كاش", en: "Vodafone Cash" },
+  ORANGE_CASH: { ar: "أورنج كاش", en: "Orange Cash" },
+  ETISALAT_CASH: { ar: "اتصالات كاش", en: "Etisalat Cash" },
+  WE_PAY: { ar: "وي باي", en: "WE Pay" },
+};
+
+/** Brand tint per wallet, used only as a swatch beside a text label. */
+export const WALLET_TONE: Record<WalletMethod, string> = {
+  VODAFONE_CASH: "#E60000",
+  ORANGE_CASH: "#FF7900",
+  ETISALAT_CASH: "#8DC63F",
+  WE_PAY: "#7B1FA2",
+};
+
+export const DELIVERY_AREA_LABELS: Record<DeliveryArea, Bilingual> = {
+  INSIDE: { ar: "داخل حوش عيسى", en: "Inside Housh Eissa" },
+  OUTSIDE: {
+    ar: "خارج نطاق البلد / قرى ومناطق مجاورة",
+    en: "Outside the town / nearby villages",
+  },
 };
 
 /** Badge colour per status, shared by the admin board and the tracking page. */

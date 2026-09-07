@@ -2,7 +2,12 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { DELIVERY_FEE, type OrderType, type SizeKey } from "@/lib/order-types";
+import {
+  resolveDeliveryFee,
+  type DeliveryArea,
+  type OrderType,
+  type SizeKey,
+} from "@/lib/order-types";
 
 export interface CartAddon {
   id: string;
@@ -29,11 +34,14 @@ interface CartState {
   lines: CartLine[];
   isOpen: boolean;
   orderType: OrderType;
+  /** Only meaningful when orderType is DELIVERY. */
+  deliveryArea: DeliveryArea;
 
   open: () => void;
   close: () => void;
   toggle: () => void;
   setOrderType: (t: OrderType) => void;
+  setDeliveryArea: (a: DeliveryArea) => void;
 
   add: (line: Omit<CartLine, "key" | "quantity">, quantity?: number) => void;
   remove: (key: string) => void;
@@ -64,11 +72,13 @@ export const useCart = create<CartState>()(
       lines: [],
       isOpen: false,
       orderType: "TAKEAWAY",
+      deliveryArea: "INSIDE",
 
       open: () => set({ isOpen: true }),
       close: () => set({ isOpen: false }),
       toggle: () => set((s) => ({ isOpen: !s.isOpen })),
       setOrderType: (orderType) => set({ orderType }),
+      setDeliveryArea: (deliveryArea) => set({ deliveryArea }),
 
       add: (line, quantity = 1) =>
         set((state) => {
@@ -120,7 +130,11 @@ export const useCart = create<CartState>()(
       name: "sos-cart",
       storage: createJSONStorage(() => localStorage),
       // Never persist the drawer's open/closed state.
-      partialize: (s) => ({ lines: s.lines, orderType: s.orderType }),
+      partialize: (s) => ({
+        lines: s.lines,
+        orderType: s.orderType,
+        deliveryArea: s.deliveryArea,
+      }),
     }
   )
 );
@@ -137,11 +151,24 @@ export function cartCount(lines: CartLine[]): number {
   return lines.reduce((sum, l) => sum + l.quantity, 0);
 }
 
-export function cartDeliveryFee(orderType: OrderType, lines: CartLine[]): number {
-  if (orderType !== "DELIVERY" || lines.length === 0) return 0;
-  return DELIVERY_FEE;
+/**
+ * Fee charged at checkout. Outside Housh Eissa this is 0 because the courier
+ * prices it on the doorstep — callers must render that case as
+ * "يحدد مع الطيار", never as free delivery.
+ */
+export function cartDeliveryFee(
+  orderType: OrderType,
+  lines: CartLine[],
+  area: DeliveryArea
+): number {
+  if (lines.length === 0) return 0;
+  return resolveDeliveryFee(orderType, area);
 }
 
-export function cartTotal(lines: CartLine[], orderType: OrderType): number {
-  return cartSubtotal(lines) + cartDeliveryFee(orderType, lines);
+export function cartTotal(
+  lines: CartLine[],
+  orderType: OrderType,
+  area: DeliveryArea
+): number {
+  return cartSubtotal(lines) + cartDeliveryFee(orderType, lines, area);
 }

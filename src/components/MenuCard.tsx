@@ -7,6 +7,7 @@ import type { CategoryDTO, MenuItemDTO } from "@/lib/menu-service";
 import { useCart } from "@/store/cart";
 import { cn } from "@/lib/utils";
 import { CategoryIcon } from "./ui/CategoryIcon";
+import { ItemImage } from "./ui/ItemImage";
 
 /** Categories where add-ons are offered, so the customiser is worth opening. */
 export const ADDON_CATEGORIES = [
@@ -88,8 +89,18 @@ export function MenuCard({
         type="button"
         onClick={() => onOpen(item)}
         aria-label={t.a11y.openItem(name)}
-        className="relative flex flex-1 cursor-pointer flex-col gap-3 p-5 text-start"
+        className="relative flex flex-1 cursor-pointer flex-col text-start"
       >
+        {/* Product photo, or the category icon on a warm gradient */}
+        <ItemImage
+          src={item.imageUrl}
+          alt={name}
+          icon={category?.icon ?? "coffee"}
+          className="aspect-[16/10] w-full shrink-0"
+          iconClassName="size-10"
+        />
+
+        <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex items-start justify-between gap-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gold-500/10 text-gold-500 ring-1 ring-gold-500/20 transition-colors duration-300 group-hover:bg-gold-500 group-hover:text-ink-950">
             {category && <CategoryIcon name={category.icon} className="size-5" />}
@@ -149,6 +160,7 @@ export function MenuCard({
               <span className="text-xs font-bold text-muted">{t.currency}</span>
             </p>
           )}
+        </div>
         </div>
       </button>
 

@@ -9,6 +9,7 @@ import { useCart, type CartAddon } from "@/store/cart";
 import type { SizeKey } from "@/lib/order-types";
 import { cn, formatEGP } from "@/lib/utils";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
+import { ItemImage } from "@/components/ui/ItemImage";
 
 /**
  * Quick-view + customiser. Handles size choice, add-ons and quantity, then
@@ -151,6 +152,17 @@ export function ItemSheet({
             transition={{ type: "spring", stiffness: 330, damping: 30 }}
             className="relative flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-ink-700 bg-ink-900 shadow-float sm:rounded-3xl"
           >
+            {/* Product photo, when the item has one */}
+            {item.imageUrl && (
+              <ItemImage
+                src={item.imageUrl}
+                alt={pick(item)}
+                icon={category.icon}
+                className="aspect-[16/9] w-full shrink-0"
+                iconClassName="size-12"
+              />
+            )}
+
             {/* Header */}
             <div className="relative shrink-0 overflow-hidden bg-gradient-to-br from-gold-500 to-gold-600 px-6 pb-6 pt-5">
               <div className="relative flex items-start justify-between gap-4">

@@ -102,6 +102,61 @@ Takeaway or delivery (delivery fee **15 EGP**, Housh Eissa only). Payment is cas
 
 Each order gets a tracking code (`SOS-XXXXXX`) and an append-only `OrderEvent` timeline driving the customer's 4-step tracker: received → preparing → on the way / ready for pickup → delivered.
 
+## Delivery areas & payment
+
+**Delivery fee** depends on the area chosen at checkout:
+
+| Order type | Area | Fee |
+| --- | --- | --- |
+| Takeaway | — | 0 |
+| Delivery | داخل حوش عيسى | flat 15 EGP, added to the total |
+| Delivery | خارج نطاق البلد / قرى | **not charged here** — courier settles it on delivery |
+
+The outside-area case stores `deliveryFee = 0`, which is *not* free delivery.
+`isCourierPriced()` in `src/lib/order-types.ts` is the single place that
+distinguishes them, and the cart, checkout, admin board, tracking page and
+WhatsApp receipt all use it so the 0 is never rendered as "free". The total is
+relabelled "قيمة الطلب" (food total) in that case.
+
+**Payment** is cash on collection, or one of four mobile wallets — Vodafone
+Cash, Orange Cash, Etisalat Cash, WE Pay — each capturing the sender wallet
+number / transaction reference in `paymentRef`. Cash confirms instantly with no
+reference. The transfer number is `WALLET_TRANSFER_NUMBER`, deliberately
+separate from the WhatsApp ordering number so the shop can move money to a
+different line without changing where orders arrive; override with
+`NEXT_PUBLIC_WALLET_NUMBER`.
+
+`VODAFONE_CASH` is kept in `PAYMENT_METHODS` as a legacy value so orders placed
+before the multi-wallet selector still read correctly. Because these columns are
+`String` rather than native Postgres enums, adding the three new wallets needed
+**no migration at all** — only `deliveryArea` required one, and it is nullable
+with no default so existing rows were untouched.
+
+## Product images
+
+`MenuItem.imageUrl` renders on menu cards, in the item sheet and in the admin
+table. The manager accepts both an upload and a pasted URL — the URL field is
+the one that works on Vercel, where the filesystem is read-only.
+
+Images use a plain `<img>` rather than `next/image` on purpose: an admin can
+paste any host, and routing arbitrary third-party URLs through Next's optimiser
+would need a wildcard `remotePatterns` and turn the app into an open image
+proxy. A missing or broken URL falls back to the category icon on a warm
+gradient, so a card is never an empty grey box.
+
+## Admin sound alert
+
+The header carries "🔊 تفعيل التنبيه الصوتي", and the orders board chimes when
+polling finds an order it has not seen. The chime is synthesised with the Web
+Audio API (`src/lib/chime.ts`) so no audio file ships.
+
+The toggle exists because of the browser autoplay policy: an AudioContext
+cannot start without a user gesture, so the click that enables alerts is also
+the gesture that unlocks playback — which is why it plays a preview chime. The
+preference is shared through `src/store/admin-ui.ts` and persisted, but the
+unlock flag deliberately is **not** persisted: autoplay permission does not
+survive a reload, so restoring it would wrongly hide the prompt.
+
 ## WhatsApp order handoff
 
 After checkout succeeds, the confirmation screen offers a prominent

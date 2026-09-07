@@ -22,6 +22,7 @@ import {
   linePrice,
 } from "@/store/cart";
 import { cn, formatEGP } from "@/lib/utils";
+import { isCourierPriced } from "@/lib/order-types";
 import { CheckoutModal } from "./CheckoutModal";
 
 export function CartDrawer() {
@@ -31,6 +32,8 @@ export function CartDrawer() {
   const lines = useCart((s) => s.lines);
   const orderType = useCart((s) => s.orderType);
   const setOrderType = useCart((s) => s.setOrderType);
+  const deliveryArea = useCart((s) => s.deliveryArea);
+  const setDeliveryArea = useCart((s) => s.setDeliveryArea);
   const increment = useCart((s) => s.increment);
   const decrement = useCart((s) => s.decrement);
   const remove = useCart((s) => s.remove);
@@ -39,8 +42,9 @@ export function CartDrawer() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const subtotal = cartSubtotal(lines);
-  const delivery = cartDeliveryFee(orderType, lines);
+  const delivery = cartDeliveryFee(orderType, lines, deliveryArea);
   const total = subtotal + delivery;
+  const courierPriced = isCourierPriced(orderType, deliveryArea);
   const count = cartCount(lines);
 
   useEffect(() => {
@@ -265,6 +269,39 @@ export function CartDrawer() {
                       })}
                     </div>
 
+                    {orderType === "DELIVERY" && (
+                      <div
+                        role="group"
+                        aria-label={sh.checkout.deliveryArea}
+                        className="mb-4 grid grid-cols-2 gap-2"
+                      >
+                        {(
+                          [
+                            { key: "INSIDE", label: sh.checkout.areaInside },
+                            { key: "OUTSIDE", label: sh.checkout.areaOutside },
+                          ] as const
+                        ).map((opt) => {
+                          const active = deliveryArea === opt.key;
+                          return (
+                            <button
+                              key={opt.key}
+                              type="button"
+                              onClick={() => setDeliveryArea(opt.key)}
+                              aria-pressed={active}
+                              className={cn(
+                                "flex min-h-11 cursor-pointer items-center justify-center rounded-xl border px-2 text-center text-xs font-bold leading-tight transition-colors duration-200",
+                                active
+                                  ? "border-gold-500 bg-gold-500/12 text-gold-500"
+                                  : "border-ink-600 bg-ink-800 text-muted hover:text-cream"
+                              )}
+                            >
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
                     <dl className="mb-4 flex flex-col gap-1.5 text-sm">
                       <div className="flex items-center justify-between">
                         <dt className="text-muted">{sh.cart.subtotal}</dt>
@@ -272,17 +309,26 @@ export function CartDrawer() {
                           {formatEGP(subtotal, lang)}
                         </dd>
                       </div>
-                      {delivery > 0 && (
-                        <div className="flex items-center justify-between">
+                      {courierPriced ? (
+                        <div className="flex items-center justify-between gap-3">
                           <dt className="text-muted">{sh.cart.deliveryFee}</dt>
-                          <dd className="font-en font-bold text-cream num">
-                            {formatEGP(delivery, lang)}
+                          <dd className="text-end text-xs font-bold text-amber-300">
+                            {sh.checkout.courierPriced}
                           </dd>
                         </div>
+                      ) : (
+                        delivery > 0 && (
+                          <div className="flex items-center justify-between">
+                            <dt className="text-muted">{sh.cart.deliveryFee}</dt>
+                            <dd className="font-en font-bold text-cream num">
+                              {formatEGP(delivery, lang)}
+                            </dd>
+                          </div>
+                        )
                       )}
                       <div className="mt-1.5 flex items-center justify-between border-t border-ink-700 pt-2.5">
                         <dt className="font-extrabold text-cream">
-                          {sh.cart.total}
+                          {courierPriced ? sh.checkout.foodTotal : sh.cart.total}
                         </dt>
                         <dd className="font-en text-xl font-extrabold text-gold-500 num">
                           {formatEGP(total, lang)}

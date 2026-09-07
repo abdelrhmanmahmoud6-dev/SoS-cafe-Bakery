@@ -21,7 +21,10 @@ import {
   TRACKING_STEPS,
   statusLabel,
   ORDER_TYPE_LABELS,
+  DELIVERY_AREA_LABELS,
   PAYMENT_LABELS,
+  isCourierPriced,
+  type DeliveryArea,
   type OrderStatus,
   type OrderType,
   type PaymentMethod,
@@ -165,6 +168,12 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
                 <div className="flex flex-col items-end gap-1.5 text-end">
                   <span className="rounded-full border border-ink-600 bg-ink-800 px-3 py-1.5 text-xs font-bold text-muted">
                     {ORDER_TYPE_LABELS[order.orderType as OrderType]?.[lang]}
+                    {order.deliveryArea &&
+                      ` · ${
+                        DELIVERY_AREA_LABELS[order.deliveryArea as DeliveryArea]?.[
+                          lang
+                        ]
+                      }`}
                   </span>
                   <span className="rounded-full border border-ink-600 bg-ink-800 px-3 py-1.5 text-xs font-bold text-muted">
                     {PAYMENT_LABELS[order.paymentMethod as PaymentMethod]?.[lang]}
@@ -344,13 +353,25 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
                     {formatEGP(order.subtotal, lang)}
                   </dd>
                 </div>
-                {order.deliveryFee > 0 && (
-                  <div className="flex justify-between">
+                {isCourierPriced(
+                  order.orderType as OrderType,
+                  order.deliveryArea as DeliveryArea | null
+                ) ? (
+                  <div className="flex justify-between gap-3">
                     <dt className="text-muted">{sh.cart.deliveryFee}</dt>
-                    <dd className="font-en font-bold text-cream num">
-                      {formatEGP(order.deliveryFee, lang)}
+                    <dd className="text-end text-xs font-bold text-amber-300">
+                      {sh.checkout.courierPriced}
                     </dd>
                   </div>
+                ) : (
+                  order.deliveryFee > 0 && (
+                    <div className="flex justify-between">
+                      <dt className="text-muted">{sh.cart.deliveryFee}</dt>
+                      <dd className="font-en font-bold text-cream num">
+                        {formatEGP(order.deliveryFee, lang)}
+                      </dd>
+                    </div>
+                  )
                 )}
                 <div className="mt-1 flex justify-between border-t border-ink-700 pt-2">
                   <dt className="font-extrabold text-cream">{sh.cart.total}</dt>

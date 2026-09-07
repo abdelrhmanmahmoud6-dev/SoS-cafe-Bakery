@@ -1,5 +1,13 @@
 import { STORE } from "./dictionary";
-import type { OrderType, PaymentMethod } from "./order-types";
+import {
+  DELIVERY_AREA_LABELS,
+  PAYMENT_LABELS,
+  isCourierPriced,
+  isWalletMethod,
+  type DeliveryArea,
+  type OrderType,
+  type PaymentMethod,
+} from "./order-types";
 
 /* ============================================================================
    WHATSAPP ORDER RECEIPT
@@ -31,6 +39,7 @@ export interface OrderReceipt {
   customerName: string;
   customerPhone: string;
   orderType: OrderType;
+  deliveryArea: DeliveryArea | null;
   address: string | null;
   paymentMethod: PaymentMethod;
   paymentRef: string | null;
@@ -67,15 +76,23 @@ export function buildWhatsAppMessage(
   order: OrderReceipt,
   trackBaseUrl: string
 ): string {
+  const courierPriced = isCourierPriced(order.orderType, order.deliveryArea);
+
   const delivery =
     order.orderType === "DELIVERY"
-      ? `دليفري - العنوان: ${order.address?.trim() || "—"}`
+      ? `دليفري (${
+          order.deliveryArea
+            ? DELIVERY_AREA_LABELS[order.deliveryArea].ar
+            : "المنطقة غير محددة"
+        }) - العنوان: ${order.address?.trim() || "—"}`
       : "تيك أواي";
 
-  const payment =
-    order.paymentMethod === "VODAFONE_CASH"
-      ? `فودافون كاش - كود التحويل: ${order.paymentRef?.trim() || "—"}`
-      : "كاش";
+  // Every wallet reports the sender number the customer transferred from.
+  const payment = isWalletMethod(order.paymentMethod)
+    ? `${PAYMENT_LABELS[order.paymentMethod].ar} - المحفظة المحوّل منها: ${
+        order.paymentRef?.trim() || "—"
+      }`
+    : "كاش عند الاستلام";
 
   const head = [
     "🛎️ *طلب جديد من موقع SOS Bakery & Coffee*",
@@ -110,11 +127,16 @@ export function buildWhatsAppMessage(
 
   const tail: string[] = [""];
   // The total already includes delivery; itemising it stops the shop wondering
-  // why the figure is higher than the lines add up to.
-  if (order.deliveryFee > 0) {
+  // why the figure is higher than the lines add up to. Outside the town the fee
+  // is 0 here but NOT free — say so explicitly so nobody reads it as included.
+  if (courierPriced) {
+    tail.push("🛵 *رسوم التوصيل:* يحدد مع الطيار حسب المكان (غير مضاف للإجمالي)");
+  } else if (order.deliveryFee > 0) {
     tail.push(`🛵 *رسوم التوصيل:* ${order.deliveryFee} ج.م`);
   }
-  tail.push(`💰 *الإجمالي:* ${order.total} ج.م`);
+  tail.push(
+    `💰 *الإجمالي:* ${order.total} ج.م${courierPriced ? " (قيمة الطلب فقط)" : ""}`
+  );
   if (order.notes?.trim()) {
     tail.push(`📝 *ملاحظات:* ${order.notes.trim()}`);
   }

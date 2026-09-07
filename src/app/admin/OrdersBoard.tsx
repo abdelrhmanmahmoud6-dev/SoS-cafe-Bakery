@@ -22,12 +22,17 @@ import {
   STATUS_TONE,
   statusLabel,
   ORDER_TYPE_LABELS,
+  DELIVERY_AREA_LABELS,
   PAYMENT_LABELS,
+  isCourierPriced,
+  type DeliveryArea,
   type OrderStatus,
   type OrderType,
   type PaymentMethod,
 } from "@/lib/order-types";
 import { cn, formatEGP, timeAgo } from "@/lib/utils";
+import { useAdminUi } from "@/store/admin-ui";
+import { playChime, unlockChime } from "@/lib/chime";
 
 const POLL_MS = 5000;
 
@@ -35,39 +40,13 @@ export function OrdersBoard({ initial }: { initial: AdminOrder[] }) {
   const { sh, lang } = useI18n();
   const [orders, setOrders] = useState<AdminOrder[]>(initial);
   const [filter, setFilter] = useState<OrderStatus | "ALL">("ALL");
-  const [soundOn, setSoundOn] = useState(true);
+  const soundOn = useAdminUi((s) => s.soundOn);
+  const setSoundOn = useAdminUi((s) => s.setSoundOn);
+  const markAudioUnlocked = useAdminUi((s) => s.markAudioUnlocked);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   // Track known order ids so we only chime for genuinely new ones.
   const knownIds = useRef<Set<string>>(new Set(initial.map((o) => o.id)));
-  const audioCtx = useRef<AudioContext | null>(null);
-
-  /** Short two-tone chime, synthesised so no audio asset is needed. */
-  const chime = useCallback(() => {
-    try {
-      audioCtx.current ??= new (window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext })
-          .webkitAudioContext)();
-      const ctx = audioCtx.current;
-      if (ctx.state === "suspended") void ctx.resume();
-
-      [880, 1320].forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.value = freq;
-        const start = ctx.currentTime + i * 0.16;
-        gain.gain.setValueAtTime(0.0001, start);
-        gain.gain.exponentialRampToValueAtTime(0.28, start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.32);
-        osc.connect(gain).connect(ctx.destination);
-        osc.start(start);
-        osc.stop(start + 0.34);
-      });
-    } catch {
-      /* autoplay blocked until the operator interacts — silent is fine */
-    }
-  }, []);
 
   const refresh = useCallback(async () => {
     try {
@@ -75,13 +54,13 @@ export function OrdersBoard({ initial }: { initial: AdminOrder[] }) {
       const fresh = next.filter((o) => !knownIds.current.has(o.id));
       if (fresh.length > 0) {
         next.forEach((o) => knownIds.current.add(o.id));
-        if (soundOn) chime();
+        if (soundOn) playChime();
       }
       setOrders(next);
     } catch (err) {
       console.error("Order poll failed:", err);
     }
-  }, [soundOn, chime]);
+  }, [soundOn]);
 
   useEffect(() => {
     const id = window.setInterval(() => void refresh(), POLL_MS);
@@ -133,8 +112,13 @@ export function OrdersBoard({ initial }: { initial: AdminOrder[] }) {
         <button
           type="button"
           onClick={() => {
-            setSoundOn((v) => !v);
-            if (!soundOn) chime(); // also unlocks the AudioContext
+            const next = !soundOn;
+            setSoundOn(next);
+            if (next) {
+              unlockChime();
+              markAudioUnlocked();
+              playChime();
+            }
           }}
           aria-pressed={soundOn}
           className={cn(
@@ -232,14 +216,36 @@ export function OrdersBoard({ initial }: { initial: AdminOrder[] }) {
                     </span>
                   </a>
 
-                  <p className="flex items-center gap-2 text-muted">
+                  <p className="flex items-start gap-2 text-muted">
                     {order.orderType === "DELIVERY" ? (
-                      <Bike aria-hidden className="size-4 shrink-0 text-gold-500" />
+                      <Bike aria-hidden className="mt-0.5 size-4 shrink-0 text-gold-500" />
                     ) : (
-                      <Store aria-hidden className="size-4 shrink-0 text-gold-500" />
+                      <Store aria-hidden className="mt-0.5 size-4 shrink-0 text-gold-500" />
                     )}
-                    {ORDER_TYPE_LABELS[order.orderType as OrderType]?.[lang]}
+                    <span>
+                      {ORDER_TYPE_LABELS[order.orderType as OrderType]?.[lang]}
+                      {order.deliveryArea && (
+                        <span className="block text-xs text-muted-dim">
+                          {
+                            DELIVERY_AREA_LABELS[
+                              order.deliveryArea as DeliveryArea
+                            ]?.[lang]
+                          }
+                        </span>
+                      )}
+                    </span>
                   </p>
+
+                  {/* The courier collects this fee, so it must not read as
+                      "free delivery" on the board. */}
+                  {isCourierPriced(
+                    order.orderType as OrderType,
+                    order.deliveryArea as DeliveryArea | null
+                  ) && (
+                    <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-2.5 py-1.5 text-xs font-bold text-amber-200">
+                      {sh.checkout.courierPriced}
+                    </p>
+                  )}
 
                   <p className="flex items-center gap-2 text-muted">
                     {order.paymentMethod === "VODAFONE_CASH" ? (

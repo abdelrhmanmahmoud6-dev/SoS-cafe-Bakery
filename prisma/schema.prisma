@@ -80,7 +80,11 @@ model Order {
 
   status        String @default("PENDING") // PENDING PREPARING READY DELIVERED CANCELLED
   orderType     String // TAKEAWAY | DELIVERY
-  paymentMethod String // CASH | VODAFONE_CASH
+  // INSIDE = flat fee charged here; OUTSIDE = courier prices it on delivery.
+  // Nullable so takeaway orders, and orders placed before this field existed,
+  // remain valid without a backfill.
+  deliveryArea  String? // INSIDE | OUTSIDE
+  paymentMethod String // CASH | VODAFONE_CASH | ORANGE_CASH | ETISALAT_CASH | WE_PAY
 
   // Vodafone Cash transaction reference supplied by the customer.
   paymentRef String?
