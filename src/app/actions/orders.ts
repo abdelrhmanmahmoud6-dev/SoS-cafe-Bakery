@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import type { OrderReceipt } from "@/lib/whatsapp";
 import {
   DELIVERY_FEE,
   generateOrderCode,
@@ -35,7 +36,7 @@ export interface PlaceOrderInput {
 }
 
 export type PlaceOrderResult =
-  | { ok: true; code: string; total: number }
+  | { ok: true; code: string; total: number; receipt: OrderReceipt }
   | { ok: false; error: string };
 
 const EG_PHONE = /^01[0125][0-9]{8}$/;
@@ -186,7 +187,37 @@ export async function placeOrder(
       });
 
       revalidatePath("/admin");
-      return { ok: true, code, total };
+
+      // Built from the re-priced server values, not the client cart, so the
+      // WhatsApp receipt can never quote a price the shop did not agree to.
+      const receipt: OrderReceipt = {
+        code,
+        customerName: name,
+        customerPhone: phone,
+        orderType: input.orderType as OrderReceipt["orderType"],
+        address: input.orderType === "DELIVERY" ? address : null,
+        paymentMethod: input.paymentMethod as OrderReceipt["paymentMethod"],
+        paymentRef:
+          input.paymentMethod === "VODAFONE_CASH" ? paymentRef : null,
+        notes: input.notes?.trim() || null,
+        items: built.map((l) => ({
+          nameAr: l.nameAr,
+          nameEn: l.nameEn,
+          size: l.size,
+          quantity: l.quantity,
+          lineTotal: l.lineTotal,
+          addons: l.addons.map((a) => ({
+            nameAr: a.nameAr,
+            nameEn: a.nameEn,
+            price: a.price,
+          })),
+        })),
+        subtotal,
+        deliveryFee,
+        total,
+      };
+
+      return { ok: true, code, total, receipt };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       // Unique constraint on `code` — try a fresh one.

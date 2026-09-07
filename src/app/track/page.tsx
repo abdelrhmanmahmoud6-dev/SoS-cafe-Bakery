@@ -17,9 +17,12 @@ export const dynamic = "force-dynamic";
 export default async function TrackPage({
   searchParams,
 }: {
-  searchParams: Promise<{ code?: string }>;
+  searchParams: Promise<{ code?: string; orderId?: string }>;
 }) {
-  const { code } = await searchParams;
+  // `orderId` is what the WhatsApp receipt links to; `code` is kept so links
+  // shared before that change still resolve.
+  const { code, orderId } = await searchParams;
+  const initial = orderId ?? code ?? "";
 
   return (
     <>
@@ -34,7 +37,7 @@ export default async function TrackPage({
         />
         <div className="relative z-10">
           <TrackPageHeader />
-          <TrackClient initialCode={code ?? ""} />
+          <TrackClient initialCode={initial} />
         </div>
       </main>
       <Footer />

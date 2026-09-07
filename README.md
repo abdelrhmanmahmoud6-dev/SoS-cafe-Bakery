@@ -102,6 +102,34 @@ Takeaway or delivery (delivery fee **15 EGP**, Housh Eissa only). Payment is cas
 
 Each order gets a tracking code (`SOS-XXXXXX`) and an append-only `OrderEvent` timeline driving the customer's 4-step tracker: received → preparing → on the way / ready for pickup → delivered.
 
+## WhatsApp order handoff
+
+After checkout succeeds, the confirmation screen offers a prominent
+"إرسال تفاصيل الطلب عبر واتساب" button that opens `wa.me/201034326985` with a
+formatted receipt (see `src/lib/whatsapp.ts`).
+
+The receipt is built from the values `placeOrder` **actually wrote to the
+database**, not from the local cart — the server re-prices every line, so a
+stale cart could otherwise quote a price the shop never agreed to.
+
+Two details worth knowing:
+
+- **Auto-open is best-effort.** A checkbox (remembered per browser) tries to
+  open WhatsApp in a new tab the moment the order is placed, keeping the
+  confirmation screen open behind it. Browsers commonly block a popup opened
+  after an `await`, so the result is checked and a notice points at the button
+  when it is blocked. It is a convenience, never the only route.
+- **The message budget is measured after URL-encoding.** Arabic inflates about
+  4.6x when percent-encoded, so a raw-character budget would have produced
+  16k+ character URLs on large orders. Item lines are trimmed to keep the
+  encoded link under 7000 characters, and the total plus tracking link are
+  always preserved.
+
+Tracking links use `?orderId=`; `?code=` still resolves so older links keep
+working. The link origin comes from `window.location.origin`, so it is correct
+on preview deploys and custom domains without configuration —
+`NEXT_PUBLIC_SITE_URL` is only the server-side fallback.
+
 ## Admin
 
 - **Live orders** — polls every 5s, chimes on genuinely new orders (Web Audio, no asset), status changes write a timeline event.

@@ -13,12 +13,20 @@ import {
   AlertCircle,
   Loader2,
   PackageCheck,
+  MessageCircle,
+  ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import { useCart, cartSubtotal, cartDeliveryFee } from "@/store/cart";
 import { placeOrder } from "@/app/actions/orders";
 import { VODAFONE_CASH_NUMBER, type PaymentMethod } from "@/lib/order-types";
+import {
+  buildWhatsAppMessage,
+  whatsappOrderLink,
+  siteOrigin,
+  type OrderReceipt,
+} from "@/lib/whatsapp";
 import { cn, formatEGP } from "@/lib/utils";
 
 export function CheckoutModal({
@@ -46,6 +54,31 @@ export function CheckoutModal({
   const [error, setError] = useState<string | null>(null);
   const [placedCode, setPlacedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Server-authoritative receipt, used to build the WhatsApp message.
+  const [receipt, setReceipt] = useState<OrderReceipt | null>(null);
+  const [waLink, setWaLink] = useState<string>("");
+  const [popupBlocked, setPopupBlocked] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Opt-in auto-open, remembered between orders.
+  const [autoOpen, setAutoOpen] = useState(true);
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem("sos-wa-autoopen");
+      if (stored !== null) setAutoOpen(stored === "1");
+    } catch {
+      /* storage blocked — keep the default */
+    }
+  }, []);
+  function rememberAutoOpen(next: boolean) {
+    setAutoOpen(next);
+    try {
+      window.localStorage.setItem("sos-wa-autoopen", next ? "1" : "0");
+    } catch {
+      /* non-fatal */
+    }
+  }
 
   const panelRef = useRef<HTMLDivElement>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
@@ -75,6 +108,10 @@ export function CheckoutModal({
       setError(null);
       setPlacedCode(null);
       setCopied(false);
+      setReceipt(null);
+      setWaLink("");
+      setPopupBlocked(false);
+      setShowPreview(false);
     }
   }, [open]);
 
@@ -110,9 +147,21 @@ export function CheckoutModal({
       });
 
       if (result.ok) {
+        const link = whatsappOrderLink(result.receipt, siteOrigin());
         setPlacedCode(result.code);
+        setReceipt(result.receipt);
+        setWaLink(link);
         clear();
         closeCart();
+
+        // Try to hand the customer straight to WhatsApp while leaving this
+        // confirmation screen open behind it. Browsers often block a popup
+        // opened after an await, so treat success as best-effort and fall back
+        // to the button rather than assuming it worked.
+        if (autoOpen) {
+          const win = window.open(link, "_blank", "noopener,noreferrer");
+          if (!win || win.closed) setPopupBlocked(true);
+        }
       } else {
         setError(translateError(result.error));
       }
@@ -205,9 +254,90 @@ export function CheckoutModal({
                   </button>
                 </div>
 
+                {/* Primary action: hand the order to the shop on WhatsApp. */}
+                <div className="w-full">
+                  <p className="mb-3 text-sm leading-relaxed text-muted">
+                    {sh.checkout.sendWhatsappHint}
+                  </p>
+
+                  <motion.a
+                    href={waLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setPopupBlocked(false)}
+                    initial={{ scale: 0.94, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{
+                      delay: 0.15,
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 18,
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="relative flex min-h-15 w-full cursor-pointer items-center justify-center gap-2.5 overflow-hidden rounded-2xl bg-[#25D366] px-6 text-lg font-extrabold text-[#04310f] shadow-[0_10px_36px_-8px_rgba(37,211,102,0.55)] transition-colors duration-200 hover:bg-[#1FBF5A]"
+                  >
+                    {/* Attention pulse — halted for reduced-motion users by the
+                        global media query in globals.css. */}
+                    <motion.span
+                      aria-hidden
+                      className="absolute inset-0 rounded-2xl bg-white/25"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: [0, 0.35, 0] }}
+                      transition={{
+                        duration: 2.2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 0.6,
+                      }}
+                    />
+                    <MessageCircle aria-hidden className="relative size-6" />
+                    <span className="relative">{sh.checkout.sendWhatsapp}</span>
+                  </motion.a>
+
+                  {popupBlocked && (
+                    <p
+                      role="status"
+                      className="mt-2.5 flex items-start gap-2 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-start text-xs font-semibold leading-relaxed text-amber-200"
+                    >
+                      <AlertCircle aria-hidden className="mt-0.5 size-4 shrink-0" />
+                      {sh.checkout.popupBlocked}
+                    </p>
+                  )}
+
+                  {/* Let the customer see exactly what will be sent. */}
+                  {receipt && (
+                    <div className="mt-3 text-start">
+                      <button
+                        type="button"
+                        onClick={() => setShowPreview((v) => !v)}
+                        aria-expanded={showPreview}
+                        className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 text-xs font-bold text-muted-dim transition-colors duration-200 hover:text-gold-500"
+                      >
+                        <ChevronDown
+                          aria-hidden
+                          className={cn(
+                            "size-4 transition-transform duration-200",
+                            showPreview && "rotate-180"
+                          )}
+                        />
+                        {sh.checkout.previewToggle}
+                      </button>
+                      {showPreview && (
+                        <pre
+                          dir="rtl"
+                          className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap rounded-xl border border-ink-700 bg-ink-950 p-3.5 text-start text-[11px] leading-relaxed text-muted"
+                        >
+                          {buildWhatsAppMessage(receipt, siteOrigin())}
+                        </pre>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex w-full flex-col gap-2.5 sm:flex-row">
                   <Link
-                    href={`/track?code=${placedCode}`}
+                    href={`/track?orderId=${placedCode}`}
                     className="flex min-h-13 flex-1 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gold-500 px-5 font-extrabold text-ink-950 transition-colors duration-200 hover:bg-gold-400"
                   >
                     {sh.checkout.trackNow}
@@ -508,6 +638,16 @@ export function CheckoutModal({
                         </dd>
                       </div>
                     </dl>
+
+                    <label className="mb-3 flex min-h-11 cursor-pointer items-center gap-2.5 text-sm font-semibold text-muted">
+                      <input
+                        type="checkbox"
+                        checked={autoOpen}
+                        onChange={(e) => rememberAutoOpen(e.target.checked)}
+                        className="size-4 accent-gold-500"
+                      />
+                      {sh.checkout.autoOpen}
+                    </label>
 
                     <button
                       type="submit"
