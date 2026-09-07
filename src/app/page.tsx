@@ -7,9 +7,19 @@ import { Footer } from "@/components/Footer";
 import { CartDrawer } from "@/components/shop/CartDrawer";
 import { getMenu, getAddons } from "@/lib/menu-service";
 
-// The menu is admin-editable, so the storefront is rendered per request rather
-// than baked at build time.
-export const dynamic = "force-dynamic";
+/**
+ * Incremental static regeneration rather than `force-dynamic`.
+ *
+ * The menu changes a few times a week, not per request. Rendering dynamically
+ * meant every single visitor waited on a Postgres round trip — and on a Neon
+ * cold start, waited seconds for the endpoint to resume. Serving a cached page
+ * takes the database off the critical path for almost all traffic.
+ *
+ * Freshness is preserved on both edges: the page revalidates every 5 minutes,
+ * and every admin mutation calls `revalidatePath("/")`, so a price or
+ * availability change is published immediately rather than after the window.
+ */
+export const revalidate = 300;
 
 export default async function HomePage() {
   const [menu, addons] = await Promise.all([getMenu(), getAddons()]);

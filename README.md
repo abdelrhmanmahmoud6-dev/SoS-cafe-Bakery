@@ -128,9 +128,42 @@ The gold/rose pair was validated for colour-vision deficiency (ΔE 23.2 deutan, 
 - `prefers-reduced-motion` honoured globally and per component.
 - Contrast measured on rendered pixels: dark-on-gold and gold-on-dark **15.37:1**, body text 19.32:1, dimmest tertiary 4.96:1.
 
+## Cold starts
+
+Neon scales its compute endpoint to zero when idle, so the first request after a
+quiet period waits for it to resume. Four things keep that off the customer's
+critical path:
+
+1. **The storefront is ISR, not dynamic** (`revalidate = 300` in
+   `src/app/page.tsx`). Most visitors are served a cached page and never touch
+   Postgres at all. Admin mutations call `revalidatePath("/")`, so edits still
+   publish immediately.
+2. **The pool fails predictably** (`src/lib/db.ts`). `connectionTimeoutMillis`
+   is 6s — pg's default of `0` means *wait forever*, which is what turned a cold
+   start into a hung request. `statement_timeout` is 8s, `max` is 3, and idle
+   sockets are returned after 10s so a frozen lambda doesn't squat a Neon slot.
+3. **Transient failures retry** — up to 2 retries with 200ms/600ms backoff.
+   The classification is deliberately asymmetric: a *connect-phase* failure
+   (`ECONNREFUSED`, pool timeout, Prisma `P1001`) proves the statement never
+   reached Postgres, so anything may be retried; an *in-flight* failure
+   (`ECONNRESET`, "connection terminated") is retried **only for reads**,
+   because re-issuing a `create` that already committed would place a second
+   order. `isRetryable()` is exported so this is testable without a database.
+4. **The UI degrades instead of crashing.** `loading.tsx` paints a branded
+   skeleton immediately; `error.tsx` / `global-error.tsx` / `admin/error.tsx`
+   catch a failure, retry once silently, then offer "try again" plus the shop's
+   phone number. The auto-retry budget lives at module scope, not in component
+   state — `reset()` remounts the component, so a state-based counter would
+   retry forever.
+
+If you later need longer than the platform's default function timeout, add
+`export const maxDuration = 30` to a route segment — check your Vercel plan's
+ceiling first, since exceeding it fails the build.
+
 ## Known limitations
 
 - **Real-time is polling**, not push (5s admin, 10s tracking). Genuine subscriptions would need Supabase Realtime or a WebSocket layer.
+- The admin pages are still dynamic by design — an order board must not be cached — so they pay the cold-start cost when the shop first opens the dashboard. The retry and skeleton cover it.
 - **Uploads go to `public/uploads/`** on local disk, which does not work on Vercel (read-only filesystem, non-persistent `/tmp`). The route now detects `process.env.VERCEL` and returns a `501 STORAGE_NOT_CONFIGURED` with a pointer, instead of appearing to succeed. Wire it to Vercel Blob / S3 / Cloudinary before relying on images in production.
 - `npm audit` reports advisories in the **Prisma CLI dev chain** (`deepmerge-ts`, and `mysql2`, a driver this project never uses). `npm audit --omit=dev` — what actually ships — reports **0 vulnerabilities**.
 - Delivery fee is a flat constant in `src/lib/order-types.ts`, not zone-based.
