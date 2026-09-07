@@ -1,0 +1,226 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   SOS BAKERY AND COFFEE — TAILWIND THEME CONFIGURATION
+   Tailwind CSS v4 CSS-first config. Every token below generates utilities
+   (e.g. --color-gold-500 -> bg-gold-500 / text-gold-500 / border-gold-500).
+
+   Brand palette derived from the logo:
+     Golden Yellow  #FEE500 / #FFD600   (primary accent)
+     Obsidian       #0B0B0E #141418 #1C1C22 (neutral dark)
+     Warm Cream     #FFFDF7             (neutral light)
+   ========================================================================== */
+
+@theme {
+  /* ---- Brand: Golden Yellow ------------------------------------------- */
+  --color-gold-50: #FFFEF0;
+  --color-gold-100: #FFFACC;
+  --color-gold-200: #FFF599;
+  --color-gold-300: #FFF04D;
+  --color-gold-400: #FFEA1A;
+  --color-gold-500: #FEE500; /* primary brand accent */
+  --color-gold-600: #FFD600; /* deeper brand accent */
+  --color-gold-700: #D9B600;
+  --color-gold-800: #A88E00;
+  --color-gold-900: #6B5A00;
+
+  /* ---- Brand: Obsidian / Deep Charcoal --------------------------------- */
+  --color-ink-950: #0B0B0E; /* page background */
+  --color-ink-900: #141418; /* elevated surface */
+  --color-ink-850: #18181D;
+  --color-ink-800: #1C1C22; /* card surface */
+  --color-ink-700: #26262E; /* raised card / hover */
+  --color-ink-600: #34343E; /* border strong */
+  --color-ink-500: #4A4A57;
+
+  /* ---- Neutral light / warm accents ------------------------------------ */
+  --color-cream: #FFFDF7;
+  --color-cream-dim: #F3F0E6;
+  --color-amber-soft: #FFC94D;
+  --color-amber-deep: #E0A800;
+
+  /* ---- Muted foregrounds (all >= 4.5:1 on ink-950) --------------------- */
+  --color-muted: #A1A1AA; /* 7.5:1 on ink-950 */
+  --color-muted-dim: #8A8A94; /* 5.7:1 on ink-950 */
+
+  /* ---- Semantic ------------------------------------------------------- */
+  --color-surface: #141418;
+  --color-surface-raised: #1C1C22;
+  --color-hairline: #26262E;
+  --color-success: #34D399;
+  --color-danger: #F87171;
+
+  /* ---- Typography ------------------------------------------------------ */
+  --font-ar: var(--font-cairo), "Cairo", "Tajawal", system-ui, sans-serif;
+  --font-en: var(--font-jakarta), "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  --font-display: var(--font-jakarta), var(--font-cairo), system-ui, sans-serif;
+
+  /* ---- Radii ----------------------------------------------------------- */
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.625rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  --radius-2xl: 2.25rem;
+
+  /* ---- Elevation + brand glows ----------------------------------------- */
+  --shadow-card: 0 4px 24px -6px rgb(0 0 0 / 0.55);
+  --shadow-float: 0 18px 50px -12px rgb(0 0 0 / 0.7);
+  --shadow-glow: 0 0 0 1px rgb(254 229 0 / 0.22), 0 8px 32px -8px rgb(254 229 0 / 0.28);
+  --shadow-glow-lg: 0 0 0 1px rgb(254 229 0 / 0.35), 0 14px 48px -10px rgb(254 229 0 / 0.42);
+
+  /* ---- Motion timing (200-300ms per design system) --------------------- */
+  --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-float-slow: float 9s ease-in-out infinite;
+  --animate-float-mid: float 7s ease-in-out infinite;
+  --animate-shimmer: shimmer 2.6s linear infinite;
+  --animate-pulse-ring: pulseRing 2.4s ease-out infinite;
+  --animate-marquee: marquee 32s linear infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(0, -22px, 0) scale(1.04); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulseRing {
+  0% { transform: scale(0.85); opacity: 0.75; }
+  70% { transform: scale(1.7); opacity: 0; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ============================================================================
+   BASE
+   ========================================================================== */
+
+@layer base {
+  * {
+    border-color: var(--color-hairline);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-ink-950);
+    color: var(--color-cream);
+    font-family: var(--font-en);
+    /* base 16px, line-height 1.5 per accessibility guideline */
+    font-size: 1rem;
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Arabic gets the Arabic stack + slightly taller leading for diacritics */
+  html[lang="ar"] body {
+    font-family: var(--font-ar);
+    line-height: 1.75;
+  }
+
+  /* Visible focus ring for keyboard nav — never removed */
+  :focus-visible {
+    outline: 2px solid var(--color-gold-500);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--color-gold-500);
+    color: var(--color-ink-950);
+  }
+
+  /* Numbers stay LTR even inside RTL paragraphs */
+  .num {
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-family: var(--font-en);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ============================================================================
+   COMPONENT UTILITIES
+   ========================================================================== */
+
+@layer utilities {
+  .glass {
+    background: color-mix(in oklab, var(--color-ink-900) 68%, transparent);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border: 1px solid color-mix(in oklab, var(--color-cream) 8%, transparent);
+  }
+
+  .glass-strong {
+    background: color-mix(in oklab, var(--color-ink-950) 82%, transparent);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border: 1px solid color-mix(in oklab, var(--color-gold-500) 12%, transparent);
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(100deg, #FFF04D 0%, #FEE500 38%, #FFD600 62%, #FFC94D 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .ring-hairline {
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-cream) 9%, transparent);
+  }
+
+  /* Grain + radial ambience for section backdrops */
+  .ambient-grid {
+    background-image:
+      linear-gradient(to right, color-mix(in oklab, var(--color-cream) 4%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklab, var(--color-cream) 4%, transparent) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  .mask-fade-b {
+    mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+  }
+
+  /* Thin brand scrollbar for the horizontal category rail */
+  .rail-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ink-600) transparent;
+  }
+  .rail-scroll::-webkit-scrollbar { height: 6px; }
+  .rail-scroll::-webkit-scrollbar-track { background: transparent; }
+  .rail-scroll::-webkit-scrollbar-thumb {
+    background: var(--color-ink-600);
+    border-radius: 99px;
+  }
+  .rail-scroll::-webkit-scrollbar-thumb:hover { background: var(--color-ink-500); }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* ============================================================================
+   REDUCED MOTION — honour the OS setting globally
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

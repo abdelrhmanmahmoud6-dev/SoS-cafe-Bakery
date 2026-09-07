@@ -1,0 +1,173 @@
+// ===========================================================================
+//  SOS BAKERY AND COFFEE — DATABASE SCHEMA
+//
+//  Runs on PostgreSQL (Neon). The connection string lives in DATABASE_URL and
+//  is read by prisma.config.ts for migrations and by src/lib/db.ts at runtime.
+//
+//  Status/type/payment columns are stored as String rather than native enums so
+//  the schema stays portable across engines. The allowed values are defined once
+//  in src/lib/order-types.ts and validated in code, so the two stay in step.
+// ===========================================================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+//  MENU
+// ---------------------------------------------------------------------------
+
+model Category {
+  id        String @id // stable slug, e.g. "hot-coffee"
+  nameAr    String
+  nameEn    String
+  icon      String // key into the Lucide icon map
+  blurbAr   String
+  blurbEn   String
+  sortOrder Int    @default(0)
+
+  items MenuItem[]
+
+  @@map("categories")
+}
+
+model MenuItem {
+  id   String @id @default(cuid())
+  slug String @unique // stable human key, e.g. "hc-01"
+
+  nameAr String
+  nameEn String
+  descAr String?
+  descEn String?
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  // Single-price items use `price`. Two-size items use priceL + priceXL.
+  // All amounts are whole Egyptian Pounds.
+  price   Int?
+  priceL  Int?
+  priceXL Int?
+
+  imageUrl     String?
+  isBestSeller Boolean @default(false)
+  isAvailable  Boolean @default(true)
+  sortOrder    Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orderItems OrderItem[]
+  usedAsAddon OrderItemAddon[]
+
+  @@index([categoryId])
+  @@index([isAvailable])
+  @@map("menu_items")
+}
+
+// ---------------------------------------------------------------------------
+//  ORDERS
+// ---------------------------------------------------------------------------
+
+model Order {
+  id   String @id @default(cuid())
+  code String @unique // customer-facing tracking code, e.g. "SOS-7QK4M2"
+
+  status        String @default("PENDING") // PENDING PREPARING READY DELIVERED CANCELLED
+  orderType     String // TAKEAWAY | DELIVERY
+  paymentMethod String // CASH | VODAFONE_CASH
+
+  // Vodafone Cash transaction reference supplied by the customer.
+  paymentRef String?
+
+  customerName  String
+  customerPhone String
+  address       String? // required when orderType = DELIVERY
+  notes         String?
+
+  subtotal    Int
+  deliveryFee Int @default(0)
+  total       Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items  OrderItem[]
+  events OrderEvent[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+
+  // Name and price are snapshotted at purchase time so historical orders stay
+  // accurate even after the menu is edited.
+  nameAr    String
+  nameEn    String
+  size      String? // "L" | "XL" | null
+  unitPrice Int
+  quantity  Int
+  lineTotal Int // (unitPrice + addons) * quantity
+
+  addons OrderItemAddon[]
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model OrderItemAddon {
+  id          String    @id @default(cuid())
+  orderItemId String
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+
+  nameAr String
+  nameEn String
+  price  Int
+
+  @@index([orderItemId])
+  @@map("order_item_addons")
+}
+
+/// Append-only status history, powering the customer tracking timeline.
+model OrderEvent {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  status    String
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@map("order_events")
+}
+
+// ---------------------------------------------------------------------------
+//  ADMIN
+// ---------------------------------------------------------------------------
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+
+  @@map("admin_users")
+}
