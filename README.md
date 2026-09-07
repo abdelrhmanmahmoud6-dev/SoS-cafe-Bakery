@@ -134,6 +134,21 @@ with no default so existing rows were untouched.
 
 ## Product images
 
+Every seeded item ships with a real Unsplash photograph
+(`src/lib/menu-images.ts`). Resolution is two-stage: an ordered keyword table
+matches the Arabic name first — so a Nutella waffle and a Lotus waffle do not
+share a picture — falling back to a per-category photo. That gives 166 items
+varied, relevant imagery from 33 checked photos without hand-picking 166 shots.
+Every id was verified with a real request returning `200 image/jpeg`; none were
+invented.
+
+`prisma/seed.ts` only fills in a photo where the item has none, so re-running
+the seed never overwrites a picture the shop chose in the menu manager.
+
+Cards show a shimmer skeleton until the photo decodes, fade it in on load, and
+fall back to the category icon on a warm gradient if the URL is missing or
+broken — so a card is never an empty grey box.
+
 `MenuItem.imageUrl` renders on menu cards, in the item sheet and in the admin
 table. The manager accepts both an upload and a pasted URL — the URL field is
 the one that works on Vercel, where the filesystem is read-only.
@@ -156,6 +171,28 @@ the gesture that unlocks playback — which is why it plays a preview chime. The
 preference is shared through `src/store/admin-ui.ts` and persisted, but the
 unlock flag deliberately is **not** persisted: autoplay permission does not
 survive a reload, so restoring it would wrongly hide the prompt.
+
+## WhatsApp messages
+
+Two messages travel in opposite directions, and they carry deliberately
+different information (`src/lib/whatsapp.ts`).
+
+**Customer → shop, at checkout.** Name, phone, order type/address, payment
+method, the items with sizes and quantities, notes, and — for wallet payments —
+the transfer reference plus a reminder to attach the transfer screenshot.
+It carries **no prices, no total, no order id and no tracking link**: it is a
+request to prepare food, not a receipt. The shop prices the order itself, and
+money figures echoed back from a client-composed message only invite disputes.
+The customer still sees their order number on the confirmation screen.
+
+**Shop → customer, from the admin board.** Each order card has
+"📲 إرسال الفاتورة والتتبع للعميل", which opens WhatsApp addressed to *the
+customer* with the itemised receipt, delivery fee, total due and their tracking
+link. Stored phones are local format, so the leading `0` is swapped for Egypt's
+`20` to build the wa.me address.
+
+Both respect the courier-priced case: an outside-area order shows
+"يحدد مع الطيار حسب المكان" rather than a fee of 0.
 
 ## WhatsApp order handoff
 

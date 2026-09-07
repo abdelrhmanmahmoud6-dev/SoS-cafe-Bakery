@@ -36,7 +36,6 @@ import {
 import {
   buildWhatsAppMessage,
   whatsappOrderLink,
-  siteOrigin,
   type OrderReceipt,
 } from "@/lib/whatsapp";
 import { cn, formatEGP } from "@/lib/utils";
@@ -168,7 +167,7 @@ export function CheckoutModal({
       });
 
       if (result.ok) {
-        const link = whatsappOrderLink(result.receipt, siteOrigin());
+        const link = whatsappOrderLink(result.receipt);
         setPlacedCode(result.code);
         setReceipt(result.receipt);
         setWaLink(link);
@@ -359,7 +358,7 @@ export function CheckoutModal({
                           dir="rtl"
                           className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap rounded-xl border border-ink-700 bg-ink-950 p-3.5 text-start text-[11px] leading-relaxed text-muted"
                         >
-                          {buildWhatsAppMessage(receipt, siteOrigin())}
+                          {buildWhatsAppMessage(receipt)}
                         </pre>
                       )}
                     </div>

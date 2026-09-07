@@ -76,6 +76,7 @@
   --animate-shimmer: shimmer 2.6s linear infinite;
   --animate-pulse-ring: pulseRing 2.4s ease-out infinite;
   --animate-marquee: marquee 32s linear infinite;
+  --animate-shimmer-sweep: shimmerSweep 1.4s ease-in-out infinite;
 }
 
 @keyframes float {
@@ -91,6 +92,12 @@
   70% { transform: scale(1.7); opacity: 0; }
   100% { transform: scale(1.7); opacity: 0; }
 }
+/* Skeleton sweep for images that have not decoded yet. */
+@keyframes shimmerSweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 @keyframes marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
@@ -185,6 +192,18 @@
       linear-gradient(to right, color-mix(in oklab, var(--color-cream) 4%, transparent) 1px, transparent 1px),
       linear-gradient(to bottom, color-mix(in oklab, var(--color-cream) 4%, transparent) 1px, transparent 1px);
     background-size: 64px 64px;
+  }
+
+  .animate-shimmer-sweep {
+    background-image: linear-gradient(
+      100deg,
+      transparent 20%,
+      color-mix(in oklab, var(--color-gold-500) 10%, transparent) 45%,
+      color-mix(in oklab, var(--color-cream) 6%, transparent) 55%,
+      transparent 80%
+    );
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer-sweep);
   }
 
   .mask-fade-b {

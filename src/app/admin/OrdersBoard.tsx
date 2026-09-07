@@ -14,6 +14,7 @@ import {
   Banknote,
   Bike,
   Store,
+  Receipt,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { listOrders, updateOrderStatus, type AdminOrder } from "@/app/actions/orders";
@@ -32,6 +33,7 @@ import {
 } from "@/lib/order-types";
 import { cn, formatEGP, timeAgo } from "@/lib/utils";
 import { useAdminUi } from "@/store/admin-ui";
+import { whatsappInvoiceLink, siteOrigin } from "@/lib/whatsapp";
 import { playChime, unlockChime } from "@/lib/chime";
 
 const POLL_MS = 5000;
@@ -322,6 +324,33 @@ export function OrdersBoard({ initial }: { initial: AdminOrder[] }) {
                       {formatEGP(order.total, lang)}
                     </span>
                   </div>
+
+                  {/* One tap: opens WhatsApp addressed to the CUSTOMER with
+                      the itemised receipt and their tracking link. */}
+                  <a
+                    href={whatsappInvoiceLink(
+                      {
+                        code: order.code,
+                        customerPhone: order.customerPhone,
+                        orderType: order.orderType,
+                        deliveryArea: order.deliveryArea,
+                        deliveryFee: order.deliveryFee,
+                        total: order.total,
+                        items: order.items.map((i) => ({
+                          nameAr: i.nameAr,
+                          quantity: i.quantity,
+                          lineTotal: i.lineTotal,
+                        })),
+                      },
+                      siteOrigin()
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mb-3 flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 text-sm font-extrabold text-[#04310f] transition-colors duration-200 hover:bg-[#1FBF5A]"
+                  >
+                    <Receipt aria-hidden className="size-4" />
+                    {sh.admin.orders.sendInvoice}
+                  </a>
 
                   <label
                     htmlFor={`status-${order.id}`}

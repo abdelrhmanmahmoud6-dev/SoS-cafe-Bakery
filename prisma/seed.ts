@@ -4,6 +4,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { normalizePgUrl } from "../src/lib/pg-url";
 import bcrypt from "bcryptjs";
 import { CATEGORIES, MENU_ITEMS } from "../src/lib/menu-data";
+import { imageForItem } from "../src/lib/menu-images";
 
 const adapter = new PrismaPg({
   connectionString: normalizePgUrl(process.env.DATABASE_URL!),
@@ -52,10 +53,19 @@ async function main() {
       isBestSeller: item.best ?? false,
       sortOrder: i,
     };
+
+    // Seed photography only where the item has none. Re-running the seed must
+    // never overwrite a picture the shop chose in the menu manager.
+    const existing = await prisma.menuItem.findUnique({
+      where: { slug: item.id },
+      select: { imageUrl: true },
+    });
+    const imageUrl = existing?.imageUrl ?? imageForItem(item.ar, item.cat);
+
     await prisma.menuItem.upsert({
       where: { slug: item.id },
-      update: data,
-      create: { slug: item.id, ...data },
+      update: { ...data, imageUrl },
+      create: { slug: item.id, ...data, imageUrl },
     });
   }
   console.log(`  menu items: ${MENU_ITEMS.length}`);

@@ -6,15 +6,17 @@ import { cn } from "@/lib/utils";
 import { CategoryIcon } from "./CategoryIcon";
 
 /**
- * Product photo with a branded fallback.
+ * Product photo with a shimmer placeholder and a branded fallback.
  *
  * Uses a plain <img> rather than next/image on purpose: image URLs are typed in
  * by an admin and can point anywhere, and routing arbitrary third-party URLs
  * through Next's optimiser turns this app into an open image proxy. A plain tag
  * fetches straight from the source with no server-side surface.
  *
- * A broken or missing URL falls back to the category icon on a warm gradient,
- * so a card never renders as an empty grey box.
+ * Three states, so a slow photo never leaves a hole in the grid:
+ *   loading  → shimmer sweep over the brand gradient
+ *   loaded   → the photo, faded in
+ *   missing / failed → the category icon on a warm gradient
  */
 export function ItemImage({
   src,
@@ -29,6 +31,7 @@ export function ItemImage({
   className?: string;
   iconClassName?: string;
 }) {
+  const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const showImage = Boolean(src) && !failed;
 
@@ -40,15 +43,27 @@ export function ItemImage({
       )}
     >
       {showImage ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={src as string}
-          alt={alt}
-          loading="lazy"
-          decoding="async"
-          onError={() => setFailed(true)}
-          className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+        <>
+          {/* Skeleton: sits underneath until the photo decodes. The shimmer is
+              paused for reduced-motion users by the global rule in globals.css. */}
+          {!loaded && (
+            <div aria-hidden className="absolute inset-0 animate-shimmer-sweep" />
+          )}
+
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src as string}
+            alt={alt}
+            loading="lazy"
+            decoding="async"
+            onLoad={() => setLoaded(true)}
+            onError={() => setFailed(true)}
+            className={cn(
+              "size-full object-cover transition-all duration-500 group-hover:scale-105",
+              loaded ? "opacity-100" : "opacity-0"
+            )}
+          />
+        </>
       ) : (
         <div
           aria-hidden

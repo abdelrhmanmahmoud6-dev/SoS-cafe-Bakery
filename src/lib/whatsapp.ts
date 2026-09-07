@@ -1,6 +1,5 @@
 import { STORE } from "./dictionary";
 import {
-  DELIVERY_AREA_LABELS,
   PAYMENT_LABELS,
   isCourierPriced,
   isWalletMethod,
@@ -10,13 +9,20 @@ import {
 } from "./order-types";
 
 /* ============================================================================
-   WHATSAPP ORDER RECEIPT
+   WHATSAPP MESSAGES
 
-   Builds the message the customer sends to the shop after checkout. The data
-   comes back from the server (see placeOrder), not from the local cart, so the
-   message always reflects what was actually written to the database — the
-   server re-prices every line, and a stale client cart would otherwise quote a
-   price the shop never agreed to.
+   Two distinct messages, addressed in opposite directions:
+
+   1. buildWhatsAppMessage — customer -> shop, sent at checkout.
+      Deliberately carries NO pricing, totals, order id or tracking link. It is
+      a request to prepare food, not a receipt; the customer already has the
+      order number on the confirmation screen.
+
+   2. buildInvoiceMessage  — shop -> customer, sent from the admin board.
+      This one IS the receipt: itemised charges, delivery fee, total due and
+      the tracking link.
+
+   Both are built from values the server persisted, never from the local cart.
    ========================================================================== */
 
 export interface ReceiptAddon {
@@ -55,117 +61,185 @@ export interface OrderReceipt {
  * is the length AFTER percent-encoding — and Arabic inflates roughly 4.6x
  * (each character becomes %XX%XX). Budgeting on the raw string would let a
  * large order produce a 16k+ character URL, which some clients reject.
- * 7000 encoded characters is comfortably inside what every browser and the
- * WhatsApp clients accept.
  */
 const MAX_ENCODED_CHARS = 7000;
 
 const SIZE_LABEL: Record<string, string> = { L: "وسط L", XL: "كبير XL" };
+const NL = String.fromCharCode(10);
 
-function line(item: ReceiptLine): string {
-  const size = item.size ? ` (الحجم: ${SIZE_LABEL[item.size] ?? item.size})` : "";
-  let out = `- ${item.nameAr}${size} × ${item.quantity} = ${item.lineTotal} ج.م`;
-  if (item.addons.length > 0) {
-    out += `\n  + إضافات: ${item.addons.map((a) => a.nameAr).join("، ")}`;
-  }
-  return out;
+function sizeSuffix(size: string | null): string {
+  return size ? ` (الحجم: ${SIZE_LABEL[size] ?? size})` : "";
 }
 
-/** Builds the plain-text message body (unencoded). */
-export function buildWhatsAppMessage(
-  order: OrderReceipt,
-  trackBaseUrl: string
-): string {
-  const courierPriced = isCourierPriced(order.orderType, order.deliveryArea);
+/** Trims a line list so the encoded URL stays inside the ceiling. */
+function fitLines(
+  lines: string[],
+  fixedCost: number,
+  overflowLabel: (n: number) => string
+): string[] {
+  const kept: string[] = [];
+  for (const text of lines) {
+    const soFar = encodeURIComponent([...kept, text].join(NL)).length;
+    if (fixedCost + soFar > MAX_ENCODED_CHARS) {
+      return [...kept, overflowLabel(lines.length - kept.length)];
+    }
+    kept.push(text);
+  }
+  return kept;
+}
 
-  const delivery =
-    order.orderType === "DELIVERY"
-      ? `دليفري (${
-          order.deliveryArea
-            ? DELIVERY_AREA_LABELS[order.deliveryArea].ar
-            : "المنطقة غير محددة"
-        }) - العنوان: ${order.address?.trim() || "—"}`
-      : "تيك أواي";
+/* -------------------------------------------------------------------------- */
+/*  1. Customer -> shop (checkout)                                            */
+/* -------------------------------------------------------------------------- */
 
-  // Every wallet reports the sender number the customer transferred from.
-  const payment = isWalletMethod(order.paymentMethod)
-    ? `${PAYMENT_LABELS[order.paymentMethod].ar} - المحفظة المحوّل منها: ${
-        order.paymentRef?.trim() || "—"
-      }`
-    : "كاش عند الاستلام";
+/**
+ * What the customer sends when placing the order.
+ *
+ * No prices, no total, no order id, no tracking link: the shop prices the order
+ * itself, and money figures echoed back from a client message only invite
+ * disputes.
+ */
+export function buildWhatsAppMessage(order: OrderReceipt): string {
+  const wallet = isWalletMethod(order.paymentMethod);
 
   const head = [
-    "🛎️ *طلب جديد من موقع SOS Bakery & Coffee*",
-    `🆔 *رقم الطلب:* #${order.code}`,
-    `👤 *اسم العميل:* ${order.customerName}`,
-    `📞 *رقم الهاتف:* ${order.customerPhone}`,
-    `📍 *نوع الطلب:* ${delivery}`,
-    `💳 *طريقة الدفع:* ${payment}`,
+    "SOS Bakery & Coffee",
     "",
-    "🛒 *تفاصيل الطلب:*",
+    `اسم العميل: ${order.customerName}`,
+    `رقم الهاتف: ${order.customerPhone}`,
+    `نوع الطلب: ${
+      order.orderType === "DELIVERY"
+        ? `دليفري - العنوان: ${order.address?.trim() || "—"}`
+        : "استلام من الفرع"
+    }`,
+    `طريقة الدفع: ${wallet ? "محفظة إلكترونية" : "كاش عند الاستلام"}`,
   ];
 
-  // Trim the item list rather than let the encoded URL blow past the ceiling.
-  // The head and tail are always kept: the shop must see the total and the
-  // tracking link even when the item list had to be cut short.
-  const rendered: string[] = [];
-  let omitted = 0;
-  const fixedCost = encodeURIComponent(head.join(String.fromCharCode(10))).length + 700;
+  if (wallet) {
+    head.push(`كود التحويل / رقم المحفظة: ${order.paymentRef?.trim() || "—"}`);
+  }
 
-  for (const item of order.items) {
-    const text = line(item);
-    const soFar = encodeURIComponent([...rendered, text].join(String.fromCharCode(10))).length;
-    if (fixedCost + soFar > MAX_ENCODED_CHARS) {
-      omitted = order.items.length - rendered.length;
-      break;
+  head.push("", "الطلب:");
+
+  const itemLines = order.items.map((item) => {
+    let out = `- ${item.nameAr}${sizeSuffix(item.size)} × ${item.quantity}`;
+    if (item.addons.length > 0) {
+      out += `${NL}  ${item.addons.map((a) => a.nameAr).join("، ")}`;
     }
-    rendered.push(text);
-  }
-  if (omitted > 0) {
-    rendered.push(`- … و ${omitted} صنف إضافي (شوف رابط التتبع للتفاصيل)`);
-  }
+    return out;
+  });
 
-  const tail: string[] = [""];
-  // The total already includes delivery; itemising it stops the shop wondering
-  // why the figure is higher than the lines add up to. Outside the town the fee
-  // is 0 here but NOT free — say so explicitly so nobody reads it as included.
-  if (courierPriced) {
-    tail.push("🛵 *رسوم التوصيل:* يحدد مع الطيار حسب المكان (غير مضاف للإجمالي)");
-  } else if (order.deliveryFee > 0) {
-    tail.push(`🛵 *رسوم التوصيل:* ${order.deliveryFee} ج.م`);
-  }
-  tail.push(
-    `💰 *الإجمالي:* ${order.total} ج.م${courierPriced ? " (قيمة الطلب فقط)" : ""}`
-  );
+  const fixedCost = encodeURIComponent(head.join(NL)).length + 400;
+  const rendered = fitLines(itemLines, fixedCost, (n) => `- … و ${n} صنف إضافي`);
+
+  const tail: string[] = [];
   if (order.notes?.trim()) {
-    tail.push(`📝 *ملاحظات:* ${order.notes.trim()}`);
+    tail.push("", `ملاحظات: ${order.notes.trim()}`);
+  }
+  if (wallet) {
+    tail.push("", "*يرجى إرفاق سكرين شوت التحويل مع الرسالة*");
   }
 
-  const base = trackBaseUrl.replace(/\/$/, "");
-  tail.push(`🔗 *رابط تتبع الطلب:* ${base}/track?orderId=${order.code}`);
-
-  return [...head, ...rendered, ...tail].join("\n");
+  return [...head, ...rendered, ...tail].join(NL);
 }
 
-/** Full wa.me deep link, URL-encoded, addressed to the shop. */
-export function whatsappOrderLink(
-  order: OrderReceipt,
+/** Deep link addressed to the shop, carrying the customer's order request. */
+export function whatsappOrderLink(order: OrderReceipt): string {
+  return `https://wa.me/${STORE.whatsapp}?text=${encodeURIComponent(
+    buildWhatsAppMessage(order)
+  )}`;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  2. Shop -> customer (admin invoice)                                       */
+/* -------------------------------------------------------------------------- */
+
+export interface InvoiceOrder {
+  code: string;
+  customerPhone: string;
+  orderType: string;
+  deliveryArea: string | null;
+  deliveryFee: number;
+  total: number;
+  items: { nameAr: string; quantity: number; lineTotal: number }[];
+}
+
+/** The itemised receipt the shop sends to the customer. */
+export function buildInvoiceMessage(
+  order: InvoiceOrder,
   trackBaseUrl: string
 ): string {
-  const text = buildWhatsAppMessage(order, trackBaseUrl);
-  return `https://wa.me/${STORE.whatsapp}?text=${encodeURIComponent(text)}`;
+  const head = [
+    "فاتورة طلب - SOS Bakery & Coffee",
+    `رقم الطلب: #${order.code}`,
+    "",
+    "تفاصيل الحساب:",
+  ];
+
+  const itemLines = order.items.map(
+    (i) => `- ${i.nameAr} × ${i.quantity} = ${i.lineTotal} ج.م`
+  );
+
+  const fixedCost = encodeURIComponent(head.join(NL)).length + 600;
+  const rendered = fitLines(itemLines, fixedCost, (n) => `- … و ${n} صنف إضافي`);
+
+  const courierPriced = isCourierPriced(
+    order.orderType as OrderType,
+    order.deliveryArea as DeliveryArea | null
+  );
+
+  const tail = [
+    // Outside the town the fee is settled with the courier, so quoting 0 here
+    // would read as free delivery.
+    `رسوم التوصيل: ${
+      courierPriced ? "يحدد مع الطيار حسب المكان" : `${order.deliveryFee} ج.م`
+    }`,
+    "---------------------------------",
+    `الإجمالي المطلوب: ${order.total} ج.م${
+      courierPriced ? " (بدون رسوم التوصيل)" : ""
+    }`,
+    "",
+    "📍 لتتبع حالة طلبك لحظة بلحظة:",
+    `${trackBaseUrl.replace(/\/$/, "")}/track?orderId=${order.code}`,
+  ];
+
+  return [...head, ...rendered, ...tail].join(NL);
 }
+
+/**
+ * Deep link addressed to the CUSTOMER, not the shop.
+ *
+ * Stored phones are local format (01xxxxxxxxx); wa.me wants the country code
+ * with no plus, so the leading 0 becomes Egypt's 20.
+ */
+export function whatsappInvoiceLink(
+  order: InvoiceOrder,
+  trackBaseUrl: string
+): string {
+  const local = order.customerPhone.replace(/\D/g, "");
+  const international = local.startsWith("0") ? `20${local.slice(1)}` : local;
+  return `https://wa.me/${international}?text=${encodeURIComponent(
+    buildInvoiceMessage(order, trackBaseUrl)
+  )}`;
+}
+
+/* -------------------------------------------------------------------------- */
 
 /**
  * The origin to build tracking links from.
  *
- * Prefers the live origin so the link is correct on whatever domain the
- * customer is actually using (preview deploy, custom domain, localhost), and
- * falls back to the configured public URL during SSR.
+ * Prefers the live origin so the link is correct on whatever domain is actually
+ * in use (preview deploy, custom domain, localhost), and falls back to the
+ * configured public URL during SSR.
  */
 export function siteOrigin(): string {
   if (typeof window !== "undefined" && window.location?.origin) {
     return window.location.origin;
   }
   return process.env.NEXT_PUBLIC_SITE_URL ?? "https://so-s-cafe-bakery.vercel.app";
+}
+
+/** Label for a wallet, without importing order-types at the call site. */
+export function walletLabel(method: PaymentMethod): string {
+  return PAYMENT_LABELS[method]?.ar ?? "";
 }
