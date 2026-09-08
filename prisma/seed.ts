@@ -4,7 +4,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { normalizePgUrl } from "../src/lib/pg-url";
 import bcrypt from "bcryptjs";
 import { CATEGORIES, MENU_ITEMS } from "../src/lib/menu-data";
-import { imageForItem } from "../src/lib/menu-images";
+import { imageForCategory, isSeededImage } from "../src/lib/menu-images";
 
 const adapter = new PrismaPg({
   connectionString: normalizePgUrl(process.env.DATABASE_URL!),
@@ -54,13 +54,18 @@ async function main() {
       sortOrder: i,
     };
 
-    // Seed photography only where the item has none. Re-running the seed must
-    // never overwrite a picture the shop chose in the menu manager.
+    // Replace the photo only when it is missing or is one WE seeded. That lets
+    // a corrected default roll out on the next run, while a URL the shop set in
+    // the menu manager is left completely alone.
     const existing = await prisma.menuItem.findUnique({
       where: { slug: item.id },
       select: { imageUrl: true },
     });
-    const imageUrl = existing?.imageUrl ?? imageForItem(item.ar, item.cat);
+    const keepCustom =
+      existing?.imageUrl && !isSeededImage(existing.imageUrl);
+    const imageUrl = keepCustom
+      ? existing!.imageUrl!
+      : imageForCategory(item.cat);
 
     await prisma.menuItem.upsert({
       where: { slug: item.id },

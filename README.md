@@ -134,16 +134,26 @@ with no default so existing rows were untouched.
 
 ## Product images
 
-Every seeded item ships with a real Unsplash photograph
-(`src/lib/menu-images.ts`). Resolution is two-stage: an ordered keyword table
-matches the Arabic name first — so a Nutella waffle and a Lotus waffle do not
-share a picture — falling back to a per-category photo. That gives 166 items
-varied, relevant imagery from 33 checked photos without hand-picking 166 shots.
-Every id was verified with a real request returning `200 image/jpeg`; none were
-invented.
+Each of the 14 categories has one photograph, and every item in that category
+uses it (`src/lib/menu-images.ts`).
 
-`prisma/seed.ts` only fills in a photo where the item has none, so re-running
-the seed never overwrites a picture the shop chose in the menu manager.
+**Every image was downloaded and looked at before being assigned.** An earlier
+version only checked that each URL returned `200 image/jpeg` — which is not the
+same thing, because a URL can load perfectly and still show the wrong food. That
+version put coffee beans on "قهوة تركي", an ice-cream cone on the Oreo milkshake
+and crepes on "رز بلبن". The keyword-matching table that caused most of those
+mismatches has been removed in favour of a plain category mapping.
+
+`prisma/seed.ts` replaces a photo only when it is missing or is one this project
+seeded (tracked by id in `isSeededImage`). That lets a corrected default roll out
+on the next `npm run db:seed`, while a URL the shop set in the menu manager is
+left completely alone — verified by setting a custom URL, re-seeding, and
+confirming it survived.
+
+The menu manager has an **Image URL** field per item with a live thumbnail that
+updates as you type. Failure is tracked in React state and the preview is keyed
+on the URL, so pasting a corrected link after a broken one clears the error
+rather than leaving the thumbnail permanently blank.
 
 Cards show a shimmer skeleton until the photo decodes, fade it in on load, and
 fall back to the category icon on a warm gradient if the URL is missing or

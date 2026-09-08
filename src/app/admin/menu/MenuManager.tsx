@@ -29,6 +29,52 @@ import { cn, foldForSearch, formatEGP } from "@/lib/utils";
 
 type Category = { id: string; ar: string; en: string };
 
+/**
+ * Square image preview that degrades to a placeholder icon.
+ *
+ * Failure is tracked in React state rather than by hiding the node with an
+ * inline style: the old approach left `display:none` on the element, so once an
+ * admin pasted a broken link the preview stayed blank even after they fixed it.
+ * Callers pass `key={url}` so a new URL remounts with a clean slate.
+ */
+function UrlThumb({
+  url,
+  size = "lg",
+}: {
+  url: string | null | undefined;
+  size?: "sm" | "lg";
+}) {
+  const [failed, setFailed] = useState(false);
+  const box = size === "sm" ? "size-10 rounded-lg" : "size-20 rounded-xl";
+
+  if (!url || failed) {
+    return (
+      <span
+        className={cn(
+          "flex shrink-0 items-center justify-center bg-ink-800 text-muted-dim",
+          box
+        )}
+      >
+        <ImageOff aria-hidden className={size === "sm" ? "size-4" : "size-6"} />
+      </span>
+    );
+  }
+
+  return (
+    // Plain <img>: an admin can paste any host, and routing those through
+    // next/image would need wildcard remotePatterns and turn the optimiser
+    // into an open image proxy.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={url}
+      alt=""
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className={cn("shrink-0 object-cover ring-1 ring-ink-600", box)}
+    />
+  );
+}
+
 export function MenuManager({
   initialItems,
   categories,
@@ -195,22 +241,11 @@ export function MenuManager({
               >
                 <td className="p-3">
                   <div className="flex items-center gap-3">
-                    {item.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={item.imageUrl}
-                        alt=""
-                        loading="lazy"
-                        className="size-10 shrink-0 rounded-lg object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    ) : (
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-ink-800 text-muted-dim">
-                        <ImageOff aria-hidden className="size-4" />
-                      </span>
-                    )}
+                    <UrlThumb
+                      key={item.imageUrl ?? "none"}
+                      url={item.imageUrl}
+                      size="sm"
+                    />
                     <div className="min-w-0">
                       <p className="flex items-center gap-1.5 font-bold text-cream">
                         {item.ar}
@@ -515,24 +550,10 @@ function ItemEditor({
             <div className="mt-5">
               <span className={labelClass}>{m.image}</span>
               <div className="flex items-center gap-4">
-                {/* Plain <img>: an admin can paste any host, and routing those
-                    through next/image would need remotePatterns and turn the
-                    optimiser into an open proxy. */}
-                {imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={imageUrl}
-                    alt=""
-                    className="size-20 rounded-xl object-cover ring-1 ring-ink-600"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
-                  />
-                ) : (
-                  <span className="flex size-20 items-center justify-center rounded-xl bg-ink-800 text-muted-dim">
-                    <ImageOff aria-hidden className="size-6" />
-                  </span>
-                )}
+                {/* Live thumbnail, re-evaluated on every keystroke. Keyed on
+                    the URL so pasting a corrected link clears a previous
+                    failure instead of leaving the preview permanently blank. */}
+                <UrlThumb key={imageUrl} url={imageUrl} />
 
                 <div className="flex flex-col gap-2">
                   <input
