@@ -258,6 +258,48 @@ The gold/rose pair was validated for colour-vision deficiency (ΔE 23.2 deutan, 
 - `prefers-reduced-motion` honoured globally and per component.
 - Contrast measured on rendered pixels: dark-on-gold and gold-on-dark **15.37:1**, body text 19.32:1, dimmest tertiary 4.96:1.
 
+## Performance
+
+The storefront lists 166 items. Rendering them all, each wrapped in a Framer
+Motion `layout` animation, made scrolling crawl. Measured on the menu page:
+
+| Metric | Before | After |
+| --- | --- | --- |
+| DOM nodes (page) | 5,208 | 1,193 |
+| DOM nodes (menu subtree) | 4,581 | 582 |
+| Cards mounted | 166 | 16 |
+| HTML transferred | 669 KB | 231 KB |
+| Grid mutations when adding to cart | all cards re-render | **0** |
+
+What changed:
+
+- **Capped mounting.** 16 cards render initially — enough to fill the fold at
+  every breakpoint — with a "عرض المزيد" button revealing more, and the count
+  resetting whenever the filter, search or sort changes. Picking a category
+  mounts only that category. Cards already revealed stay mounted, so this never
+  yanks the scroll position the way windowing can.
+- **No layout animation on the grid.** The old `motion.div layout` +
+  `AnimatePresence mode="popLayout"` asked Framer Motion to measure and animate
+  every card on each filter change. Entrance is now a CSS keyframe and hover a
+  CSS transition, both compositor-only.
+- **`React.memo` on `MenuCard`**, and the card no longer subscribes to the cart
+  store — it reads `useCart.getState()` inside the click handler instead. That
+  subscription was the reason adding one drink re-rendered the entire grid.
+- **`next/image`** with an allow-listed `remotePatterns` (not `**`, which would
+  make the optimiser an open image proxy), AVIF/WebP, `sizes` matched to the
+  grid, and `imageSizes` capped at 384px because a card is never wider. The
+  first four cards load eagerly; the rest are lazy.
+- **One less query per render** — add-ons are derived from the menu payload
+  instead of a third round trip.
+- **Pool ceiling raised from 3 to 8** (`DATABASE_POOL_MAX`). Three concurrent
+  requests exhausted the pool and the next one waited out
+  `connectionTimeoutMillis`, producing "timeout exceeded when trying to connect"
+  — a pool-acquisition failure that reads exactly like a dead database.
+
+Total client JS is unchanged (~1.37 MB): this work removed DOM and main-thread
+animation, not dependencies. Framer Motion is still used for the drawers, modals
+and hero, where a handful of nodes animate rather than a hundred.
+
 ## Cold starts
 
 Neon scales its compute endpoint to zero when idle, so the first request after a

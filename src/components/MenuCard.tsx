@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { memo } from "react";
 import { Star, Plus, Ban } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import type { CategoryDTO, MenuItemDTO } from "@/lib/menu-service";
@@ -18,19 +18,34 @@ export const ADDON_CATEGORIES = [
   "rice-pudding",
 ];
 
-export function MenuCard({
+/* ============================================================================
+   Performance notes
+
+   This component used to be a `motion.article` with `layout="position"`, an
+   entrance animation and a `whileHover` spring. With a grid this size that put
+   Framer Motion in charge of measuring and animating a hundred-plus nodes on
+   every filter change — the main cause of the scroll jank. Hover and entrance
+   are now plain CSS transitions, which the compositor handles off the main
+   thread.
+
+   It also called `useCart((s) => s.add)`, subscribing every card to the cart
+   store, so adding one item re-rendered the whole grid. The store is now read
+   imperatively inside the handler instead, which needs no subscription.
+   ========================================================================== */
+
+function MenuCardImpl({
   item,
   category,
   onOpen,
-  index,
+  priority = false,
 }: {
   item: MenuItemDTO;
   category: CategoryDTO | undefined;
   onOpen: (item: MenuItemDTO) => void;
-  index: number;
+  /** Eager-load the first row so the grid has something above the fold. */
+  priority?: boolean;
 }) {
   const { t, sh, lang, pick } = useI18n();
-  const add = useCart((s) => s.add);
   const name = pick(item);
   const secondary = lang === "ar" ? item.en : item.ar;
 
@@ -46,7 +61,8 @@ export function MenuCard({
       onOpen(item);
       return;
     }
-    add({
+    // Imperative read: no subscription, so cart changes don't re-render cards.
+    useCart.getState().add({
       itemId: item.id,
       slug: item.slug,
       nameAr: item.ar,
@@ -58,109 +74,91 @@ export function MenuCard({
   }
 
   return (
-    <motion.article
-      layout="position"
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.96 }}
-      transition={{
-        duration: 0.35,
-        delay: Math.min(index * 0.02, 0.25),
-        ease: [0.22, 1, 0.36, 1],
-      }}
-      whileHover={item.available ? { y: -5 } : undefined}
+    <article
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-2xl border bg-ink-900/80 transition-colors duration-300",
+        "group relative flex flex-col overflow-hidden rounded-2xl border bg-ink-900/80",
+        "transition-[transform,border-color] duration-200 ease-out will-change-transform",
         item.available
-          ? "border-ink-700 hover:border-gold-500/45"
+          ? "border-ink-700 hover:-translate-y-1 hover:border-gold-500/45"
           : "border-ink-700/60 opacity-60"
       )}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        style={{
-          background:
-            "radial-gradient(340px circle at 50% -10%, rgb(254 229 0 / 0.10), transparent 65%)",
-        }}
-      />
-
       <button
         type="button"
         onClick={() => onOpen(item)}
         aria-label={t.a11y.openItem(name)}
         className="relative flex flex-1 cursor-pointer flex-col text-start"
       >
-        {/* Product photo, or the category icon on a warm gradient */}
         <ItemImage
           src={item.imageUrl}
           alt={name}
           icon={category?.icon ?? "coffee"}
+          priority={priority}
           className="aspect-[16/10] w-full shrink-0"
           iconClassName="size-10"
         />
 
         <div className="flex flex-1 flex-col gap-3 p-5">
-        <div className="flex items-start justify-between gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gold-500/10 text-gold-500 ring-1 ring-gold-500/20 transition-colors duration-300 group-hover:bg-gold-500 group-hover:text-ink-950">
-            {category && <CategoryIcon name={category.icon} className="size-5" />}
-          </span>
-
-          {!item.available ? (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-rose-400/30 bg-rose-400/10 px-2.5 py-1 text-[10px] font-extrabold text-rose-300">
-              <Ban aria-hidden className="size-3" />
-              {sh.item.soldOut}
+          <div className="flex items-start justify-between gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gold-500/10 text-gold-500 ring-1 ring-gold-500/20 transition-colors duration-200 group-hover:bg-gold-500 group-hover:text-ink-950">
+              {category && <CategoryIcon name={category.icon} className="size-5" />}
             </span>
-          ) : (
-            item.best && (
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-gold-500 px-2.5 py-1 text-[10px] font-extrabold text-ink-950">
-                <Star aria-hidden className="size-3 fill-current" />
-                {t.menu.bestSeller}
-              </span>
-            )
-          )}
-        </div>
 
-        <div className="min-w-0">
-          <h3 className="text-pretty text-base font-extrabold leading-snug text-cream">
-            {name}
-          </h3>
-          {/* Opposite-language name. Bidi-isolated so a Latin name inside an
-              Arabic card cannot reorder the surrounding text. */}
-          <p
-            className={cn(
-              "mt-0.5 truncate text-xs text-muted-dim [unicode-bidi:isolate]",
-              lang === "ar" ? "font-en" : "font-ar"
+            {!item.available ? (
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-rose-400/30 bg-rose-400/10 px-2.5 py-1 text-[10px] font-extrabold text-rose-300">
+                <Ban aria-hidden className="size-3" />
+                {sh.item.soldOut}
+              </span>
+            ) : (
+              item.best && (
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-gold-500 px-2.5 py-1 text-[10px] font-extrabold text-ink-950">
+                  <Star aria-hidden className="size-3 fill-current" />
+                  {t.menu.bestSeller}
+                </span>
+              )
             )}
-          >
-            {secondary}
-          </p>
-        </div>
+          </div>
 
-        <div className="mt-auto pt-2">
-          {item.sizes ? (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <PriceChip
-                label={t.menu.sizeL}
-                value={item.sizes.L}
-                currency={t.currency}
-              />
-              <PriceChip
-                label={t.menu.sizeXL}
-                value={item.sizes.XL}
-                currency={t.currency}
-                highlight
-              />
-            </div>
-          ) : (
-            <p className="flex items-baseline gap-1.5">
-              <span className="font-en text-2xl font-extrabold text-gold-500 num">
-                {item.price}
-              </span>
-              <span className="text-xs font-bold text-muted">{t.currency}</span>
+          <div className="min-w-0">
+            <h3 className="text-pretty text-base font-extrabold leading-snug text-cream">
+              {name}
+            </h3>
+            {/* Opposite-language name. Bidi-isolated so a Latin name inside an
+                Arabic card cannot reorder the surrounding text. */}
+            <p
+              className={cn(
+                "mt-0.5 truncate text-xs text-muted-dim [unicode-bidi:isolate]",
+                lang === "ar" ? "font-en" : "font-ar"
+              )}
+            >
+              {secondary}
             </p>
-          )}
-        </div>
+          </div>
+
+          <div className="mt-auto pt-2">
+            {item.sizes ? (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <PriceChip
+                  label={t.menu.sizeL}
+                  value={item.sizes.L}
+                  currency={t.currency}
+                />
+                <PriceChip
+                  label={t.menu.sizeXL}
+                  value={item.sizes.XL}
+                  currency={t.currency}
+                  highlight
+                />
+              </div>
+            ) : (
+              <p className="flex items-baseline gap-1.5">
+                <span className="font-en text-2xl font-extrabold text-gold-500 num">
+                  {item.price}
+                </span>
+                <span className="text-xs font-bold text-muted">{t.currency}</span>
+              </p>
+            )}
+          </div>
         </div>
       </button>
 
@@ -180,9 +178,19 @@ export function MenuCard({
         <Plus aria-hidden className="size-4" />
         {item.available ? sh.item.addToCart : sh.item.soldOut}
       </button>
-    </motion.article>
+    </article>
   );
 }
+
+/**
+ * Memoised: the grid re-renders whenever a filter, the search box or the cart
+ * changes, and without this every visible card would re-render with it. `item`
+ * and `category` are stable object references from the server payload, and
+ * `onOpen` is a stable setState function, so the default shallow compare is
+ * enough.
+ */
+export const MenuCard = memo(MenuCardImpl);
+MenuCard.displayName = "MenuCard";
 
 function PriceChip({
   label,

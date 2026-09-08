@@ -1,8 +1,8 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
-import { Search, X, ArrowUpDown, SearchX, LayoutGrid } from "lucide-react";
+import { Search, X, ArrowUpDown, SearchX, LayoutGrid, ChevronDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { SEARCH_SUGGESTIONS } from "@/lib/dictionary";
 import type { CategoryDTO, MenuItemDTO } from "@/lib/menu-service";
@@ -40,6 +40,17 @@ export function Menu({
   const [selected, setSelected] = useState<MenuItemDTO | null>(null);
 
   const deferredQuery = useDeferredValue(query);
+
+  /**
+   * How many cards are mounted.
+   *
+   * Rendering all 166 at once put ~4,600 nodes in the DOM and made scrolling
+   * crawl. A page of 16 covers the fold on every breakpoint; the rest arrive on
+   * demand. This is capped mounting, not windowing — cards already revealed
+   * stay mounted, so scroll position never jumps.
+   */
+  const PAGE = 16;
+  const [visibleCount, setVisibleCount] = useState(PAGE);
 
   const catById = useMemo(
     () => new Map(categories.map((c) => [c.id, c])),
@@ -98,6 +109,16 @@ export function Menu({
     })),
   ];
 
+  // Any change to the result set starts the list over, so switching to a small
+  // category never leaves a stale "show more" count behind.
+  useEffect(() => {
+    setVisibleCount(PAGE);
+  }, [filter, deferredQuery, sort]);
+
+  const showMore = useCallback(() => {
+    setVisibleCount((n) => n + PAGE * 2);
+  }, []);
+
   function reset() {
     setQuery("");
     setFilter("all");
@@ -105,6 +126,13 @@ export function Menu({
   }
 
   const filtersActive = query !== "" || filter !== "all" || sort !== "default";
+
+  // Only this slice is mounted.
+  const visible = useMemo(
+    () => results.slice(0, visibleCount),
+    [results, visibleCount]
+  );
+  const remaining = results.length - visible.length;
 
   return (
     /* `isolate` creates a stacking context, so this section's z-indexes can
@@ -269,28 +297,42 @@ export function Menu({
 
         {/* Grid / empty state */}
         {results.length > 0 ? (
-          <motion.div
-            layout
-            className="mt-8 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-          >
-            <AnimatePresence mode="popLayout">
-              {results.map((item, i) => (
-                <MenuCard
-                  key={item.id}
-                  item={item}
-                  category={catById.get(item.cat)}
-                  index={i}
-                  onOpen={setSelected}
-                />
+          <>
+            {/* A plain grid. The previous version wrapped this in `layout` +
+                AnimatePresence popLayout, which asked Framer Motion to measure
+                and animate every card on each filter change — the main source
+                of the scroll jank. Cards now fade in with CSS. */}
+            <div className="mt-8 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {visible.map((item, i) => (
+                <div key={item.id} className="animate-card-in">
+                  <MenuCard
+                    item={item}
+                    category={catById.get(item.cat)}
+                    onOpen={setSelected}
+                    priority={i < 4}
+                  />
+                </div>
               ))}
-            </AnimatePresence>
-          </motion.div>
+            </div>
+
+            {remaining > 0 && (
+              <div className="mt-8 flex justify-center">
+                <button
+                  type="button"
+                  onClick={showMore}
+                  className="flex min-h-13 cursor-pointer items-center gap-2 rounded-2xl border border-ink-600 bg-ink-900/70 px-7 font-extrabold text-cream transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-500"
+                >
+                  <ChevronDown aria-hidden className="size-5" />
+                  {t.menu.showMore}
+                  <span className="rounded-lg bg-ink-800 px-2 py-0.5 font-en text-xs text-muted-dim num">
+                    {remaining}
+                  </span>
+                </button>
+              </div>
+            )}
+          </>
         ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-10 flex flex-col items-center gap-4 rounded-3xl border border-dashed border-ink-600 bg-ink-900/50 px-6 py-16 text-center"
-          >
+          <div className="animate-card-in mt-10 flex flex-col items-center gap-4 rounded-3xl border border-dashed border-ink-600 bg-ink-900/50 px-6 py-16 text-center">
             <span className="flex size-16 items-center justify-center rounded-2xl bg-ink-800 text-muted-dim">
               <SearchX aria-hidden className="size-8" />
             </span>
@@ -319,7 +361,7 @@ export function Menu({
                 </button>
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
 

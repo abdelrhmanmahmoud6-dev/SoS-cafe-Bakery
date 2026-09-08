@@ -5,7 +5,7 @@ import { Menu } from "@/components/Menu";
 import { Contact } from "@/components/Contact";
 import { Footer } from "@/components/Footer";
 import { CartDrawer } from "@/components/shop/CartDrawer";
-import { getMenu, getAddons } from "@/lib/menu-service";
+import { getMenu } from "@/lib/menu-service";
 
 /**
  * Incremental static regeneration rather than `force-dynamic`.
@@ -22,7 +22,11 @@ import { getMenu, getAddons } from "@/lib/menu-service";
 export const revalidate = 300;
 
 export default async function HomePage() {
-  const [menu, addons] = await Promise.all([getMenu(), getAddons()]);
+  const menu = await getMenu();
+
+  // Add-ons are already in the menu payload, so deriving them here saves a
+  // third round trip to Postgres on every render.
+  const addons = menu.items.filter((i) => i.cat === "addons" && i.available);
 
   return (
     <>

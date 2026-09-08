@@ -1,21 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import type { IconKey } from "@/lib/menu-data";
 import { cn } from "@/lib/utils";
 import { CategoryIcon } from "./CategoryIcon";
 
 /**
- * Product photo with a shimmer placeholder and a branded fallback.
+ * Product photo, served through next/image.
  *
- * Uses a plain <img> rather than next/image on purpose: image URLs are typed in
- * by an admin and can point anywhere, and routing arbitrary third-party URLs
- * through Next's optimiser turns this app into an open image proxy. A plain tag
- * fetches straight from the source with no server-side surface.
+ * Going through the optimiser gets AVIF/WebP, correctly sized variants and
+ * lazy loading for free — which matters a lot here, because the grid can show
+ * dozens of photos at once. The hosts it may load from are allow-listed in
+ * next.config.mjs so the optimiser can't be pointed at arbitrary URLs.
  *
- * Three states, so a slow photo never leaves a hole in the grid:
- *   loading  → shimmer sweep over the brand gradient
- *   loaded   → the photo, faded in
+ * Three states so a slow photo never leaves a hole in the grid:
+ *   loading → CSS pulse over the brand gradient (no JS, no layout shift)
+ *   loaded  → the photo, faded in
  *   missing / failed → the category icon on a warm gradient
  */
 export function ItemImage({
@@ -24,12 +25,16 @@ export function ItemImage({
   icon,
   className,
   iconClassName = "size-8",
+  sizes = "(max-width: 420px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw",
+  priority = false,
 }: {
   src: string | null | undefined;
   alt: string;
   icon: IconKey;
   className?: string;
   iconClassName?: string;
+  sizes?: string;
+  priority?: boolean;
 }) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -44,22 +49,27 @@ export function ItemImage({
     >
       {showImage ? (
         <>
-          {/* Skeleton: sits underneath until the photo decodes. The shimmer is
-              paused for reduced-motion users by the global rule in globals.css. */}
+          {/* Skeleton sits underneath until the photo decodes. A plain CSS
+              pulse rather than a JS animation, so 100+ of these cost nothing. */}
           {!loaded && (
-            <div aria-hidden className="absolute inset-0 animate-shimmer-sweep" />
+            <div
+              aria-hidden
+              className="absolute inset-0 animate-pulse bg-gradient-to-br from-ink-700 to-ink-800"
+            />
           )}
 
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={src as string}
             alt={alt}
-            loading="lazy"
-            decoding="async"
+            fill
+            sizes={sizes}
+            priority={priority}
+            // Everything below the first row is off-screen on load.
+            loading={priority ? undefined : "lazy"}
             onLoad={() => setLoaded(true)}
             onError={() => setFailed(true)}
             className={cn(
-              "size-full object-cover transition-all duration-500 group-hover:scale-105",
+              "object-cover transition-opacity duration-500",
               loaded ? "opacity-100" : "opacity-0"
             )}
           />

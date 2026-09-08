@@ -98,6 +98,13 @@
   100% { background-position: -200% 0; }
 }
 
+/* Card entrance. A compositor-only fade+lift, replacing the per-card Framer
+   Motion spring that used to run on every item in the grid. */
+@keyframes cardIn {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
 @keyframes marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
@@ -192,6 +199,10 @@
       linear-gradient(to right, color-mix(in oklab, var(--color-cream) 4%, transparent) 1px, transparent 1px),
       linear-gradient(to bottom, color-mix(in oklab, var(--color-cream) 4%, transparent) 1px, transparent 1px);
     background-size: 64px 64px;
+  }
+
+  .animate-card-in {
+    animation: cardIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .animate-shimmer-sweep {

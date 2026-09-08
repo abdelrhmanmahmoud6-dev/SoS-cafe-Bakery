@@ -26,10 +26,12 @@ function poolConfig(connectionString: string): PoolConfig {
   return {
     connectionString,
 
-    // A serverless invocation handles one request at a time, so a large pool
-    // just holds Neon connection slots open for nothing. 3 covers the
-    // Promise.all fan-out on the storefront (menu + add-ons) with room spare.
-    max: 3,
+    // 3 was too tight: several concurrent requests exhausted the pool and the
+    // 4th waited out connectionTimeoutMillis, surfacing as
+    // "timeout exceeded when trying to connect" — a pool-acquisition failure
+    // that looks exactly like a dead database. Idle sockets are handed back
+    // after 10s, so a higher ceiling costs nothing when traffic is light.
+    max: Number(process.env.DATABASE_POOL_MAX ?? 8),
 
     // Neon's scale-to-zero resume is usually well under a second but can take
     // a few. The pg default of 0 means "wait forever" — that is what turned a
