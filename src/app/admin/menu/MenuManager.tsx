@@ -25,9 +25,44 @@ import {
   toggleAvailability,
   type MenuItemInput,
 } from "@/app/actions/admin";
-import { cn, foldForSearch, formatEGP } from "@/lib/utils";
+import { cn, foldForSearch, formatEGP, isUsableImageUrl } from "@/lib/utils";
 
 type Category = { id: string; ar: string; en: string };
+
+/**
+ * Whether the file-upload route can actually store anything.
+ *
+ * /api/upload writes to the local filesystem, which is read-only on Vercel, so
+ * the button is hidden there instead of offering an action that can only fail.
+ * Set NEXT_PUBLIC_UPLOADS_ENABLED=1 once a blob store is wired up.
+ */
+const UPLOADS_ENABLED =
+  process.env.NEXT_PUBLIC_UPLOADS_ENABLED === "1" ||
+  !process.env.NEXT_PUBLIC_VERCEL_ENV;
+
+type MenuStrings = { [k: string]: string };
+
+function uploadErrorText(code: string, m: MenuStrings): string {
+  const map: Record<string, string | undefined> = {
+    STORAGE_NOT_CONFIGURED: m.uploadUnavailable,
+    TOO_LARGE: m.uploadTooLarge,
+    TYPE_NOT_ALLOWED: m.uploadBadType,
+    UNAUTHORISED: m.uploadUnauthorised,
+  };
+  return map[code] ?? m.uploadFailed;
+}
+
+function saveErrorText(code: string, m: MenuStrings): string {
+  const map: Record<string, string | undefined> = {
+    NAME_AR_REQUIRED: m.errNameAr,
+    NAME_EN_REQUIRED: m.errNameEn,
+    CATEGORY_REQUIRED: m.errCategory,
+    PRICE_REQUIRED: m.errPrice,
+    PRICE_INVALID: m.errPrice,
+    PRICE_AMBIGUOUS: m.errPrice,
+  };
+  return map[code] ?? m.errGeneric;
+}
 
 /**
  * Square image preview that degrades to a placeholder icon.
@@ -381,32 +416,53 @@ function ItemEditor({
 
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  /**
+   * Upload and save failures are tracked separately on purpose.
+   *
+   * They shared one `error` slot before, which is what made pasting a URL look
+   * broken: a failed upload set STORAGE_NOT_CONFIGURED, typing a URL did not
+   * clear it, and the banner sat there implying the URL had been rejected too.
+   * The two paths are independent — a pasted URL never touches storage — so
+   * their errors are now reported independently as well.
+   */
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   async function handleUpload(file: File) {
     setUploading(true);
-    setError(null);
+    setUploadError(null);
     try {
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       const json = await res.json();
       if (!res.ok) {
-        setError(json.error ?? "UPLOAD_FAILED");
+        setUploadError(json.error ?? "UPLOAD_FAILED");
         return;
       }
       setImageUrl(json.url);
     } catch {
-      setError("UPLOAD_FAILED");
+      setUploadError("UPLOAD_FAILED");
     } finally {
       setUploading(false);
     }
   }
 
+  /**
+   * Typing in the URL field clears any leftover upload complaint — the two are
+   * unrelated, and a stale storage error must never make a valid URL look
+   * rejected.
+   */
+  function changeImageUrl(next: string) {
+    setImageUrl(next);
+    if (uploadError) setUploadError(null);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    setError(null);
+    setSaveError(null);
 
     const payload: MenuItemInput = {
       id: item?.id,
@@ -430,10 +486,13 @@ function ItemEditor({
     if (res.ok && res.item) {
       onSaved(res.item);
     } else if (!res.ok) {
-      setError(res.error);
+      setSaveError(res.error);
     }
     setSaving(false);
   }
+
+  // Only complain once there is something to complain about.
+  const urlLooksWrong = imageUrl.trim() !== "" && !isUsableImageUrl(imageUrl);
 
   const inputClass =
     "h-12 w-full rounded-xl border border-ink-600 bg-ink-800 px-4 text-cream placeholder:text-muted-dim focus:border-gold-500/60 focus:outline-none";
@@ -556,32 +615,54 @@ function ItemEditor({
                 <UrlThumb key={imageUrl} url={imageUrl} />
 
                 <div className="flex flex-col gap-2">
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/avif"
-                    className="hidden"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) void handleUpload(f);
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    disabled={uploading}
-                    className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-ink-600 px-4 text-sm font-bold text-cream hover:border-gold-500/60 hover:text-gold-500 disabled:opacity-60"
-                  >
-                    {uploading ? <Loader2 aria-hidden className="size-4 animate-spin" /> : <Upload aria-hidden className="size-4" />}
-                    {uploading ? m.uploading : m.uploadImage}
-                  </button>
+                  {/* File upload writes to local disk, which does not exist on
+                      Vercel. Rather than offer a button that can only fail, it
+                      is hidden there and the URL field below carries the job. */}
+                  {UPLOADS_ENABLED ? (
+                    <>
+                      <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/avif"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) void handleUpload(f);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileRef.current?.click()}
+                        disabled={uploading}
+                        className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-ink-600 px-4 text-sm font-bold text-cream hover:border-gold-500/60 hover:text-gold-500 disabled:opacity-60"
+                      >
+                        {uploading ? <Loader2 aria-hidden className="size-4 animate-spin" /> : <Upload aria-hidden className="size-4" />}
+                        {uploading ? m.uploading : m.uploadImage}
+                      </button>
+                    </>
+                  ) : (
+                    <p className="max-w-56 text-xs leading-relaxed text-muted-dim">
+                      {m.uploadUnavailable}
+                    </p>
+                  )}
+
                   {imageUrl && (
-                    <button type="button" onClick={() => setImageUrl("")} className="min-h-11 cursor-pointer text-start text-xs font-bold text-muted-dim hover:text-rose-300">
+                    <button type="button" onClick={() => changeImageUrl("")} className="min-h-11 cursor-pointer text-start text-xs font-bold text-muted-dim hover:text-rose-300">
                       {m.removeImage}
                     </button>
                   )}
                 </div>
               </div>
+
+              {uploadError && (
+                <p
+                  role="alert"
+                  className="mt-2.5 flex items-start gap-2 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-xs font-semibold leading-relaxed text-amber-200"
+                >
+                  <AlertCircle aria-hidden className="mt-0.5 size-4 shrink-0" />
+                  {uploadErrorText(uploadError, m)}
+                </p>
+              )}
 
               {/* Paste a URL instead of uploading — the only route that works
                   on Vercel, where the filesystem is read-only. */}
@@ -595,12 +676,21 @@ function ItemEditor({
                   type="url"
                   inputMode="url"
                   value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
+                  onChange={(e) => changeImageUrl(e.target.value)}
                   placeholder="https://example.com/waffle.jpg"
-                  className={cn(inputClass, "font-en text-start")}
+                  className={cn(
+                    inputClass,
+                    "font-en text-start",
+                    urlLooksWrong && "border-amber-400/60"
+                  )}
                 />
-                <p className="mt-1.5 text-xs leading-relaxed text-muted-dim">
-                  {m.imageUrlHint}
+                <p
+                  className={cn(
+                    "mt-1.5 text-xs leading-relaxed",
+                    urlLooksWrong ? "text-amber-300" : "text-muted-dim"
+                  )}
+                >
+                  {urlLooksWrong ? m.imageUrlInvalid : m.imageUrlHint}
                 </p>
               </div>
             </div>
@@ -617,10 +707,10 @@ function ItemEditor({
               </label>
             </div>
 
-            {error && (
+            {saveError && (
               <p role="alert" className="mt-4 flex items-start gap-2 rounded-xl border border-rose-400/30 bg-rose-400/10 p-3.5 text-sm font-semibold text-rose-200">
                 <AlertCircle aria-hidden className="mt-0.5 size-4 shrink-0" />
-                {error}
+                {saveErrorText(saveError, m)}
               </p>
             )}
           </div>

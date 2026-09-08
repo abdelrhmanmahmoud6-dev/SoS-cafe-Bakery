@@ -1,18 +1,13 @@
+import { remoteImagePatterns } from "./image-hosts.mjs";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
 
   images: {
-    // Hosts the menu manager is allowed to load photos from. Deliberately an
-    // allow-list rather than a wildcard: `**` would let anyone with admin
-    // access point the optimiser at any URL on the internet, turning it into an
-    // open image proxy that we pay the bandwidth for.
-    remotePatterns: [
-      { protocol: "https", hostname: "images.unsplash.com" },
-      { protocol: "https", hostname: "plus.unsplash.com" },
-      { protocol: "https", hostname: "res.cloudinary.com" },
-      { protocol: "https", hostname: "**.public.blob.vercel-storage.com" },
-    ],
+    // Shared with the client so ItemImage knows which URLs can be optimised.
+    // Anything not listed still renders — as a plain <img> — see image-hosts.mjs.
+    remotePatterns: remoteImagePatterns,
     // Modern formats first; Next falls back automatically for older browsers.
     formats: ["image/avif", "image/webp"],
     // The card grid tops out around 400px wide, so there is no point

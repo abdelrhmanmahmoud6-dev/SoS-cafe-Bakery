@@ -95,3 +95,25 @@ export function timeAgo(iso: string, lang: "ar" | "en"): string {
   const days = Math.floor(hours / 24);
   return lang === "ar" ? `من ${days} يوم` : `${days}d ago`;
 }
+
+/**
+ * A URL the app can actually render an image from.
+ *
+ * Accepts absolute http(s) URLs and site-relative paths (locally uploaded files
+ * are served from /uploads/...). Everything else is rejected — notably
+ * `javascript:` and `data:`, which must never reach an <img src>.
+ */
+export function isUsableImageUrl(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith("/")) return true;
+  try {
+    const url = new URL(trimmed);
+    return (
+      (url.protocol === "https:" || url.protocol === "http:") &&
+      url.hostname !== ""
+    );
+  } catch {
+    return false;
+  }
+}

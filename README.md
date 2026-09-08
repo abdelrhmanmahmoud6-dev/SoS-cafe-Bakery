@@ -160,7 +160,35 @@ fall back to the category icon on a warm gradient if the URL is missing or
 broken — so a card is never an empty grey box.
 
 `MenuItem.imageUrl` renders on menu cards, in the item sheet and in the admin
-table. The manager accepts both an upload and a pasted URL — the URL field is
+table.
+
+### How a URL gets rendered
+
+`ItemImage` picks one of three paths per URL:
+
+1. **Host in the allow-list** (`image-hosts.mjs`) → `next/image`: AVIF/WebP,
+   sized variants, lazy loading.
+2. **Any other host** → a plain `<img>`. `next/image` *refuses* any host absent
+   from `remotePatterns`, and an admin can paste a link from anywhere. Serving
+   those unoptimised beats not serving them at all.
+3. **Missing, invalid or broken** → the category icon on a warm gradient.
+
+`image-hosts.mjs` is imported by both `next.config.mjs` and `ItemImage`, so the
+allow-list cannot drift between the two. Adding a host there upgrades it from
+path 2 to path 1. The list is not `**` on purpose: a wildcard would let anyone
+with admin access aim the optimiser at any URL, making it an open image proxy
+running on our bandwidth.
+
+### Upload vs URL
+
+They are independent. The URL field writes straight to the database and never
+touches storage. Upload and save failures are also reported separately — they
+shared one error slot before, so a failed upload left a `STORAGE_NOT_CONFIGURED`
+banner on screen that made a perfectly good pasted URL look rejected.
+
+The upload button is hidden where local disk cannot be written (Vercel), with a
+line pointing at the URL field instead of a button that can only fail. Set
+`NEXT_PUBLIC_UPLOADS_ENABLED=1` once a blob store is wired up. The manager accepts both an upload and a pasted URL — the URL field is
 the one that works on Vercel, where the filesystem is read-only.
 
 Images use a plain `<img>` rather than `next/image` on purpose: an admin can

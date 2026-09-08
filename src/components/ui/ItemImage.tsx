@@ -2,23 +2,39 @@
 
 import { useState } from "react";
 import Image from "next/image";
+// Shared with next.config.mjs so the allow-list can never drift.
+import { isOptimizedHost } from "../../../image-hosts.mjs";
 import type { IconKey } from "@/lib/menu-data";
-import { cn } from "@/lib/utils";
+import { cn, isUsableImageUrl } from "@/lib/utils";
 import { CategoryIcon } from "./CategoryIcon";
 
-/**
- * Product photo, served through next/image.
- *
- * Going through the optimiser gets AVIF/WebP, correctly sized variants and
- * lazy loading for free — which matters a lot here, because the grid can show
- * dozens of photos at once. The hosts it may load from are allow-listed in
- * next.config.mjs so the optimiser can't be pointed at arbitrary URLs.
- *
- * Three states so a slow photo never leaves a hole in the grid:
- *   loading → CSS pulse over the brand gradient (no JS, no layout shift)
- *   loaded  → the photo, faded in
- *   missing / failed → the category icon on a warm gradient
- */
+/* ============================================================================
+   Product photo.
+
+   Three rendering paths, picked per URL:
+
+     1. Allow-listed host  -> next/image, so we get AVIF/WebP, sized variants
+                              and lazy loading.
+     2. Any other host     -> a plain <img>. next/image REFUSES any host that is
+                              not in remotePatterns, and an admin can paste a
+                              link from anywhere; failing those would be worse
+                              than serving them unoptimised.
+     3. Missing / invalid / broken -> the category icon on a warm gradient.
+
+   Path 2 exists because of a real regression: switching the grid to next/image
+   with a four-host allow-list silently stopped rendering every image hosted
+   anywhere else.
+   ========================================================================== */
+
+function canOptimize(src: string): boolean {
+  if (src.startsWith("/")) return true; // served by us
+  try {
+    return isOptimizedHost(new URL(src).hostname);
+  } catch {
+    return false;
+  }
+}
+
 export function ItemImage({
   src,
   alt,
@@ -38,7 +54,11 @@ export function ItemImage({
 }) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
-  const showImage = Boolean(src) && !failed;
+
+  const url = typeof src === "string" ? src.trim() : "";
+  const usable = url !== "" && isUsableImageUrl(url);
+  const showImage = usable && !failed;
+  const optimized = showImage && canOptimize(url);
 
   return (
     <div
@@ -49,8 +69,8 @@ export function ItemImage({
     >
       {showImage ? (
         <>
-          {/* Skeleton sits underneath until the photo decodes. A plain CSS
-              pulse rather than a JS animation, so 100+ of these cost nothing. */}
+          {/* Skeleton underneath until the photo decodes. Plain CSS, so a
+              gridful of these costs nothing on the main thread. */}
           {!loaded && (
             <div
               aria-hidden
@@ -58,21 +78,38 @@ export function ItemImage({
             />
           )}
 
-          <Image
-            src={src as string}
-            alt={alt}
-            fill
-            sizes={sizes}
-            priority={priority}
-            // Everything below the first row is off-screen on load.
-            loading={priority ? undefined : "lazy"}
-            onLoad={() => setLoaded(true)}
-            onError={() => setFailed(true)}
-            className={cn(
-              "object-cover transition-opacity duration-500",
-              loaded ? "opacity-100" : "opacity-0"
-            )}
-          />
+          {optimized ? (
+            <Image
+              src={url}
+              alt={alt}
+              fill
+              sizes={sizes}
+              priority={priority}
+              loading={priority ? undefined : "lazy"}
+              onLoad={() => setLoaded(true)}
+              onError={() => setFailed(true)}
+              className={cn(
+                "object-cover transition-opacity duration-500",
+                loaded ? "opacity-100" : "opacity-0"
+              )}
+            />
+          ) : (
+            /* Host is not allow-listed. Serve it directly rather than not at
+               all — unoptimised, but visible. */
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={url}
+              alt={alt}
+              loading={priority ? "eager" : "lazy"}
+              decoding="async"
+              onLoad={() => setLoaded(true)}
+              onError={() => setFailed(true)}
+              className={cn(
+                "absolute inset-0 size-full object-cover transition-opacity duration-500",
+                loaded ? "opacity-100" : "opacity-0"
+              )}
+            />
+          )}
         </>
       ) : (
         <div
