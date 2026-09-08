@@ -331,9 +331,12 @@ export function OrdersBoard({ initial }: { initial: AdminOrder[] }) {
                     href={whatsappInvoiceLink(
                       {
                         code: order.code,
+                        customerName: order.customerName,
                         customerPhone: order.customerPhone,
                         orderType: order.orderType,
                         deliveryArea: order.deliveryArea,
+                        paymentMethod: order.paymentMethod,
+                        subtotal: order.subtotal,
                         deliveryFee: order.deliveryFee,
                         total: order.total,
                         items: order.items.map((i) => ({

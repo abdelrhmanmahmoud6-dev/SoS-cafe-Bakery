@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "./db";
-import type { IconKey } from "./menu-data";
+import type { CategoryId, IconKey } from "./menu-data";
+import { imageForCategory } from "./menu-images";
 
 /* ============================================================================
    Plain, serialisable shapes handed from server components to client
@@ -29,6 +30,14 @@ export interface CategoryDTO {
   icon: IconKey;
   blurbAr: string;
   blurbEn: string;
+  /**
+   * Thumbnail for the category rail.
+   *
+   * Resolved server-side so the rail never has to scan the whole item list in
+   * the browser: a best-seller's photo from that section if there is one, then
+   * any item photo, then the curated per-category fallback.
+   */
+  image: string;
 }
 
 export interface MenuPayload {
@@ -75,6 +84,23 @@ export function toItemDTO(row: DbItem): MenuItemDTO {
 }
 
 /**
+ * The photo that stands for a whole section in the category rail.
+ *
+ * Preferring a best-seller means the rail shows the thing the shop actually
+ * wants to sell, and using a real item photo keeps the rail honest — the
+ * curated stock shot is only reached when the section has no photography yet.
+ */
+function representativeImage(categoryId: string, items: MenuItemDTO[]): string {
+  const inCat = items.filter((i) => i.cat === categoryId && i.imageUrl);
+  const best = inCat.find((i) => i.best);
+  return (
+    best?.imageUrl ??
+    inCat[0]?.imageUrl ??
+    imageForCategory(categoryId as CategoryId)
+  );
+}
+
+/**
  * The public storefront menu. Unavailable items are still returned so they can
  * be shown greyed-out as "sold out" rather than vanishing — a missing item
  * reads as a bug to a returning customer.
@@ -99,6 +125,7 @@ export async function getMenu(): Promise<MenuPayload> {
       icon: c.icon as IconKey,
       blurbAr: c.blurbAr,
       blurbEn: c.blurbEn,
+      image: representativeImage(c.id, dtos),
     })),
     items: dtos,
     counts,

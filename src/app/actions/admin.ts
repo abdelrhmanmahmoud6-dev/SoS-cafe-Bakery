@@ -10,6 +10,7 @@ import {
   requireAdmin,
 } from "@/lib/auth";
 import { toItemDTO, type MenuItemDTO } from "@/lib/menu-service";
+import { normalizeImageUrl } from "@/lib/utils";
 
 /* ============================================================================
    AUTH
@@ -62,6 +63,19 @@ export type MutationResult =
   | { ok: true; item?: MenuItemDTO }
   | { ok: false; error: string };
 
+/**
+ * The image URL, ready for the database.
+ *
+ * Deliberately storage-agnostic: whatever the admin pasted is tidied up and
+ * written straight to Postgres. No disk write, no blob-store round trip and no
+ * capability check stands between the field and the row — which is what made
+ * the old flow surface STORAGE_NOT_CONFIGURED for URLs that never needed
+ * storage in the first place.
+ */
+function imageUrlForDb(input: MenuItemInput): string | null {
+  return normalizeImageUrl(input.imageUrl ?? "") || null;
+}
+
 function validateItem(input: MenuItemInput): string | null {
   if (!input.nameAr?.trim()) return "NAME_AR_REQUIRED";
   if (!input.nameEn?.trim()) return "NAME_EN_REQUIRED";
@@ -111,7 +125,7 @@ export async function createMenuItem(
       price: hasSizes ? null : Math.round(input.price!),
       priceL: hasSizes ? Math.round(input.priceL!) : null,
       priceXL: hasSizes ? Math.round(input.priceXL!) : null,
-      imageUrl: input.imageUrl || null,
+      imageUrl: imageUrlForDb(input),
       isBestSeller: input.isBestSeller ?? false,
       isAvailable: input.isAvailable ?? true,
       sortOrder: 9999,
@@ -145,7 +159,7 @@ export async function updateMenuItem(
         price: hasSizes ? null : Math.round(input.price!),
         priceL: hasSizes ? Math.round(input.priceL!) : null,
         priceXL: hasSizes ? Math.round(input.priceXL!) : null,
-        imageUrl: input.imageUrl ?? null,
+        imageUrl: imageUrlForDb(input),
         isBestSeller: input.isBestSeller ?? false,
         isAvailable: input.isAvailable ?? true,
       },

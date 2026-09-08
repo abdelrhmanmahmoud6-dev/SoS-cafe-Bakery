@@ -1,5 +1,6 @@
 import { STORE } from "./dictionary";
 import {
+  DELIVERY_AREA_LABELS,
   PAYMENT_LABELS,
   isCourierPriced,
   isWalletMethod,
@@ -109,20 +110,35 @@ export function buildWhatsAppMessage(order: OrderReceipt): string {
     `رقم الهاتف: ${order.customerPhone}`,
     `نوع الطلب: ${
       order.orderType === "DELIVERY"
-        ? `دليفري - العنوان: ${order.address?.trim() || "—"}`
-        : "استلام من الفرع"
+        ? `دليفري - العنوان: ${order.address?.trim() || "غير محدد"}${
+            order.deliveryArea
+              ? ` (${DELIVERY_AREA_LABELS[order.deliveryArea].ar})`
+              : ""
+          }`
+        : "استلام من الفرع (تيك أواي)"
     }`,
-    `طريقة الدفع: ${wallet ? "محفظة إلكترونية" : "كاش عند الاستلام"}`,
+    // Naming the exact wallet, not just "محفظة إلكترونية": the shop needs to
+    // know which account to check the transfer against.
+    `طريقة الدفع: ${
+      wallet
+        ? `محفظة إلكترونية - ${PAYMENT_LABELS[order.paymentMethod].ar}`
+        : "كاش عند الاستلام"
+    }`,
   ];
 
   if (wallet) {
-    head.push(`كود التحويل / رقم المحفظة: ${order.paymentRef?.trim() || "—"}`);
+    head.push(
+      `كود التحويل / رقم المحفظة: ${order.paymentRef?.trim() || "غير محدد"}`
+    );
   }
 
   head.push("", "الطلب:");
 
   const itemLines = order.items.map((item) => {
-    let out = `- ${item.nameAr}${sizeSuffix(item.size)} × ${item.quantity}`;
+    // "الكمية: 2" rather than "x 2": a Latin multiplication sign sitting inside
+    // an Arabic line gets reordered by the bidi algorithm in some WhatsApp
+    // builds and lands next to the wrong word.
+    let out = `- ${item.nameAr}${sizeSuffix(item.size)} - الكمية: ${item.quantity}`;
     if (item.addons.length > 0) {
       out += `${NL}  ${item.addons.map((a) => a.nameAr).join("، ")}`;
     }
@@ -130,7 +146,7 @@ export function buildWhatsAppMessage(order: OrderReceipt): string {
   });
 
   const fixedCost = encodeURIComponent(head.join(NL)).length + 400;
-  const rendered = fitLines(itemLines, fixedCost, (n) => `- … و ${n} صنف إضافي`);
+  const rendered = fitLines(itemLines, fixedCost, (n) => `- و ${n} صنف إضافي`);
 
   const tail: string[] = [];
   if (order.notes?.trim()) {
@@ -156,9 +172,12 @@ export function whatsappOrderLink(order: OrderReceipt): string {
 
 export interface InvoiceOrder {
   code: string;
+  customerName: string;
   customerPhone: string;
   orderType: string;
   deliveryArea: string | null;
+  paymentMethod: string;
+  subtotal: number;
   deliveryFee: number;
   total: number;
   items: { nameAr: string; quantity: number; lineTotal: number }[];
@@ -172,12 +191,17 @@ export function buildInvoiceMessage(
   const head = [
     "فاتورة طلب - SOS Bakery & Coffee",
     `رقم الطلب: #${order.code}`,
+    `العميل: ${order.customerName}`,
+    `نوع الطلب: ${order.orderType === "DELIVERY" ? "دليفري" : "استلام من الفرع"}`,
+    `طريقة الدفع: ${
+      PAYMENT_LABELS[order.paymentMethod as PaymentMethod]?.ar ?? "غير محدد"
+    }`,
     "",
     "تفاصيل الحساب:",
   ];
 
   const itemLines = order.items.map(
-    (i) => `- ${i.nameAr} × ${i.quantity} = ${i.lineTotal} ج.م`
+    (i) => `- ${i.nameAr} - الكمية: ${i.quantity} = ${i.lineTotal} ج.م`
   );
 
   const fixedCost = encodeURIComponent(head.join(NL)).length + 600;
@@ -189,6 +213,8 @@ export function buildInvoiceMessage(
   );
 
   const tail = [
+    "---------------------------------",
+    `إجمالي الأصناف: ${order.subtotal} ج.م`,
     // Outside the town the fee is settled with the courier, so quoting 0 here
     // would read as free delivery.
     `رسوم التوصيل: ${

@@ -117,3 +117,47 @@ export function isUsableImageUrl(value: string): boolean {
     return false;
   }
 }
+
+/**
+ * Cleans up a pasted image URL so it can be stored and rendered as-is.
+ *
+ * The menu manager's URL field is the primary way pictures get onto the site —
+ * it writes straight to Postgres and never touches a blob store — so it has to
+ * cope with what people actually paste:
+ *
+ *   - surrounding whitespace, quotes or angle brackets, picked up when copying
+ *     out of a chat message or a bit of HTML;
+ *   - a Google Drive *sharing* page, which serves HTML, not an image;
+ *   - a Dropbox share link, which does the same unless `raw=1` is asked for.
+ *
+ * Anything it does not recognise is returned trimmed and otherwise untouched —
+ * this normalises, it never rejects. Validation is `isUsableImageUrl`'s job.
+ */
+export function normalizeImageUrl(value: string): string {
+  const trimmed = value.trim().replace(/^[<'"`]+|[>'"`]+$/g, "").trim();
+  if (!trimmed) return "";
+
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    return trimmed; // site-relative path, or something we cannot parse
+  }
+
+  // Google Drive share links -> the direct-content host, which is also on the
+  // image-optimiser allow-list.
+  if (url.hostname === "drive.google.com") {
+    const fromPath = url.pathname.match(/\/file\/d\/([^/]+)/)?.[1];
+    const id = fromPath ?? url.searchParams.get("id");
+    if (id) return `https://lh3.googleusercontent.com/d/${id}`;
+  }
+
+  // Dropbox share links serve a preview page without this.
+  if (url.hostname.endsWith("dropbox.com")) {
+    url.searchParams.delete("dl");
+    url.searchParams.set("raw", "1");
+    return url.toString();
+  }
+
+  return trimmed;
+}

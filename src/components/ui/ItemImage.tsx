@@ -43,6 +43,7 @@ export function ItemImage({
   iconClassName = "size-8",
   sizes = "(max-width: 420px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw",
   priority = false,
+  as: Tag = "div",
 }: {
   src: string | null | undefined;
   alt: string;
@@ -51,6 +52,11 @@ export function ItemImage({
   iconClassName?: string;
   sizes?: string;
   priority?: boolean;
+  /**
+   * Wrapper element. The category rail nests this inside a <button>, which may
+   * only contain phrasing content, so it renders as a <span> there.
+   */
+  as?: "div" | "span";
 }) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -61,9 +67,9 @@ export function ItemImage({
   const optimized = showImage && canOptimize(url);
 
   return (
-    <div
+    <Tag
       className={cn(
-        "relative overflow-hidden bg-gradient-to-br from-ink-800 to-ink-900",
+        "relative block overflow-hidden bg-gradient-to-br from-ink-800 to-ink-900",
         className
       )}
     >
@@ -72,7 +78,7 @@ export function ItemImage({
           {/* Skeleton underneath until the photo decodes. Plain CSS, so a
               gridful of these costs nothing on the main thread. */}
           {!loaded && (
-            <div
+            <span
               aria-hidden
               className="absolute inset-0 animate-pulse bg-gradient-to-br from-ink-700 to-ink-800"
             />
@@ -112,13 +118,13 @@ export function ItemImage({
           )}
         </>
       ) : (
-        <div
+        <span
           aria-hidden
           className="flex size-full items-center justify-center bg-[radial-gradient(120%_120%_at_50%_0%,rgb(254_229_0/0.14),transparent_70%)] text-gold-500/70"
         >
           <CategoryIcon name={icon} className={iconClassName} strokeWidth={1.5} />
-        </div>
+        </span>
       )}
-    </div>
+    </Tag>
   );
 }

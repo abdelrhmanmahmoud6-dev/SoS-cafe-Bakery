@@ -25,7 +25,13 @@ import {
   toggleAvailability,
   type MenuItemInput,
 } from "@/app/actions/admin";
-import { cn, foldForSearch, formatEGP, isUsableImageUrl } from "@/lib/utils";
+import {
+  cn,
+  foldForSearch,
+  formatEGP,
+  isUsableImageUrl,
+  normalizeImageUrl,
+} from "@/lib/utils";
 
 type Category = { id: string; ar: string; en: string };
 
@@ -459,6 +465,17 @@ function ItemEditor({
     if (uploadError) setUploadError(null);
   }
 
+  /**
+   * Tidy the URL once the admin leaves the field, not on every keystroke —
+   * rewriting text under a cursor mid-typing is hostile. Trims stray quotes and
+   * turns a Drive or Dropbox *share* page into the direct-image link, so the
+   * preview above updates to the picture that will actually be stored.
+   */
+  function settleImageUrl() {
+    const cleaned = normalizeImageUrl(imageUrl);
+    if (cleaned !== imageUrl) setImageUrl(cleaned);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -677,6 +694,7 @@ function ItemEditor({
                   inputMode="url"
                   value={imageUrl}
                   onChange={(e) => changeImageUrl(e.target.value)}
+                  onBlur={settleImageUrl}
                   placeholder="https://example.com/waffle.jpg"
                   className={cn(
                     inputClass,

@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
-import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
-import { Search, X, ArrowUpDown, SearchX, LayoutGrid, ChevronDown } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Search, X, ArrowUpDown, SearchX, ChevronDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { SEARCH_SUGGESTIONS } from "@/lib/dictionary";
 import type { CategoryDTO, MenuItemDTO } from "@/lib/menu-service";
 import { cn, foldForSearch } from "@/lib/utils";
 import { Reveal, SectionHeading, AmbientShapes } from "./ui/Motion";
-import { CategoryIcon } from "./ui/CategoryIcon";
+import { CategoryRail, type RailTile } from "./menu/CategoryRail";
 import { MenuCard } from "./MenuCard";
 import { ItemSheet } from "./shop/ItemSheet";
 
@@ -89,25 +89,35 @@ export function Menu({
     return list;
   }, [items, catById, filter, deferredQuery, sort, lang]);
 
-  const tabs: {
-    id: Filter;
-    label: string;
-    count: number;
-    icon: React.ReactNode;
-  }[] = [
-    {
-      id: "all",
-      label: t.menu.all,
-      count: items.length,
-      icon: <LayoutGrid aria-hidden className="size-4" />,
-    },
-    ...categories.map((c) => ({
-      id: c.id as Filter,
-      label: lang === "ar" ? c.ar : c.en,
-      count: counts[c.id] ?? 0,
-      icon: <CategoryIcon name={c.icon} className="size-4" />,
-    })),
-  ];
+  /**
+   * Rail tiles.
+   *
+   * Memoised because the rail is memoised: rebuilding this array on every
+   * keystroke in the search box would hand `CategoryRail` a fresh prop each
+   * time and re-render fifteen photo cards for nothing.
+   */
+  const tiles = useMemo<RailTile[]>(
+    () => [
+      {
+        id: "all",
+        label: t.menu.all,
+        count: items.length,
+        image: null,
+        icon: "coffee",
+      },
+      ...categories.map((c) => ({
+        id: c.id,
+        label: lang === "ar" ? c.ar : c.en,
+        count: counts[c.id] ?? 0,
+        image: c.image,
+        icon: c.icon,
+      })),
+    ],
+    [categories, counts, items.length, lang, t.menu.all]
+  );
+
+  // Stable identity, for the same reason as `tiles`.
+  const selectCategory = useCallback((id: string) => setFilter(id as Filter), []);
 
   // Any change to the result set starts the list over, so switching to a small
   // category never leaves a stale "show more" count behind.
@@ -219,61 +229,15 @@ export function Menu({
           </div>
         </Reveal>
 
-        {/* Category rail — its own bounded panel, so the pills can never bleed
-            into the row above or the results counter below. */}
+        {/* Category rail — a photo strip, in its own bounded panel so the
+            cards can never bleed into the row above or the counter below. */}
         <Reveal delay={0.16} className="mt-4">
           <div className="relative rounded-2xl border border-ink-700/70 bg-ink-900/40 p-2">
-            <div
-              role="tablist"
-              aria-label={t.menu.categoryLabel}
-              className="rail-scroll flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0"
-            >
-              <LayoutGroup id="menu-tabs">
-                {tabs.map((tab) => {
-                  const isActive = filter === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      role="tab"
-                      type="button"
-                      aria-selected={isActive}
-                      aria-label={t.a11y.selectCategory(tab.label)}
-                      onClick={() => setFilter(tab.id)}
-                      className={cn(
-                        "relative isolate flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-xl px-4 text-sm font-bold transition-colors duration-200",
-                        isActive
-                          ? "text-ink-950"
-                          : "border border-ink-700 bg-ink-900/60 text-muted hover:border-ink-600 hover:text-cream"
-                      )}
-                    >
-                      {isActive && (
-                        <motion.span
-                          layoutId="menu-tab-pill"
-                          className="absolute inset-0 -z-10 rounded-xl bg-gold-500"
-                          transition={{
-                            type: "spring",
-                            stiffness: 420,
-                            damping: 36,
-                          }}
-                        />
-                      )}
-                      {tab.icon}
-                      <span className="whitespace-nowrap">{tab.label}</span>
-                      <span
-                        className={cn(
-                          "rounded-md px-1.5 py-0.5 font-en text-[10px] font-extrabold num",
-                          isActive
-                            ? "bg-ink-950/15 text-ink-950"
-                            : "bg-ink-800 text-muted-dim"
-                        )}
-                      >
-                        {tab.count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </LayoutGroup>
-            </div>
+            <CategoryRail
+              tiles={tiles}
+              active={filter}
+              onSelect={selectCategory}
+            />
           </div>
         </Reveal>
 
@@ -298,11 +262,19 @@ export function Menu({
         {/* Grid / empty state */}
         {results.length > 0 ? (
           <>
-            {/* A plain grid. The previous version wrapped this in `layout` +
-                AnimatePresence popLayout, which asked Framer Motion to measure
-                and animate every card on each filter change — the main source
-                of the scroll jank. Cards now fade in with CSS. */}
-            <div className="mt-8 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {/* Switching sections animates ONE element — the grid — rather
+                than every card in it. An earlier version wrapped each card in
+                `layout` + AnimatePresence popLayout, which made Framer Motion
+                measure a hundred-plus nodes per filter change and was the main
+                source of the scroll jank. The `key` restarts this transition on
+                each section change; cards themselves still fade in with CSS. */}
+            <motion.div
+              key={filter}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-8 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            >
               {visible.map((item, i) => (
                 <div key={item.id} className="animate-card-in">
                   <MenuCard
@@ -313,7 +285,7 @@ export function Menu({
                   />
                 </div>
               ))}
-            </div>
+            </motion.div>
 
             {remaining > 0 && (
               <div className="mt-8 flex justify-center">
