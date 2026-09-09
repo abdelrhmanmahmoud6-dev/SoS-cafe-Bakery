@@ -43,9 +43,9 @@ export function Logo({
         <path id={arcTop} d="M 26 100 A 74 74 0 0 1 174 100" fill="none" />
         <path id={ring} d="M 100 178 A 78 78 0 0 0 100 22" fill="none" />
         <linearGradient id={`g-${uid}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#ECFF9B" />
-          <stop offset="55%" stopColor="#DFFF3C" />
-          <stop offset="100%" stopColor="#C9F016" />
+          <stop offset="0%" stopColor="#FEEE7A" />
+          <stop offset="55%" stopColor="#FACC15" />
+          <stop offset="100%" stopColor="#EAB308" />
         </linearGradient>
       </defs>
 

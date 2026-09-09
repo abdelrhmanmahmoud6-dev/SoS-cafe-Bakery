@@ -71,7 +71,7 @@ export function About({ counts }: { counts: Record<string, number> }) {
                       className="pointer-events-none absolute -inset-px rounded-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                       style={{
                         background:
-                          "radial-gradient(400px circle at 50% 0%, rgb(223 255 60 / 0.10), transparent 60%)",
+                          "radial-gradient(400px circle at 50% 0%, rgb(250 204 21 / 0.10), transparent 60%)",
                       }}
                     />
 

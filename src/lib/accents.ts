@@ -15,14 +15,14 @@
    Every value below clears 4.5:1 against ink-950 when used as text.
    ========================================================================== */
 
-/** Fallback for any category id not listed — the house lime. */
-export const DEFAULT_ACCENT = "#DFFF3C";
+/** Fallback for any category id not listed — the house neon yellow. */
+export const DEFAULT_ACCENT = "#FACC15";
 
 const ACCENTS: Record<string, string> = {
-  // Coffee stays on the house lime: it is the anchor of the brand.
-  "hot-coffee": "#DFFF3C",
-  "ice-coffee": "#DFFF3C",
-  "mix-sos": "#DFFF3C",
+  // Coffee stays on the house neon yellow: it is the anchor of the brand.
+  "hot-coffee": "#FACC15",
+  "ice-coffee": "#FACC15",
+  "mix-sos": "#FACC15",
 
   // Creamy and blended — lavender.
   frappe: "#B9A7FF",

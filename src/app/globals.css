@@ -8,36 +8,38 @@
    ---------------------------------------------------------------------------
    DESIGN DIRECTION — "neon bakery"
 
-   Obsidian base, acid-lime primary, pastel accents per menu section.
+   Obsidian base, neon-yellow primary, pastel accents per menu section.
 
    The neutral ramp is NOT grey: every step carries a slight violet undertone
    (hue ~260). Flat grey reads as unfinished on a dark screen, whereas a tinted
    near-black reads as deliberate and lets a saturated accent sit on top without
    the two fighting.
 
-   The primary ramp is still named `gold-*`. That is on purpose: 270 usages
+   The primary ramp is still named `gold-*`. That is on purpose: ~270 usages
    across 23 files — the admin panel included — already point at it, so
    retuning the ramp in place restyles the whole product coherently instead of
-   leaving two palettes half-applied. The hue moved from #FEE500 (golden) to
-   #DFFF3C (acid lime-yellow); it is adjacent enough that the logo still sits
-   comfortably beside it.
+   leaving two palettes half-applied. The hue is now neon yellow (#FACC15).
 
    Pastel accents (lavender / peach / aqua / blush) are mapped per category in
    src/lib/accents.ts, so a waffle card glows peach and a mojito glows aqua.
    ========================================================================== */
 
 @theme {
-  /* ---- Brand: Acid Lime (primary accent) ------------------------------- */
-  --color-gold-50: #FBFFEB;
-  --color-gold-100: #F4FFC7;
-  --color-gold-200: #ECFF9B;
-  --color-gold-300: #E6FF6B;
-  --color-gold-400: #E3FF4A;
-  --color-gold-500: #DFFF3C; /* primary — neon cyber lime */
-  --color-gold-600: #C9F016; /* deeper, for gradients and pressed states */
-  --color-gold-700: #A3C400;
-  --color-gold-800: #78900A;
-  --color-gold-900: #47560B;
+  /* ---- Brand: Neon Yellow (primary accent) -----------------------------
+     Centred on #FACC15. The steps either side of it are pushed brighter and
+     more saturated than a stock yellow ramp (#FFE712 at 400) so glows and
+     active states read as electric rather than golden — the 500 stays exactly
+     #FACC15 because that is the colour every surface is matched against. */
+  --color-gold-50: #FEFCE8;
+  --color-gold-100: #FEF7B8;
+  --color-gold-200: #FEEE7A;
+  --color-gold-300: #FDE047;
+  --color-gold-400: #FFE712; /* electric — glows and hover lifts */
+  --color-gold-500: #FACC15; /* primary — neon yellow */
+  --color-gold-600: #EAB308; /* deeper, for gradients and pressed states */
+  --color-gold-700: #CA8A04;
+  --color-gold-800: #A16207;
+  --color-gold-900: #713F12;
 
   /* ---- Obsidian neutrals (violet-tinted, never flat grey) -------------- */
   --color-ink-950: #07070B; /* page background */
@@ -105,8 +107,8 @@
   /* ---- Elevation + brand glows ----------------------------------------- */
   --shadow-card: 0 4px 24px -6px rgb(0 0 0 / 0.6);
   --shadow-float: 0 18px 50px -12px rgb(0 0 0 / 0.75);
-  --shadow-glow: 0 0 0 1px rgb(223 255 60 / 0.24), 0 8px 32px -8px rgb(223 255 60 / 0.3);
-  --shadow-glow-lg: 0 0 0 1px rgb(223 255 60 / 0.38), 0 14px 48px -10px rgb(223 255 60 / 0.45);
+  --shadow-glow: 0 0 0 1px rgb(250 204 21 / 0.28), 0 8px 32px -8px rgb(250 204 21 / 0.34);
+  --shadow-glow-lg: 0 0 0 1px rgb(250 204 21 / 0.42), 0 14px 48px -10px rgb(250 204 21 / 0.5);
 
   /* ---- Motion timing --------------------------------------------------- */
   --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
@@ -306,7 +308,7 @@
   }
 
   .text-gradient-gold {
-    background: linear-gradient(100deg, #ECFF9B 0%, #DFFF3C 38%, #C9F016 62%, #A3C400 100%);
+    background: linear-gradient(100deg, #FEEE7A 0%, #FFE712 34%, #FACC15 62%, #EAB308 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -314,7 +316,7 @@
 
   /* Headline gradient that sweeps through the pastel accents. */
   .text-gradient-pop {
-    background: linear-gradient(100deg, #DFFF3C 0%, #B9A7FF 42%, #FFAE8F 74%, #DFFF3C 100%);
+    background: linear-gradient(100deg, #FACC15 0%, #B9A7FF 42%, #FFAE8F 74%, #FACC15 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;

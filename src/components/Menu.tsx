@@ -1,13 +1,18 @@
 "use client";
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, type Variants } from "framer-motion";
 import { Search, X, ArrowUpDown, SearchX, ChevronDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { SEARCH_SUGGESTIONS } from "@/lib/dictionary";
 import type { CategoryDTO, MenuItemDTO } from "@/lib/menu-service";
 import { cn, foldForSearch } from "@/lib/utils";
-import { Reveal, SectionHeading, AmbientShapes } from "./ui/Motion";
+import {
+  Reveal,
+  SectionHeading,
+  AmbientShapes,
+  cardEnter,
+} from "./ui/Motion";
 import { CategoryRail, type RailTile } from "./menu/CategoryRail";
 import { MenuCard } from "./MenuCard";
 import { ItemSheet } from "./shop/ItemSheet";
@@ -20,6 +25,34 @@ function minPrice(i: MenuItemDTO): number {
 }
 function maxPrice(i: MenuItemDTO): number {
   return i.sizes ? i.sizes.XL : (i.price ?? 0);
+}
+
+/**
+ * Container variant for the card grid.
+ *
+ * `delayChildren` gives the container's own fade a beat before the cards start
+ * arriving, so the two reads as one gesture rather than a race. The stagger is
+ * small (35ms): anything slower and the last card in a 16-card page lands over
+ * half a second late, which feels sluggish rather than choreographed.
+ */
+const gridStagger: Variants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.035, delayChildren: 0.04 },
+  },
+};
+
+/**
+ * Which cards become double-width bento tiles.
+ *
+ * Only best-sellers, only in the first two rows, and never two in a row — a
+ * grid where half the tiles are wide is just a grid with two column widths.
+ * Index-based rather than random so the layout is stable across re-renders and
+ * identical between server and client.
+ */
+function isHeroTile(item: MenuItemDTO, index: number): boolean {
+  return item.best && index < 8 && index % 5 === 0;
 }
 
 export function Menu({
@@ -262,28 +295,38 @@ export function Menu({
         {/* Grid / empty state */}
         {results.length > 0 ? (
           <>
-            {/* Switching sections animates ONE element — the grid — rather
-                than every card in it. An earlier version wrapped each card in
-                `layout` + AnimatePresence popLayout, which made Framer Motion
-                measure a hundred-plus nodes per filter change and was the main
-                source of the scroll jank. The `key` restarts this transition on
-                each section change; cards themselves still fade in with CSS. */}
+            {/* Section switch.
+
+                The whole grid is re-keyed on `filter`, so React unmounts the
+                old page and mounts the new one; the container's `show` variant
+                then staggers its children in. That is what makes a category
+                change read as a wave of cards arriving rather than a hard cut,
+                and it costs 16 spring animations — the page cap — not 166.
+
+                Framer's `layout` is still deliberately absent: it measures
+                every participating node on each commit, and removing it from
+                this grid is what fixed the scroll jank in the first place. */}
             <motion.div
               key={filter}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-8 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              variants={gridStagger}
+              initial="hidden"
+              animate="show"
+              className="mt-8 grid auto-rows-auto grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             >
               {visible.map((item, i) => (
-                <div key={item.id} className="animate-card-in">
+                <motion.div
+                  key={item.id}
+                  variants={cardEnter}
+                  className={cn(isHeroTile(item, i) && "sm:col-span-2")}
+                >
                   <MenuCard
                     item={item}
                     category={catById.get(item.cat)}
                     onOpen={setSelected}
                     priority={i < 4}
+                    wide={isHeroTile(item, i)}
                   />
-                </div>
+                </motion.div>
               ))}
             </motion.div>
 

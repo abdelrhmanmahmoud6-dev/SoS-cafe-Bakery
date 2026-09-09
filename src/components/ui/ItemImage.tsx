@@ -120,7 +120,7 @@ export function ItemImage({
       ) : (
         <span
           aria-hidden
-          className="flex size-full items-center justify-center bg-[radial-gradient(120%_120%_at_50%_0%,rgb(223_255_60/0.14),transparent_70%)] text-gold-500/70"
+          className="flex size-full items-center justify-center bg-[radial-gradient(120%_120%_at_50%_0%,rgb(250_204_21/0.14),transparent_70%)] text-gold-500/70"
         >
           <CategoryIcon name={icon} className={iconClassName} strokeWidth={1.5} />
         </span>

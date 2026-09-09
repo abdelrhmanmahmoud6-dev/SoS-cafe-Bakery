@@ -8,6 +8,7 @@ import type { IconKey } from "@/lib/menu-data";
 import { accentStyle } from "@/lib/accents";
 import { cn } from "@/lib/utils";
 import { ItemImage } from "../ui/ItemImage";
+import { SPRING_POP, SPRING_TRAVEL } from "../ui/Motion";
 
 /* ============================================================================
    CATEGORY RAIL
@@ -297,24 +298,28 @@ function RailCardImpl({
       aria-selected={isActive}
       aria-label={t.a11y.selectCategory(tile.label)}
       onClick={() => onSelect(tile.id)}
-      // Entrance only. The stagger is capped so the last card in a long menu
-      // does not arrive half a second after the first.
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.3,
-        delay: Math.min(index * 0.03, 0.36),
-        ease: [0.22, 1, 0.36, 1],
-      }}
-      className={cn(
-        "group relative w-30 shrink-0 snap-start cursor-pointer rounded-3xl text-start outline-none sm:w-34",
+      // Entrance staggers in; scale and lift are then driven by state, so the
+      // selected tile springs up rather than easing. The stagger is capped so
+      // the last tile in a long menu does not arrive half a second late.
+      initial={{ opacity: 0, y: 14, scale: 0.92 }}
+      animate={{
+        opacity: 1,
+        y: isActive ? -4 : 0,
         // Scale, not just lift: the active section grows out of the rail so it
         // reads as selected from the corner of the eye, mid-scroll.
-        "transition-transform duration-300 ease-out will-change-transform",
-        isActive
-          ? "scale-105"
-          : "hover:-translate-y-1.5 hover:scale-[1.03] focus-visible:-translate-y-1.5",
-        "active:scale-95"
+        scale: isActive ? 1.07 : 1,
+      }}
+      whileHover={isActive ? undefined : { y: -6, scale: 1.04 }}
+      whileTap={{ scale: 0.94 }}
+      transition={{
+        ...SPRING_POP,
+        delay: Math.min(index * 0.028, 0.34),
+      }}
+      className={cn(
+        "group relative w-30 shrink-0 snap-start cursor-pointer rounded-3xl text-start outline-none will-change-transform sm:w-34",
+        // Selected tile sits above its neighbours so the glow is never clipped
+        // by the card that follows it in the track.
+        isActive && "z-10"
       )}
       style={accentStyle(tile.id)}
     >
@@ -324,7 +329,7 @@ function RailCardImpl({
         <motion.span
           aria-hidden
           layoutId="category-rail-active"
-          transition={{ type: "spring", stiffness: 420, damping: 34 }}
+          transition={SPRING_TRAVEL}
           className="glow-accent pointer-events-none absolute -inset-1 z-20 rounded-[1.6rem]"
         />
       )}
@@ -344,7 +349,7 @@ function RailCardImpl({
             sizes="(max-width: 640px) 120px, 136px"
           />
         ) : (
-          <span className="flex aspect-[4/5] w-full items-center justify-center bg-[radial-gradient(120%_120%_at_50%_0%,rgb(223_255_60/0.24),transparent_70%)] text-gold-500">
+          <span className="flex aspect-[4/5] w-full items-center justify-center bg-[radial-gradient(120%_120%_at_50%_0%,rgb(250_204_21/0.24),transparent_70%)] text-gold-500">
             <LayoutGrid aria-hidden className="size-8" strokeWidth={1.5} />
           </span>
         )}

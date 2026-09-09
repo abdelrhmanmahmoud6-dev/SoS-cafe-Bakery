@@ -44,6 +44,49 @@ export const scaleIn: Variants = {
   },
 };
 
+/* -------------------------------------------------------------------------- */
+/*  Spring presets                                                            */
+/*                                                                            */
+/*  Three springs, used everywhere, so motion across the product feels like    */
+/*  one hand made it. Tuned rather than picked: `damping` sits just below      */
+/*  critical on POP so it overshoots once and settles — that single overshoot  */
+/*  is what reads as "satisfying" instead of "wobbly".                         */
+/* -------------------------------------------------------------------------- */
+
+/** Snappy overshoot. Presses, badges, quick-add. */
+export const SPRING_POP = {
+  type: "spring" as const,
+  stiffness: 520,
+  damping: 24,
+  mass: 0.6,
+};
+
+/** Softer, heavier. Hover lifts and card entrances. */
+export const SPRING_SOFT = {
+  type: "spring" as const,
+  stiffness: 300,
+  damping: 28,
+  mass: 0.8,
+};
+
+/** Tight and fast, for elements that travel between positions. */
+export const SPRING_TRAVEL = {
+  type: "spring" as const,
+  stiffness: 420,
+  damping: 34,
+};
+
+/** Card entrance used by the menu grid — lifts, scales and fades in together. */
+export const cardEnter: Variants = {
+  hidden: { opacity: 0, y: 24, scale: 0.96 },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: SPRING_SOFT,
+  },
+};
+
 /** Parent container that staggers its children on scroll-in. */
 export function staggerContainer(stagger = 0.08, delayChildren = 0): Variants {
   return {
@@ -232,8 +275,10 @@ export function MagneticButton({
 
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
-  const sx = useSpring(mx, { stiffness: 260, damping: 20, mass: 0.5 });
-  const sy = useSpring(my, { stiffness: 260, damping: 20, mass: 0.5 });
+  // Looser than SPRING_SOFT on purpose: a magnetic pull that settles instantly
+  // stops reading as magnetic. The trailing wobble is the whole effect.
+  const sx = useSpring(mx, { stiffness: 220, damping: 18, mass: 0.55 });
+  const sy = useSpring(my, { stiffness: 220, damping: 18, mass: 0.55 });
 
   function handleMove(e: MouseEvent<HTMLElement>) {
     if (reduce || !ref.current) return;
@@ -252,7 +297,9 @@ export function MagneticButton({
     style: { x: sx, y: sy },
     onMouseMove: handleMove,
     onMouseLeave: reset,
-    whileTap: { scale: 0.96 },
+    whileHover: reduce ? undefined : { scale: 1.04 },
+    whileTap: { scale: 0.92 },
+    transition: SPRING_POP,
     "aria-label": ariaLabel,
   };
 
@@ -293,13 +340,13 @@ export function AmbientShapes({ dense = false }: { dense?: boolean }) {
     ? [
         // Four hues, not four tints of one: the drifting colour behind the
         // page is where the palette gets introduced before any UI states it.
-        { x: "8%", y: "12%", s: 340, c: "rgb(223 255 60 / 0.15)", d: 0 },
+        { x: "8%", y: "12%", s: 340, c: "rgb(250 204 21 / 0.16)", d: 0 },
         { x: "78%", y: "8%", s: 280, c: "rgb(185 167 255 / 0.16)", d: 1.4 },
         { x: "62%", y: "62%", s: 400, c: "rgb(255 174 143 / 0.12)", d: 2.6 },
         { x: "16%", y: "72%", s: 250, c: "rgb(94 234 212 / 0.11)", d: 3.4 },
       ]
     : [
-        { x: "12%", y: "18%", s: 300, c: "rgb(223 255 60 / 0.10)", d: 0 },
+        { x: "12%", y: "18%", s: 300, c: "rgb(250 204 21 / 0.11)", d: 0 },
         { x: "80%", y: "60%", s: 340, c: "rgb(185 167 255 / 0.10)", d: 2 },
       ];
 

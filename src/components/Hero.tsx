@@ -58,7 +58,7 @@ export function Hero({
       <div aria-hidden className="ambient-grid pointer-events-none absolute inset-0 opacity-45 mask-fade-b" />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-40 h-96 bg-[radial-gradient(60%_100%_at_50%_0%,rgb(223_255_60/0.16),transparent_70%)]"
+        className="pointer-events-none absolute inset-x-0 -top-40 h-96 bg-[radial-gradient(60%_100%_at_50%_0%,rgb(250_204_21/0.16),transparent_70%)]"
       />
 
       <motion.div style={{ y, opacity }} className="relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-8">
@@ -74,7 +74,7 @@ export function Hero({
               animate={reduce ? undefined : { y: [0, -10, 0] }}
               transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
             >
-              <Logo size={104} className="drop-shadow-[0_10px_44px_rgba(223,255,60,0.32)]" />
+              <Logo size={104} className="drop-shadow-[0_10px_44px_rgba(250,204,21,0.36)]" />
             </motion.div>
 
             <motion.span

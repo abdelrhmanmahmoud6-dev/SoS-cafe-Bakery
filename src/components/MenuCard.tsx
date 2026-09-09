@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import { motion } from "framer-motion";
 import { Star, Plus, Ban } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import type { CategoryDTO, MenuItemDTO } from "@/lib/menu-service";
@@ -8,6 +9,7 @@ import { useCart } from "@/store/cart";
 import { accentStyle } from "@/lib/accents";
 import { cn } from "@/lib/utils";
 import { ItemImage } from "./ui/ItemImage";
+import { cardEnter, SPRING_POP, SPRING_SOFT } from "./ui/Motion";
 
 /** Categories where add-ons are offered, so the customiser is worth opening. */
 export const ADDON_CATEGORIES = [
@@ -30,14 +32,17 @@ export const ADDON_CATEGORIES = [
    best-seller badge) reads that one variable, so there is no colour ladder here
    and adding a category means adding one line to src/lib/accents.ts.
 
-   Performance
-   -----------
-   Every hover and press effect is a CSS transition on transform, opacity or
-   box-shadow — not a Framer Motion node. With up to 166 of these on screen,
-   `whileHover`/`whileTap` would put Framer in charge of measuring and animating
-   a hundred-plus elements, which is exactly the jank that an earlier pass
-   removed. `active:scale-[0.97]` gives the satisfying press without a single
-   byte of JS.
+   Motion
+   ------
+   The card is a `motion.article` with spring hover, press and entrance. That is
+   affordable ONLY because the grid mounts a capped page of items (16, then 32
+   more on demand) rather than all 166 — the spring budget is bounded by that
+   cap, not by the size of the menu.
+
+   What is still deliberately absent is Framer's `layout`. Layout animation
+   measures every participating node on every commit, and an earlier pass
+   removed exactly that from this grid because it was the main source of scroll
+   jank. Transform and opacity springs run on the compositor; `layout` does not.
 
    The glow is one absolutely-positioned sibling that fades in on group-hover,
    rather than a blurred ::after halo per card: one composited layer, no paint
@@ -52,12 +57,15 @@ function MenuCardImpl({
   category,
   onOpen,
   priority = false,
+  wide = false,
 }: {
   item: MenuItemDTO;
   category: CategoryDTO | undefined;
   onOpen: (item: MenuItemDTO) => void;
   /** Eager-load the first row so the grid has something above the fold. */
   priority?: boolean;
+  /** Bento hero tile: spans two columns and lays out landscape. */
+  wide?: boolean;
 }) {
   const { t, sh, lang, pick } = useI18n();
   const name = pick(item);
@@ -88,13 +96,21 @@ function MenuCardImpl({
   }
 
   return (
-    <article
+    <motion.article
       style={accentStyle(item.cat)}
+      variants={cardEnter}
+      whileHover={item.available ? { y: -6, transition: SPRING_SOFT } : undefined}
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-3xl border bg-ink-900/70 backdrop-blur-sm",
-        "transition-[transform,border-color] duration-300 ease-out will-change-transform",
+        "group relative flex overflow-hidden rounded-3xl border bg-ink-900/70 backdrop-blur-sm",
+        "transition-colors duration-300 will-change-transform",
+        // Landscape on the bento hero tile, portrait everywhere else.
+        // `sm:min-h-60` is load-bearing: in the landscape layout the image side
+        // has no intrinsic height (a `fill` image contributes none), so without
+        // a floor the row would collapse to whatever the two lines of text
+        // need and the hero tile would render as a letterbox strip.
+        wide ? "flex-col sm:min-h-60 sm:flex-row" : "flex-col",
         item.available
-          ? "border-ink-700/80 hover:-translate-y-1.5 hover:accent-border"
+          ? "border-ink-700/80 hover:accent-border"
           : "border-ink-700/50 opacity-55"
       )}
     >
@@ -111,16 +127,27 @@ function MenuCardImpl({
         type="button"
         onClick={() => onOpen(item)}
         aria-label={t.a11y.openItem(name)}
-        className="relative flex flex-1 cursor-pointer flex-col text-start"
+        className={cn(
+          "relative flex flex-1 cursor-pointer text-start",
+          wide ? "flex-col sm:flex-row sm:items-stretch" : "flex-col"
+        )}
       >
-        <span className="relative block overflow-hidden">
+        <span
+          className={cn(
+            "relative block overflow-hidden",
+            wide && "sm:w-1/2 sm:shrink-0"
+          )}
+        >
           <ItemImage
             as="span"
             src={item.imageUrl}
             alt={name}
             icon={category?.icon ?? "coffee"}
             priority={priority}
-            className="aspect-[5/4] w-full shrink-0 transition-transform duration-500 ease-out group-hover:scale-105"
+            className={cn(
+              "w-full shrink-0 transition-transform duration-500 ease-out group-hover:scale-105",
+              wide ? "aspect-[5/4] sm:h-full sm:aspect-auto" : "aspect-[5/4]"
+            )}
             iconClassName="size-10"
           />
 
@@ -181,8 +208,18 @@ function MenuCardImpl({
         {/* `pe-16` reserves the gutter the quick-add button sits in: the button
             is inset 14px and is 44px wide, so anything less than 58px lets a
             long name run under it. 64px leaves a comfortable 6px. */}
-        <span className="flex flex-1 flex-col gap-0.5 p-4 pe-16">
-          <span className="text-pretty text-[15px] font-extrabold leading-snug text-cream">
+        <span
+          className={cn(
+            "flex flex-1 flex-col gap-0.5 p-4 pe-16",
+            wide && "sm:justify-center sm:p-6 sm:pe-16"
+          )}
+        >
+          <span
+            className={cn(
+              "text-pretty font-extrabold leading-snug text-cream",
+              wide ? "text-[15px] sm:text-xl" : "text-[15px]"
+            )}
+          >
             {name}
           </span>
           {/* Opposite-language name. Bidi-isolated so a Latin name inside an
@@ -201,22 +238,24 @@ function MenuCardImpl({
       {/* Quick add — a floating action button rather than a full-width bar, so
           the card keeps its slab silhouette and the tap target stays where the
           thumb already is. */}
-      <button
+      <motion.button
         type="button"
         onClick={handleAdd}
         disabled={!item.available}
         aria-label={`${sh.item.addToCart}: ${name}`}
+        whileHover={item.available ? { scale: 1.14, rotate: 90 } : undefined}
+        whileTap={item.available ? { scale: 0.82 } : undefined}
+        transition={SPRING_POP}
         className={cn(
           "absolute bottom-3.5 end-3.5 flex size-11 items-center justify-center rounded-2xl",
-          "transition-[transform,box-shadow,background-color] duration-200 ease-out",
           item.available
-            ? "accent-fill cursor-pointer shadow-lg hover:scale-110 active:scale-90"
+            ? "accent-fill cursor-pointer shadow-lg"
             : "cursor-not-allowed bg-ink-800 text-muted-dim"
         )}
       >
         <Plus aria-hidden className="size-5" strokeWidth={3} />
-      </button>
-    </article>
+      </motion.button>
+    </motion.article>
   );
 }
 
