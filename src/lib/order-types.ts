@@ -172,14 +172,53 @@ export const DELIVERY_AREA_LABELS: Record<DeliveryArea, Bilingual> = {
   },
 };
 
-/** Badge colour per status, shared by the admin board and the tracking page. */
+/**
+ * Badge colour per status, shared by the admin board and the tracking page.
+ *
+ * Re-derived for the cream theme. The previous values were 300-weight text on
+ * a 12%-alpha fill, which was tuned for a near-black ground and lands around
+ * 1.6:1 on cream — the badges were effectively invisible after the theme flip.
+ * Each one is now a soft tinted fill with 900-weight text on top.
+ */
 export const STATUS_TONE: Record<OrderStatus, string> = {
-  PENDING: "text-amber-300 bg-amber-400/12 border-amber-400/30",
-  PREPARING: "text-sky-300 bg-sky-400/12 border-sky-400/30",
-  READY: "text-violet-300 bg-violet-400/12 border-violet-400/30",
-  DELIVERED: "text-emerald-300 bg-emerald-400/12 border-emerald-400/30",
-  CANCELLED: "text-rose-300 bg-rose-400/12 border-rose-400/30",
+  PENDING: "text-amber-900 bg-amber-100 border-amber-300",
+  PREPARING: "text-sky-900 bg-sky-100 border-sky-300",
+  READY: "text-violet-900 bg-violet-100 border-violet-300",
+  DELIVERED: "text-emerald-900 bg-emerald-100 border-emerald-300",
+  // Soft pink fill, deep rose type — the cancelled badge has to read as a
+  // terminal state at a glance on both boards.
+  CANCELLED: "text-rose-900 bg-rose-100 border-rose-300",
 };
+
+/* -------------------------------------------------------------------------- */
+/*  Lifecycle                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The next step in the order lifecycle, or null when there is nowhere to go.
+ *
+ * Returns null for DELIVERED (terminal) and for CANCELLED, which is not on the
+ * timeline at all — `indexOf` gives -1 for it, and a cancelled order must never
+ * silently advance into PREPARING.
+ */
+export function nextStatus(current: OrderStatus): OrderStatus | null {
+  const i = TRACKING_STEPS.indexOf(current);
+  if (i === -1) return null;
+  return TRACKING_STEPS[i + 1] ?? null;
+}
+
+/**
+ * Whether the CUSTOMER may still cancel.
+ *
+ * Strictly PENDING: once the kitchen has started, ingredients are committed and
+ * the shop absorbs the loss. This is the single source of truth for the rule —
+ * the tracking UI uses it to decide what to show, and the server action uses
+ * the same rule in its WHERE clause so the check cannot be bypassed by calling
+ * the action directly.
+ */
+export function canCustomerCancel(status: OrderStatus): boolean {
+  return status === "PENDING";
+}
 
 /** Generates a short, unambiguous tracking code (no O/0/I/1 confusion). */
 export function generateOrderCode(): string {

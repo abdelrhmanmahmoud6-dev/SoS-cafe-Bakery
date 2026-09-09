@@ -275,11 +275,14 @@ export interface TrackedOrder {
   events: { status: string; createdAt: string }[];
 }
 
+/** Shape of a tracking code. Shared by lookup and cancellation. */
+const CODE_PATTERN = /^SOS-[A-Z0-9]{6}$/;
+
 export async function trackOrder(
   rawCode: string
 ): Promise<TrackedOrder | null> {
   const code = rawCode.trim().toUpperCase();
-  if (!/^SOS-[A-Z0-9]{6}$/.test(code)) return null;
+  if (!CODE_PATTERN.test(code)) return null;
 
   const order = await prisma.order.findUnique({
     where: { code },
@@ -386,6 +389,94 @@ export async function listOrders(opts?: {
     })),
   }));
 }
+
+/* ============================================================================
+   CUSTOMER — cancellation
+
+   This is the one write path on the site that is NOT behind requireAdmin, so
+   the authorisation model is worth stating plainly:
+
+   The tracking code IS the customer's credential. It is already sufficient to
+   read the whole order through `trackOrder` — name, phone, address, items — so
+   letting it also cancel grants no capability the holder did not already have.
+   Codes are six characters from a 32-symbol alphabet (~1.07e9), generated per
+   order and never sequential.
+
+   Two things this deliberately does NOT rely on:
+
+   - It does not trust the client's idea of the current status. The rule lives
+     in the WHERE clause, so calling the action directly with a stale or forged
+     status cannot move an order that has already entered preparation.
+   - It does not read-then-write. A check followed by an update leaves a window
+     in which the kitchen presses "start preparing" between the two statements,
+     and both writes succeed. The conditional update closes that window by
+     making the database arbitrate.
+   ========================================================================== */
+
+export type CancelResult =
+  | { ok: true }
+  | { ok: false; error: "CODE_INVALID" | "NOT_FOUND" | "TOO_LATE" | "SERVER_ERROR"; status?: OrderStatus };
+
+export async function cancelOrderByCode(rawCode: string): Promise<CancelResult> {
+  const code = rawCode.trim().toUpperCase();
+  if (!CODE_PATTERN.test(code)) return { ok: false, error: "CODE_INVALID" };
+
+  try {
+    const cancelled = await prisma.$transaction(async (tx) => {
+      // The status guard lives here, in the WHERE clause. `updateMany` reports
+      // how many rows matched, which is how we learn whether the order was
+      // still cancellable without a separate read.
+      const res = await tx.order.updateMany({
+        where: { code, status: "PENDING" },
+        data: { status: "CANCELLED" },
+      });
+      if (res.count === 0) return null;
+
+      const order = await tx.order.findUnique({
+        where: { code },
+        select: { id: true },
+      });
+      if (order) {
+        await tx.orderEvent.create({
+          data: {
+            orderId: order.id,
+            status: "CANCELLED",
+            // Recorded so the shop can tell a customer cancellation from one
+            // the counter made on their behalf.
+            note: "CUSTOMER",
+          },
+        });
+      }
+      return true;
+    });
+
+    if (!cancelled) {
+      // Nothing matched: either the code is unknown, or the order has moved on.
+      // Distinguishing the two lets the UI say something useful.
+      const current = await prisma.order.findUnique({
+        where: { code },
+        select: { status: true },
+      });
+      if (!current) return { ok: false, error: "NOT_FOUND" };
+      return {
+        ok: false,
+        error: "TOO_LATE",
+        status: current.status as OrderStatus,
+      };
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/track");
+    return { ok: true };
+  } catch (err) {
+    console.error("cancelOrderByCode failed:", err);
+    return { ok: false, error: "SERVER_ERROR" };
+  }
+}
+
+/* ============================================================================
+   ADMIN — status progression
+   ========================================================================== */
 
 export async function updateOrderStatus(
   orderId: string,

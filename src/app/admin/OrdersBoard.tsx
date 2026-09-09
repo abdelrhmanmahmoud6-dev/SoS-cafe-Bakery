@@ -15,12 +15,18 @@ import {
   Bike,
   Store,
   Receipt,
+  Check,
+  ChevronsRight,
+  RotateCcw,
+  XCircle,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { listOrders, updateOrderStatus, type AdminOrder } from "@/app/actions/orders";
 import {
   ORDER_STATUSES,
   STATUS_TONE,
+  TRACKING_STEPS,
+  nextStatus,
   statusLabel,
   ORDER_TYPE_LABELS,
   DELIVERY_AREA_LABELS,
@@ -355,35 +361,11 @@ export function OrdersBoard({ initial }: { initial: AdminOrder[] }) {
                     {sh.admin.orders.sendInvoice}
                   </a>
 
-                  <label
-                    htmlFor={`status-${order.id}`}
-                    className="mb-1.5 block text-xs font-bold text-muted-dim"
-                  >
-                    {sh.admin.orders.changeStatus}
-                  </label>
-                  <div className="relative">
-                    <select
-                      id={`status-${order.id}`}
-                      value={order.status}
-                      disabled={busyId === order.id}
-                      onChange={(e) =>
-                        void changeStatus(order.id, e.target.value as OrderStatus)
-                      }
-                      className="h-12 w-full cursor-pointer appearance-none rounded-xl border border-sand-400 bg-sand-200 px-4 text-sm font-bold text-espresso transition-colors duration-200 hover:border-gold-500/50 focus:border-gold-500/60 focus:outline-none disabled:opacity-60"
-                    >
-                      {ORDER_STATUSES.map((s) => (
-                        <option key={s} value={s}>
-                          {statusLabel(s, order.orderType as OrderType)[lang]}
-                        </option>
-                      ))}
-                    </select>
-                    {busyId === order.id && (
-                      <Loader2
-                        aria-hidden
-                        className="absolute end-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-gold-800"
-                      />
-                    )}
-                  </div>
+                  <StatusFlow
+                    order={order}
+                    busy={busyId === order.id}
+                    onSet={(status) => void changeStatus(order.id, status)}
+                  />
                 </div>
               </motion.article>
             ))}
@@ -427,5 +409,136 @@ function FilterPill({
         {count}
       </span>
     </button>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  StatusFlow — the clickable order lifecycle                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Four checkboxes and an advance button, replacing the old status dropdown.
+ *
+ * A dropdown made every status equally reachable and equally invisible: the
+ * counter had to open it, read five options and pick the right one, on every
+ * order. The overwhelmingly common action is "move this one forward", so that
+ * gets a single labelled button, and the four steps double as the progress
+ * display they were already reading anyway.
+ *
+ * Any step remains directly clickable, which is what replaces the dropdown's
+ * one genuine advantage — correcting a mis-tap without cycling all the way
+ * round. Cancel and restore sit apart from the row, because they are not a
+ * point on the timeline.
+ */
+function StatusFlow({
+  order,
+  busy,
+  onSet,
+}: {
+  order: AdminOrder;
+  busy: boolean;
+  onSet: (status: OrderStatus) => void;
+}) {
+  const { sh, lang } = useI18n();
+  const m = sh.admin.orders;
+  const cancelled = order.status === "CANCELLED";
+  const current = TRACKING_STEPS.indexOf(order.status);
+  const upcoming = nextStatus(order.status);
+
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="text-xs font-bold text-muted-dim">{m.statusFlow}</span>
+        {busy && (
+          <Loader2 aria-hidden className="size-4 animate-spin text-gold-800" />
+        )}
+      </div>
+
+      {/* The four lifecycle steps. A cancelled order shows them all inert:
+          `current` is -1, so nothing reads as reached. */}
+      <ol className="mb-3 grid grid-cols-2 gap-1.5">
+        {TRACKING_STEPS.map((step, i) => {
+          const reached = !cancelled && current >= i;
+          const isNext = !cancelled && current === i - 1;
+          return (
+            <li key={step}>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => onSet(step)}
+                aria-pressed={reached}
+                className={cn(
+                  "flex w-full min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-2.5 text-start text-[11px] font-bold",
+                  "transition-[transform,background-color,border-color] duration-200 active:scale-95 disabled:opacity-60",
+                  reached
+                    ? "border-transparent bg-espresso text-sand-50"
+                    : isNext
+                      ? "border-gold-600 bg-gold-500/20 text-espresso"
+                      : "border-sand-300 bg-sand-50 text-muted hover:border-sand-400"
+                )}
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    "flex size-4 shrink-0 items-center justify-center rounded-[5px] border",
+                    reached
+                      ? "border-sand-50 bg-sand-50 text-espresso"
+                      : "border-sand-400 bg-transparent"
+                  )}
+                >
+                  {reached && <Check className="size-3" strokeWidth={3.5} />}
+                </span>
+                <span className="truncate">
+                  {statusLabel(step, order.orderType as OrderType)[lang]}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+
+      {/* Primary action: one tap moves the order on. Absent once there is
+          nowhere left to go, rather than sitting there disabled. */}
+      {upcoming && (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onSet(upcoming)}
+          className="mb-2 flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full btn-espresso px-4 text-sm font-extrabold transition-[transform,box-shadow] duration-200 hover:shadow-espresso-lg active:scale-95 disabled:opacity-60"
+        >
+          <ChevronsRight aria-hidden className="size-4" />
+          {m.advanceTo}: {statusLabel(upcoming, order.orderType as OrderType)[lang]}
+        </button>
+      )}
+
+      {!upcoming && !cancelled && (
+        <p className="mb-2 flex min-h-10 items-center justify-center gap-2 rounded-full bg-emerald-100 px-4 text-xs font-extrabold text-emerald-900">
+          <Check aria-hidden className="size-4" strokeWidth={3} />
+          {m.orderDone}
+        </p>
+      )}
+
+      {cancelled ? (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onSet("PENDING")}
+          className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-sand-400 px-4 text-xs font-bold text-muted transition-colors duration-200 hover:border-espresso hover:text-espresso disabled:opacity-60"
+        >
+          <RotateCcw aria-hidden className="size-3.5" />
+          {m.restoreOrder}
+        </button>
+      ) : (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onSet("CANCELLED")}
+          className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-rose-300 bg-rose-50 px-4 text-xs font-bold text-rose-900 transition-colors duration-200 hover:bg-rose-100 disabled:opacity-60"
+        >
+          <XCircle aria-hidden className="size-3.5" />
+          {m.markCancelled}
+        </button>
+      )}
+    </div>
   );
 }

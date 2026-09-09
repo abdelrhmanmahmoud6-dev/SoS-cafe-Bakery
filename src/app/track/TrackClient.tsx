@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   Loader2,
+  Ban,
   PackageSearch,
   Check,
   ChefHat,
@@ -16,9 +17,15 @@ import {
   MapPin,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { trackOrder, type TrackedOrder } from "@/app/actions/orders";
+import {
+  trackOrder,
+  cancelOrderByCode,
+  type TrackedOrder,
+} from "@/app/actions/orders";
 import {
   TRACKING_STEPS,
+  STATUS_LABELS,
+  canCustomerCancel,
   statusLabel,
   ORDER_TYPE_LABELS,
   DELIVERY_AREA_LABELS,
@@ -39,6 +46,8 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
   const [order, setOrder] = useState<TrackedOrder | null>(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   const lookup = useCallback(
     async (value: string, showSpinner = true) => {
@@ -76,8 +85,47 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
     return () => window.clearInterval(id);
   }, [order, lookup]);
 
+  /**
+   * Customer-initiated cancellation.
+   *
+   * The button is only rendered while the order is cancellable, but the server
+   * re-checks the same rule in its WHERE clause — this is a convenience gate,
+   * not the enforcement. The `TOO_LATE` branch exists because the kitchen can
+   * start preparing between the page rendering the button and the customer
+   * pressing it, and the honest answer then is to say so and show the updated
+   * status rather than to fail silently.
+   */
+  const cancel = useCallback(async () => {
+    if (!order) return;
+    if (!window.confirm(sh.track.cancelConfirm)) return;
+
+    setCancelling(true);
+    setCancelError(null);
+    try {
+      const res = await cancelOrderByCode(order.code);
+      if (!res.ok) {
+        setCancelError(
+          res.error === "TOO_LATE" ? sh.track.cancelTooLate : sh.track.cancelFailed
+        );
+      }
+      // Re-read either way: on success to pick up CANCELLED, and on TOO_LATE to
+      // show whatever the order actually advanced to.
+      await lookup(order.code, false);
+    } catch (err) {
+      console.error(err);
+      setCancelError(sh.track.cancelFailed);
+    } finally {
+      setCancelling(false);
+    }
+  }, [order, lookup, sh]);
+
   const isCancelled = order?.status === "CANCELLED";
   const currentStep = order ? TRACKING_STEPS.indexOf(order.status) : -1;
+  const cancellable = order ? canCustomerCancel(order.status) : false;
+  // Delivered orders are finished, not "too late to cancel" — showing the
+  // locked notice there would be nagging about a decision nobody is making.
+  const showCancelLocked =
+    order != null && !cancellable && !isCancelled && order.status !== "DELIVERED";
 
   return (
     <div className="mx-auto w-full max-w-2xl">
@@ -196,13 +244,23 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
 
             {/* Timeline / cancelled */}
             {isCancelled ? (
-              <div className="flex items-start gap-4 rounded-3xl border border-rose-400/30 bg-rose-400/10 p-6">
-                <XCircle aria-hidden className="mt-0.5 size-6 shrink-0 text-rose-300" />
+              /* Soft pink terminal panel. The old one was 300-weight rose text
+                 on a 10%-alpha fill, tuned for the previous dark theme; on
+                 cream it measured close to invisible. */
+              <div className="flex items-start gap-4 rounded-3xl border border-rose-300 bg-rose-50 p-6">
+                <XCircle
+                  aria-hidden
+                  className="mt-0.5 size-6 shrink-0 text-rose-700"
+                />
                 <div>
-                  <h2 className="text-lg font-extrabold text-rose-200">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-300 bg-rose-100 px-3 py-1 text-xs font-extrabold text-rose-900">
+                    <Ban aria-hidden className="size-3.5" />
+                    {STATUS_LABELS.CANCELLED[lang]}
+                  </span>
+                  <h2 className="mt-2.5 text-lg font-extrabold text-rose-900">
                     {sh.track.cancelled}
                   </h2>
-                  <p className="mt-1 leading-relaxed text-rose-200/80">
+                  <p className="mt-1 leading-relaxed text-rose-800">
                     {sh.track.cancelledHint}
                   </p>
                 </div>
@@ -381,6 +439,49 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
                 </div>
               </dl>
             </div>
+
+            {/* Cancellation.
+
+                Three mutually exclusive states, and the page renders exactly
+                one of them: the action while the order is still cancellable,
+                the reason once it is not, and nothing at all when the order is
+                already cancelled or delivered — at which point there is no
+                decision left to narrate. */}
+            {cancellable && (
+              <div className="rounded-3xl border border-sand-300 bg-sand-100/70 p-5">
+                <button
+                  type="button"
+                  onClick={() => void cancel()}
+                  disabled={cancelling}
+                  className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-rose-300 bg-rose-50 px-5 text-sm font-extrabold text-rose-900 transition-[transform,background-color] duration-200 hover:bg-rose-100 active:scale-95 disabled:opacity-60"
+                >
+                  {cancelling ? (
+                    <Loader2 aria-hidden className="size-4 animate-spin" />
+                  ) : (
+                    <Ban aria-hidden className="size-4" />
+                  )}
+                  {cancelling ? sh.track.cancelling : sh.track.cancelOrder}
+                </button>
+                <p className="mt-2 text-center text-xs leading-relaxed text-muted">
+                  {sh.track.cancelWindow}
+                </p>
+                {cancelError && (
+                  <p
+                    role="alert"
+                    className="mt-2 rounded-xl border border-rose-300 bg-rose-50 p-3 text-center text-xs font-bold text-rose-900"
+                  >
+                    {cancelError}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {showCancelLocked && (
+              <p className="flex items-start gap-2.5 rounded-3xl border border-sand-300 bg-sand-100/70 p-5 text-xs leading-relaxed text-muted">
+                <Ban aria-hidden className="mt-0.5 size-4 shrink-0 text-muted-dim" />
+                {sh.track.cancelLocked}
+              </p>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
