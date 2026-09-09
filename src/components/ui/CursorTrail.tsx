@@ -6,44 +6,40 @@ import { ItemImage } from "./ItemImage";
 import { useSmallScreen } from "./Motion";
 
 /* ============================================================================
-   CURSOR IMAGE TRAIL
+   CURSOR / TOUCH IMAGE TRAIL
 
-   Menu photographs bloom in behind the cursor as it crosses the hero, tilt
-   slightly, and fade away — the interaction boutique cafe sites use to show
-   the food without giving it a slot in the layout.
+   Menu photographs bloom in under the pointer as it crosses the hero, tilt
+   slightly, and fade away.
 
-   Four decisions worth knowing:
+   ---------------------------------------------------------------------------
+   POSITIONING — read this before changing the render block
 
-   1. Distance-gated, not time-gated. A new photo is dropped only once the
-      pointer has travelled PLACE_EVERY px since the last one. Emitting on a
-      timer instead makes a slow, careful movement spray a stack of images into
-      one spot, and a fast flick leave a gap.
+   The offset lives in Framer's own `x` / `y` motion values, NOT in a CSS
+   `transform` string. A `motion.div` that animates scale or rotate takes
+   ownership of the element's `transform` property and rewrites it from its own
+   values every frame. An inline `style={{ transform: translate3d(...) }}` sat
+   next to `animate={{ scale }}` is therefore silently discarded, and every
+   photo lands at translate(0,0) — the top-left corner of this layer. That was
+   a real shipped bug, not a hypothetical.
 
-   2. Self-limiting pool. The list is sliced to MAX entries, so a new photo
-      arriving pushes the oldest out and AnimatePresence plays its exit. The
-      DOM never holds more than MAX + 1 images however long someone scribbles.
+   `x` / `y` compose into the same transform Framer is already writing, so the
+   result stays compositor-only (no layout) AND actually moves.
 
-   3. Idle sweep. Slicing alone leaves the final MAX photos frozen on screen
-      when the pointer stops, so a timer clears the trail after IDLE_MS.
+   ---------------------------------------------------------------------------
+   INPUT
 
-   4. Touch and mouse both drive it. An earlier version gated on
-      `(pointer: fine)`, which meant the effect simply did not exist on a
-      phone. Touch is now a first-class input, on a smaller budget: a wider
-      spawn distance, a pool of 3 instead of 5, and smaller photos — on touch
-      the movement driving this is usually also a scroll, so the frame budget
-      is already spoken for.
+   Mouse arrives as `pointermove`. Touch is handled through `touchstart` /
+   `touchmove` instead, for one specific reason: as soon as the browser decides
+   a touch is a scroll gesture it fires `pointercancel` and stops sending
+   pointer moves — so a pointer-only implementation goes dead exactly when the
+   finger is moving most. `touchmove` keeps reporting throughout.
 
-      Listeners are registered `{ passive: true }`. This handler never calls
-      preventDefault, and declaring that up front lets the browser begin
-      scrolling without first waiting to see whether we will — the difference
-      between a scroll that tracks the finger and one that stutters.
+   `pointermove` ignores `pointerType === "touch"`, so a touch device cannot
+   spawn twice from the two listener families.
 
-   The move listener is attached to the SECTION passed in as `hostRef`, not to
-   this component's own box. React pointer events only fire on the topmost
-   element under the cursor, so listening on our own layer would go dead the
-   moment the pointer crossed the headline or a button sitting above it —
-   leaving a hole through the middle of the hero. A listener on the section
-   catches the same events on the way up instead.
+   Everything is registered `{ passive: true }`. Nothing here calls
+   preventDefault, and declaring that lets the compositor scroll without first
+   waiting to find out.
    ========================================================================== */
 
 /** Pointer travel between photos. Roughly one card width. */
@@ -55,7 +51,7 @@ const PLACE_EVERY_TOUCH = 190;
 const MAX = 5;
 const MAX_TOUCH = 3;
 
-/** How long after the pointer stops before the trail clears. */
+/** How long after movement stops before the trail clears itself. */
 const IDLE_MS = 700;
 const IDLE_MS_TOUCH = 500;
 
@@ -87,16 +83,34 @@ export function CursorTrail({
   const max = small ? MAX_TOUCH : MAX;
   const idleMs = small ? IDLE_MS_TOUCH : IDLE_MS;
 
-  // Mutable pointer bookkeeping. Deliberately refs: these update on every
-  // pointer event and must never trigger a render of their own.
+  // Mutable bookkeeping. Deliberately refs: these update on every pointer
+  // event and must never trigger a render of their own.
   const last = useRef({ x: 0, y: 0, index: 0, id: 0 });
   const idleTimer = useRef<number | undefined>(undefined);
   const frame = useRef<number | undefined>(undefined);
   const pending = useRef<TrailItem | null>(null);
 
-  // Every timer and frame this component owns is released on unmount. Without
-  // this a queued rAF or idle timeout can fire after teardown and set state on
-  // an unmounted tree.
+  /**
+   * Clears the trail and cancels everything that could refill it.
+   *
+   * Dropping the queued frame and the pending item is the part that matters:
+   * without it a release can be immediately undone by an rAF that was already
+   * scheduled, putting one photo back on screen with nothing left to sweep it
+   * away. That is precisely the "images get stuck" failure.
+   */
+  const clearTrail = useCallback(() => {
+    window.clearTimeout(idleTimer.current);
+    idleTimer.current = undefined;
+    if (frame.current !== undefined) {
+      cancelAnimationFrame(frame.current);
+      frame.current = undefined;
+    }
+    pending.current = null;
+    setTrail([]);
+  }, []);
+
+  // Release every timer and frame on unmount, so nothing fires into a
+  // torn-down tree.
   useEffect(
     () => () => {
       window.clearTimeout(idleTimer.current);
@@ -108,11 +122,10 @@ export function CursorTrail({
   /**
    * Commits at most one state update per animation frame.
    *
-   * A finger dragging across the screen fires pointermove far faster than the
-   * display refreshes. Calling setState straight from the handler queued a
-   * React render per event, which is the difference between a trail that
-   * glides and one that fights the scroll. Coalescing through rAF caps the
-   * work at one render per painted frame however chatty the input is.
+   * Both pointermove and touchmove fire far faster than the display refreshes;
+   * calling setState straight from the handler queued a React render per
+   * event. Coalescing through rAF caps it at one render per painted frame
+   * however chatty the input is.
    */
   const flush = useCallback(() => {
     frame.current = undefined;
@@ -122,18 +135,26 @@ export function CursorTrail({
     setTrail((current) => [...current.slice(-(max - 1)), item]);
   }, [max]);
 
-  const handleMove = useCallback(
-    (e: PointerEvent) => {
+  /**
+   * Spawns a photo at a VIEWPORT coordinate.
+   *
+   * `force` bypasses the distance gate, so a tap always puts one photo under
+   * the finger even though it has travelled no distance at all.
+   */
+  const place = useCallback(
+    (clientX: number, clientY: number, force = false) => {
       if (reduce || images.length === 0) return;
       const layer = layerRef.current;
       if (!layer) return;
 
+      // Converted into this layer's own coordinate space, so the photo lands
+      // under the finger regardless of where the hero has scrolled to.
       const rect = layer.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
 
       const prev = last.current;
-      if (Math.hypot(x - prev.x, y - prev.y) < placeEvery) return;
+      if (!force && Math.hypot(x - prev.x, y - prev.y) < placeEvery) return;
 
       const id = prev.id + 1;
       const index = prev.index + 1;
@@ -154,73 +175,97 @@ export function CursorTrail({
       }
 
       window.clearTimeout(idleTimer.current);
-      idleTimer.current = window.setTimeout(() => setTrail([]), idleMs);
+      idleTimer.current = window.setTimeout(clearTrail, idleMs);
     },
-    [reduce, images, placeEvery, idleMs, flush]
+    [reduce, images, placeEvery, idleMs, flush, clearTrail]
   );
 
   /**
-   * Latest handler, read through a ref.
+   * Latest `place`, read through a ref.
    *
-   * `handleMove` is rebuilt whenever its inputs change (the photo list, the
-   * mobile budget). If the effect below depended on it directly, every one of
-   * those changes would detach and reattach four listeners on the hero. Keeping
-   * the identity stable means listeners are attached ONCE per mount and torn
-   * down once — no churn, and no window in which a moving finger is briefly
-   * unobserved.
+   * `place` is rebuilt whenever the photo list or the mobile budget changes. If
+   * the effect below depended on it, each change would detach and reattach six
+   * listeners on the hero. This keeps attachment to exactly once per mount.
    */
-  const moveRef = useRef(handleMove);
+  const placeRef = useRef(place);
   useEffect(() => {
-    moveRef.current = handleMove;
-  }, [handleMove]);
+    placeRef.current = place;
+  }, [place]);
 
   useEffect(() => {
     const host = hostRef.current;
     if (!host || reduce) return;
 
-    const onMove = (e: PointerEvent) => moveRef.current(e);
-    const clear = () => setTrail([]);
-    // Passive: this handler never calls preventDefault, and declaring that
-    // lets the compositor scroll without waiting on us.
     const opts: AddEventListenerOptions = { passive: true };
 
-    host.addEventListener("pointermove", onMove, opts);
+    // Mouse only — touch is served by the touch listeners below.
+    const onPointerMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      placeRef.current(e.clientX, e.clientY);
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      // `force`: a tap has travelled no distance, but the whole point is that
+      // touching the screen puts a photo under the finger.
+      if (t) placeRef.current(t.clientX, t.clientY, true);
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (t) placeRef.current(t.clientX, t.clientY);
+    };
+
+    const clear = () => clearTrail();
+
+    host.addEventListener("pointermove", onPointerMove, opts);
     host.addEventListener("pointerleave", clear, opts);
-    // Touch has no "leave" — a finger lifts instead. Without these the last
-    // photos would hang on screen until the idle timer happened to fire.
-    host.addEventListener("pointercancel", clear, opts);
-    host.addEventListener("pointerup", clear, opts);
+    host.addEventListener("touchstart", onTouchStart, opts);
+    host.addEventListener("touchmove", onTouchMove, opts);
+    // Touch has no "leave" — a finger lifts. Both endings clear immediately, so
+    // nothing is left stranded on screen.
+    host.addEventListener("touchend", clear, opts);
+    host.addEventListener("touchcancel", clear, opts);
 
     return () => {
-      host.removeEventListener("pointermove", onMove);
+      host.removeEventListener("pointermove", onPointerMove);
       host.removeEventListener("pointerleave", clear);
-      host.removeEventListener("pointercancel", clear);
-      host.removeEventListener("pointerup", clear);
+      host.removeEventListener("touchstart", onTouchStart);
+      host.removeEventListener("touchmove", onTouchMove);
+      host.removeEventListener("touchend", clear);
+      host.removeEventListener("touchcancel", clear);
     };
-  }, [hostRef, reduce]);
+  }, [hostRef, reduce, clearTrail]);
 
   return (
-    <div ref={layerRef} aria-hidden className={className}>
-      {/* Purely decorative, and it sits over the hero's buttons — so it must
-          never intercept a click. */}
+    // `overflow-hidden` belongs here rather than being inherited: it guarantees
+    // a photo spawned near an edge is clipped to the hero and can never spill
+    // over the header, whatever the section's own overflow later becomes.
+    // No background of any kind — this layer is purely a positioning context.
+    <div
+      ref={layerRef}
+      aria-hidden
+      className={`overflow-hidden bg-transparent ${className ?? ""}`}
+    >
       <AnimatePresence>
         {trail.map((item) => (
           <motion.div
             key={item.id}
-            // Only opacity, scale and rotate animate — all composited. The
-            // translate lives in `style` and never changes for the life of the
-            // photo, so nothing here can trigger layout.
+            // x / y are Framer motion values, NOT a CSS transform string — see
+            // the POSITIONING note at the top of this file. They compose into
+            // the transform Framer already writes for scale and rotate, so the
+            // photo both lands in the right place and stays off the layout path.
+            style={{ x: item.x, y: item.y }}
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1, rotate: item.rotate }}
-            exit={{ opacity: 0, scale: 0.86, transition: { duration: 0.4 } }}
+            exit={{ opacity: 0, scale: 0.86, transition: { duration: 0.35 } }}
             transition={{ type: "spring", stiffness: 260, damping: 24 }}
-            // Positioned with a transform rather than left/top: offsets are
-            // layout properties, so inserting with them makes the browser
-            // reflow on a frame it should only have to composite.
-            style={{
-              transform: `translate3d(${item.x}px, ${item.y}px, 0)`,
-            }}
-            className="pointer-events-none absolute left-0 top-0 -ms-16 -mt-20 h-32 w-24 sm:-ms-24 sm:-mt-28 sm:h-48 sm:w-40"
+            // Negative margins centre the photo on the pointer (half of each
+            // dimension); left/top stay at 0 so x/y alone decide position.
+            // PHYSICAL `-ml-`, not logical `-ms-`: this site renders RTL by
+            // default, where a logical inline-start margin pushes the photo the
+            // opposite way and the trail trails off to the wrong side.
+            className="pointer-events-none absolute left-0 top-0 -ml-12 -mt-16 h-32 w-24 sm:-ml-20 sm:-mt-24 sm:h-48 sm:w-40"
           >
             <ItemImage
               src={item.src}
