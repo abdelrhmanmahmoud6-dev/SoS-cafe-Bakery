@@ -68,13 +68,17 @@ export function Hero({
         className="pointer-events-none absolute inset-x-0 -top-40 h-96 bg-[radial-gradient(60%_100%_at_50%_0%,rgb(202_138_4/0.14),transparent_70%)]"
       />
 
-      {/* Cursor trail. Painted above the ambience but below the z-10 content
-          layer, so photos pass behind the headline instead of over it. */}
-      <CursorTrail
-        images={photos}
-        hostRef={ref}
-        className="pointer-events-none absolute inset-0 z-0"
-      />
+      {/* Cursor / touch trail.
+
+          No positioning classes are passed: the component renders a viewport
+          `fixed inset-0 z-40` layer and its coordinate maths depends on that,
+          so it owns those classes outright. Passing `absolute ... z-0` here
+          used to fight it — two `position` utilities of equal specificity, with
+          the winner decided by stylesheet order rather than by intent.
+
+          `hostRef` is still the hero section: the trail only *responds* inside
+          the hero, it just *renders* to the viewport. */}
+      <CursorTrail images={photos} hostRef={ref} />
 
       <motion.div style={{ y, opacity }} className="relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-8">
         <div className="flex flex-col items-center text-center">

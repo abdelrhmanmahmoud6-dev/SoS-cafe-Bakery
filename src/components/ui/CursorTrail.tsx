@@ -26,6 +26,23 @@ import { useSmallScreen } from "./Motion";
    result stays compositor-only (no layout) AND actually moves.
 
    ---------------------------------------------------------------------------
+   THE LAYER IS VIEWPORT-FIXED
+
+   `fixed inset-0 ... z-40`, with no background of any kind. Two consequences
+   worth stating, because both are load-bearing:
+
+   1. Viewport coordinates ARE layer coordinates. `clientX`/`clientY` can be
+      used directly, so there is no getBoundingClientRect() on the spawn path —
+      that call forces a synchronous layout, and it sat in the middle of a
+      touch gesture. If this layer is ever made `absolute` again, the offset
+      maths has to come back with it.
+
+   2. z-40 is deliberately below the header (`fixed ... z-50`) and below every
+      overlay in the app — cart scrim z-60, drawer z-70, dialogs z-80. A photo
+      can therefore never paint over the navigation, which is what the earlier
+      stuck-at-0,0 box appeared to do.
+
+   ---------------------------------------------------------------------------
    INPUT
 
    Mouse arrives as `pointermove`. Touch is handled through `touchstart` /
@@ -49,7 +66,11 @@ const PLACE_EVERY_TOUCH = 190;
 
 /** Concurrent photos. Beyond ~5 the trail reads as clutter, not motion. */
 const MAX = 5;
-const MAX_TOUCH = 3;
+/**
+ * Two on mobile. Each live photo is an animating composited layer, and on a
+ * phone that budget is competing with the scroll itself.
+ */
+const MAX_TOUCH = 2;
 
 /** How long after movement stops before the trail clears itself. */
 const IDLE_MS = 700;
@@ -144,14 +165,12 @@ export function CursorTrail({
   const place = useCallback(
     (clientX: number, clientY: number, force = false) => {
       if (reduce || images.length === 0) return;
-      const layer = layerRef.current;
-      if (!layer) return;
 
-      // Converted into this layer's own coordinate space, so the photo lands
-      // under the finger regardless of where the hero has scrolled to.
-      const rect = layer.getBoundingClientRect();
-      const x = clientX - rect.left;
-      const y = clientY - rect.top;
+      // Used as-is: the layer is `fixed inset-0`, so its coordinate space is
+      // the viewport's. Measuring it would force a synchronous layout in the
+      // middle of a touch gesture to learn something already known to be 0,0.
+      const x = clientX;
+      const y = clientY;
 
       const prev = last.current;
       if (!force && Math.hypot(x - prev.x, y - prev.y) < placeEvery) return;
@@ -204,6 +223,19 @@ export function CursorTrail({
       placeRef.current(e.clientX, e.clientY);
     };
 
+    // A mouse press drops one immediately, matching what a tap does on touch.
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      placeRef.current(e.clientX, e.clientY, true);
+    };
+
+    // Belt and braces beside touchend: some browsers deliver pointerup for a
+    // touch without a matching touchend if the gesture is taken over midway.
+    const onPointerUp = (e: PointerEvent) => {
+      if (e.pointerType !== "touch") return;
+      clearTrail();
+    };
+
     const onTouchStart = (e: TouchEvent) => {
       const t = e.touches[0];
       // `force`: a tap has travelled no distance, but the whole point is that
@@ -219,6 +251,9 @@ export function CursorTrail({
     const clear = () => clearTrail();
 
     host.addEventListener("pointermove", onPointerMove, opts);
+    host.addEventListener("pointerdown", onPointerDown, opts);
+    host.addEventListener("pointerup", onPointerUp, opts);
+    host.addEventListener("pointercancel", clear, opts);
     host.addEventListener("pointerleave", clear, opts);
     host.addEventListener("touchstart", onTouchStart, opts);
     host.addEventListener("touchmove", onTouchMove, opts);
@@ -229,6 +264,9 @@ export function CursorTrail({
 
     return () => {
       host.removeEventListener("pointermove", onPointerMove);
+      host.removeEventListener("pointerdown", onPointerDown);
+      host.removeEventListener("pointerup", onPointerUp);
+      host.removeEventListener("pointercancel", clear);
       host.removeEventListener("pointerleave", clear);
       host.removeEventListener("touchstart", onTouchStart);
       host.removeEventListener("touchmove", onTouchMove);
@@ -238,14 +276,15 @@ export function CursorTrail({
   }, [hostRef, reduce, clearTrail]);
 
   return (
-    // `overflow-hidden` belongs here rather than being inherited: it guarantees
-    // a photo spawned near an edge is clipped to the hero and can never spill
-    // over the header, whatever the section's own overflow later becomes.
-    // No background of any kind — this layer is purely a positioning context.
+    // Viewport-fixed, transparent, click-through, and clipped to its own box.
+    // The class list is owned here rather than passed in, so the invariants the
+    // coordinate maths depends on cannot be broken from a call site.
     <div
       ref={layerRef}
       aria-hidden
-      className={`overflow-hidden bg-transparent ${className ?? ""}`}
+      className={`pointer-events-none fixed inset-0 z-40 overflow-hidden bg-transparent ${
+        className ?? ""
+      }`}
     >
       <AnimatePresence>
         {trail.map((item) => (
@@ -265,13 +304,15 @@ export function CursorTrail({
             // PHYSICAL `-ml-`, not logical `-ms-`: this site renders RTL by
             // default, where a logical inline-start margin pushes the photo the
             // opposite way and the trail trails off to the wrong side.
-            className="pointer-events-none absolute left-0 top-0 -ml-12 -mt-16 h-32 w-24 sm:-ml-20 sm:-mt-24 sm:h-48 sm:w-40"
+            // Mobile tiles are 80x112 rather than 96x128 — smaller decode,
+            // smaller composited layer, and two of them fit a phone better.
+            className="pointer-events-none absolute left-0 top-0 -ml-10 -mt-14 h-28 w-20 sm:-ml-20 sm:-mt-24 sm:h-48 sm:w-40"
           >
             <ItemImage
               src={item.src}
               alt=""
               icon="coffee"
-              sizes="(max-width: 767px) 96px, 160px"
+              sizes="(max-width: 767px) 80px, 160px"
               className="size-full rounded-3xl shadow-float ring-1 ring-sand-300"
             />
           </motion.div>
