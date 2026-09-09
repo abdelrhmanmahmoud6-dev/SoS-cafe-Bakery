@@ -291,14 +291,16 @@ export function AmbientShapes({ dense = false }: { dense?: boolean }) {
 
   const blobs = dense
     ? [
-        { x: "8%", y: "12%", s: 340, c: "rgb(254 229 0 / 0.16)", d: 0 },
-        { x: "78%", y: "8%", s: 260, c: "rgb(255 201 77 / 0.13)", d: 1.4 },
-        { x: "62%", y: "62%", s: 400, c: "rgb(254 229 0 / 0.10)", d: 2.6 },
-        { x: "16%", y: "72%", s: 230, c: "rgb(255 214 0 / 0.12)", d: 3.4 },
+        // Four hues, not four tints of one: the drifting colour behind the
+        // page is where the palette gets introduced before any UI states it.
+        { x: "8%", y: "12%", s: 340, c: "rgb(223 255 60 / 0.15)", d: 0 },
+        { x: "78%", y: "8%", s: 280, c: "rgb(185 167 255 / 0.16)", d: 1.4 },
+        { x: "62%", y: "62%", s: 400, c: "rgb(255 174 143 / 0.12)", d: 2.6 },
+        { x: "16%", y: "72%", s: 250, c: "rgb(94 234 212 / 0.11)", d: 3.4 },
       ]
     : [
-        { x: "12%", y: "18%", s: 300, c: "rgb(254 229 0 / 0.10)", d: 0 },
-        { x: "80%", y: "60%", s: 340, c: "rgb(255 201 77 / 0.08)", d: 2 },
+        { x: "12%", y: "18%", s: 300, c: "rgb(223 255 60 / 0.10)", d: 0 },
+        { x: "80%", y: "60%", s: 340, c: "rgb(185 167 255 / 0.10)", d: 2 },
       ];
 
   return (

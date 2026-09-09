@@ -33,7 +33,7 @@ import { formatEGP } from "@/lib/utils";
    it is a labelled bar list in one hue, so identity comes from the text label
    rather than from colour.
    --------------------------------------------------------------------------- */
-const GOLD = "#FEE500";
+const GOLD = "#DFFF3C";
 const GRID = "#26262E";
 const AXIS_TEXT = "#8A8A94";
 const SURFACE = "#141418";
@@ -160,7 +160,7 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsPayload }) {
             width={44}
           />
           <Tooltip
-            cursor={{ fill: "rgba(254,229,0,0.06)" }}
+            cursor={{ fill: "rgba(223,255,60,0.06)" }}
             content={<ChartTooltip lang={lang} labelFn={dayTick} revenueLabel={a.revenue} ordersLabel={a.orders} />}
           />
           {/* 4px rounded data-end, anchored to the baseline */}
@@ -220,7 +220,7 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsPayload }) {
             width={44}
           />
           <Tooltip
-            cursor={{ fill: "rgba(254,229,0,0.06)" }}
+            cursor={{ fill: "rgba(223,255,60,0.06)" }}
             content={<ChartTooltip lang={lang} labelFn={monthTick} revenueLabel={a.revenue} ordersLabel={a.orders} />}
           />
           <Bar dataKey="revenue" fill={GOLD} radius={[4, 4, 0, 0]} maxBarSize={54} />

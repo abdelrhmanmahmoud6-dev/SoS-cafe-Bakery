@@ -187,7 +187,7 @@ export function Menu({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={t.menu.searchPlaceholder}
-                className="h-14 w-full rounded-2xl border border-ink-700 bg-ink-900/80 ps-12 pe-14 text-base text-cream placeholder:text-muted-dim transition-colors duration-200 hover:border-ink-600 focus:border-gold-500/60 focus:outline-none"
+                className="h-14 w-full rounded-2xl border border-ink-700 bg-ink-900/60 ps-12 pe-14 text-base text-cream backdrop-blur-md placeholder:text-muted-dim transition-colors duration-200 hover:border-ink-600 focus:border-gold-500/60 focus:outline-none"
               />
               <AnimatePresence>
                 {query && (
@@ -198,7 +198,7 @@ export function Menu({
                     exit={{ opacity: 0, scale: 0.8 }}
                     onClick={() => setQuery("")}
                     aria-label={t.menu.clearSearch}
-                    className="absolute end-2 top-1/2 flex size-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-lg bg-ink-800 text-muted transition-colors duration-200 hover:bg-ink-700 hover:text-cream"
+                    className="absolute end-2 top-1/2 flex size-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-xl bg-ink-800 text-muted transition-[transform,color,background-color] duration-200 hover:bg-ink-700 hover:text-cream active:scale-90"
                   >
                     <X aria-hidden className="size-4" />
                   </motion.button>
@@ -218,7 +218,7 @@ export function Menu({
                 id="menu-sort"
                 value={sort}
                 onChange={(e) => setSort(e.target.value as SortKey)}
-                className="h-14 w-full cursor-pointer appearance-none rounded-2xl border border-ink-700 bg-ink-900/80 ps-12 pe-5 text-sm font-semibold text-cream transition-colors duration-200 hover:border-ink-600 focus:border-gold-500/60 focus:outline-none"
+                className="h-14 w-full cursor-pointer appearance-none rounded-2xl border border-ink-700 bg-ink-900/60 ps-12 pe-5 text-sm font-semibold text-cream backdrop-blur-md transition-colors duration-200 hover:border-ink-600 focus:border-gold-500/60 focus:outline-none"
               >
                 <option value="default">{t.menu.sort.default}</option>
                 <option value="priceAsc">{t.menu.sort.priceAsc}</option>
@@ -232,7 +232,7 @@ export function Menu({
         {/* Category rail — a photo strip, in its own bounded panel so the
             cards can never bleed into the row above or the counter below. */}
         <Reveal delay={0.16} className="mt-4">
-          <div className="relative rounded-2xl border border-ink-700/70 bg-ink-900/40 p-2">
+          <div className="relative rounded-3xl border border-ink-700/60 bg-ink-900/30 p-2 backdrop-blur-md">
             <CategoryRail
               tiles={tiles}
               active={filter}
@@ -292,7 +292,7 @@ export function Menu({
                 <button
                   type="button"
                   onClick={showMore}
-                  className="flex min-h-13 cursor-pointer items-center gap-2 rounded-2xl border border-ink-600 bg-ink-900/70 px-7 font-extrabold text-cream transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-500"
+                  className="flex min-h-13 cursor-pointer items-center gap-2 rounded-2xl border border-ink-600 bg-ink-900/60 px-7 font-extrabold text-cream backdrop-blur-md transition-[transform,color,border-color] duration-200 hover:-translate-y-0.5 hover:border-gold-500/60 hover:text-gold-500 active:scale-95"
                 >
                   <ChevronDown aria-hidden className="size-5" />
                   {t.menu.showMore}
@@ -304,7 +304,7 @@ export function Menu({
             )}
           </>
         ) : (
-          <div className="animate-card-in mt-10 flex flex-col items-center gap-4 rounded-3xl border border-dashed border-ink-600 bg-ink-900/50 px-6 py-16 text-center">
+          <div className="animate-card-in mt-10 flex flex-col items-center gap-4 rounded-3xl border border-dashed border-ink-600 bg-ink-900/40 px-6 py-16 text-center backdrop-blur-md">
             <span className="flex size-16 items-center justify-center rounded-2xl bg-ink-800 text-muted-dim">
               <SearchX aria-hidden className="size-8" />
             </span>
@@ -327,7 +327,7 @@ export function Menu({
                     setFilter("all");
                     setQuery(pick(s));
                   }}
-                  className="min-h-11 cursor-pointer rounded-xl border border-ink-600 bg-ink-800 px-4 text-sm font-bold text-cream transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-500"
+                  className="min-h-11 cursor-pointer rounded-2xl border border-ink-600 bg-ink-800 px-4 text-sm font-bold text-cream transition-[transform,color,border-color] duration-200 hover:border-gold-500/60 hover:text-gold-500 active:scale-95"
                 >
                   {pick(s)}
                 </button>

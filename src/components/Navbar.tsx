@@ -124,7 +124,7 @@ export function Navbar() {
                     {isActive && (
                       <motion.span
                         layoutId="nav-pill"
-                        className="absolute inset-0 -z-10 rounded-xl bg-gold-500"
+                        className="absolute inset-0 -z-10 rounded-2xl bg-gold-500"
                         transition={{ type: "spring", stiffness: 380, damping: 32 }}
                       />
                     )}
@@ -141,7 +141,7 @@ export function Navbar() {
             <Link
               href="/track"
               aria-label={sh.track.title}
-              className="hidden h-11 cursor-pointer items-center gap-2 rounded-xl border border-ink-600 bg-ink-800/70 px-3 text-sm font-bold text-cream transition-all duration-200 hover:border-gold-500/60 hover:text-gold-500 md:flex"
+              className="hidden h-11 cursor-pointer items-center gap-2 rounded-2xl border border-ink-600 bg-ink-800/70 px-3 text-sm font-bold text-cream transition-[transform,color,border-color] duration-200 hover:border-gold-500/60 hover:text-gold-500 active:scale-95 md:flex"
             >
               <PackageSearch aria-hidden className="size-4" />
               <span className="hidden xl:inline">{sh.track.title}</span>
@@ -155,7 +155,7 @@ export function Navbar() {
               type="button"
               onClick={toggleLang}
               aria-label={t.a11y.switchLang}
-              className="flex h-11 min-w-11 cursor-pointer items-center gap-1.5 rounded-xl border border-ink-600 bg-ink-800/70 px-3 text-xs font-bold text-cream transition-all duration-200 hover:border-gold-500/60 hover:bg-ink-700 hover:text-gold-500"
+              className="flex h-11 min-w-11 cursor-pointer items-center gap-1.5 rounded-2xl border border-ink-600 bg-ink-800/70 px-3 text-xs font-bold text-cream transition-[transform,color,border-color,background-color] duration-200 hover:border-gold-500/60 hover:bg-ink-700 hover:text-gold-500 active:scale-95"
             >
               <Languages aria-hidden className="size-4" />
               <span className="font-en">{lang === "ar" ? "EN" : "ع"}</span>
@@ -167,7 +167,7 @@ export function Navbar() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={t.nav.whatsapp}
-              className="hidden h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-ink-600 bg-ink-800/70 px-3 text-sm font-bold text-cream transition-all duration-200 hover:border-gold-500/60 hover:bg-ink-700 hover:text-gold-500 sm:flex"
+              className="hidden h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-ink-600 bg-ink-800/70 px-3 text-sm font-bold text-cream transition-[transform,color,border-color,background-color] duration-200 hover:border-gold-500/60 hover:bg-ink-700 hover:text-gold-500 active:scale-95 sm:flex"
             >
               <MessageCircle aria-hidden className="size-4" />
               <span className="hidden xl:inline">{t.nav.whatsapp}</span>
@@ -176,7 +176,7 @@ export function Navbar() {
             {/* Call Now — primary CTA */}
             <a
               href={STORE.phoneHref}
-              className="group hidden h-11 cursor-pointer items-center gap-2 rounded-xl bg-gold-500 px-4 text-sm font-extrabold text-ink-950 shadow-glow transition-all duration-200 hover:bg-gold-400 hover:shadow-glow-lg active:scale-[0.97] sm:flex"
+              className="group hidden h-11 cursor-pointer items-center gap-2 rounded-2xl bg-gold-500 px-4 text-sm font-extrabold text-ink-950 shadow-glow transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-0.5 hover:bg-gold-400 hover:shadow-glow-lg active:scale-95 sm:flex"
             >
               <Phone aria-hidden className="size-4 transition-transform duration-300 group-hover:rotate-12" />
               <span>{t.nav.callNow}</span>
@@ -189,7 +189,7 @@ export function Navbar() {
               aria-label={t.nav.openMenu}
               aria-expanded={open}
               aria-controls="mobile-drawer"
-              className="flex size-11 cursor-pointer items-center justify-center rounded-xl border border-ink-600 bg-ink-800/70 text-cream transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-500 lg:hidden"
+              className="flex size-11 cursor-pointer items-center justify-center rounded-2xl border border-ink-600 bg-ink-800/70 text-cream transition-[transform,color,border-color] duration-200 hover:border-gold-500/60 hover:text-gold-500 active:scale-90 lg:hidden"
             >
               <MenuIcon aria-hidden className="size-5" />
             </button>
@@ -226,7 +226,7 @@ export function Navbar() {
                   type="button"
                   onClick={() => setOpen(false)}
                   aria-label={t.nav.closeMenu}
-                  className="flex size-11 cursor-pointer items-center justify-center rounded-xl border border-ink-600 text-cream transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-500"
+                  className="flex size-11 cursor-pointer items-center justify-center rounded-2xl border border-ink-600 text-cream transition-[transform,color,border-color] duration-200 hover:border-gold-500/60 hover:text-gold-500 active:scale-90"
                 >
                   <X aria-hidden className="size-5" />
                 </button>

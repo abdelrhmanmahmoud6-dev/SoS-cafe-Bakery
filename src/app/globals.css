@@ -5,72 +5,113 @@
    Tailwind CSS v4 CSS-first config. Every token below generates utilities
    (e.g. --color-gold-500 -> bg-gold-500 / text-gold-500 / border-gold-500).
 
-   Brand palette derived from the logo:
-     Golden Yellow  #FEE500 / #FFD600   (primary accent)
-     Obsidian       #0B0B0E #141418 #1C1C22 (neutral dark)
-     Warm Cream     #FFFDF7             (neutral light)
+   ---------------------------------------------------------------------------
+   DESIGN DIRECTION — "neon bakery"
+
+   Obsidian base, acid-lime primary, pastel accents per menu section.
+
+   The neutral ramp is NOT grey: every step carries a slight violet undertone
+   (hue ~260). Flat grey reads as unfinished on a dark screen, whereas a tinted
+   near-black reads as deliberate and lets a saturated accent sit on top without
+   the two fighting.
+
+   The primary ramp is still named `gold-*`. That is on purpose: 270 usages
+   across 23 files — the admin panel included — already point at it, so
+   retuning the ramp in place restyles the whole product coherently instead of
+   leaving two palettes half-applied. The hue moved from #FEE500 (golden) to
+   #DFFF3C (acid lime-yellow); it is adjacent enough that the logo still sits
+   comfortably beside it.
+
+   Pastel accents (lavender / peach / aqua / blush) are mapped per category in
+   src/lib/accents.ts, so a waffle card glows peach and a mojito glows aqua.
    ========================================================================== */
 
 @theme {
-  /* ---- Brand: Golden Yellow ------------------------------------------- */
-  --color-gold-50: #FFFEF0;
-  --color-gold-100: #FFFACC;
-  --color-gold-200: #FFF599;
-  --color-gold-300: #FFF04D;
-  --color-gold-400: #FFEA1A;
-  --color-gold-500: #FEE500; /* primary brand accent */
-  --color-gold-600: #FFD600; /* deeper brand accent */
-  --color-gold-700: #D9B600;
-  --color-gold-800: #A88E00;
-  --color-gold-900: #6B5A00;
+  /* ---- Brand: Acid Lime (primary accent) ------------------------------- */
+  --color-gold-50: #FBFFEB;
+  --color-gold-100: #F4FFC7;
+  --color-gold-200: #ECFF9B;
+  --color-gold-300: #E6FF6B;
+  --color-gold-400: #E3FF4A;
+  --color-gold-500: #DFFF3C; /* primary — neon cyber lime */
+  --color-gold-600: #C9F016; /* deeper, for gradients and pressed states */
+  --color-gold-700: #A3C400;
+  --color-gold-800: #78900A;
+  --color-gold-900: #47560B;
 
-  /* ---- Brand: Obsidian / Deep Charcoal --------------------------------- */
-  --color-ink-950: #0B0B0E; /* page background */
-  --color-ink-900: #141418; /* elevated surface */
-  --color-ink-850: #18181D;
-  --color-ink-800: #1C1C22; /* card surface */
-  --color-ink-700: #26262E; /* raised card / hover */
-  --color-ink-600: #34343E; /* border strong */
-  --color-ink-500: #4A4A57;
+  /* ---- Obsidian neutrals (violet-tinted, never flat grey) -------------- */
+  --color-ink-950: #07070B; /* page background */
+  --color-ink-900: #0E0E15; /* elevated surface */
+  --color-ink-850: #13131C;
+  --color-ink-800: #191922; /* card surface */
+  --color-ink-700: #24242F; /* raised card / hover */
+  --color-ink-600: #32323F; /* border strong */
+  --color-ink-500: #474756;
+
+  /* ---- Pastel accents — one per menu mood ------------------------------
+     These hexes are mirrored in src/lib/accents.ts, which hands them to
+     components as an inline `--accent`. Tailwind cannot read that file, and a
+     component cannot read `@theme` at runtime, so the pair has to be kept in
+     step by hand — change one, change the other. */
+  --color-lav-300: #D6CBFF;
+  --color-lav-400: #B9A7FF; /* frappé, milkshake, freska */
+  --color-lav-500: #9F86FF;
+
+  --color-peach-300: #FFD5C2;
+  --color-peach-400: #FFAE8F; /* waffle, pancake, juice */
+  --color-peach-500: #FF8B62;
+
+  --color-aqua-300: #9CF5E6;
+  --color-aqua-400: #5EEAD4; /* mojito, add-ons */
+  --color-aqua-500: #2DD4BF;
+
+  --color-blush-300: #FFC2DE;
+  --color-blush-400: #FF8FC7; /* smoothie, rice pudding */
+  --color-blush-500: #FF63AE;
 
   /* ---- Neutral light / warm accents ------------------------------------ */
   --color-cream: #FFFDF7;
-  --color-cream-dim: #F3F0E6;
+  --color-cream-dim: #EFEDE4;
   --color-amber-soft: #FFC94D;
   --color-amber-deep: #E0A800;
 
   /* ---- Muted foregrounds (all >= 4.5:1 on ink-950) --------------------- */
-  --color-muted: #A1A1AA; /* 7.5:1 on ink-950 */
-  --color-muted-dim: #8A8A94; /* 5.7:1 on ink-950 */
+  --color-muted: #A6A6B4; /* 7.6:1 on ink-950 */
+  --color-muted-dim: #8C8C9C; /* 5.8:1 on ink-950 */
 
   /* ---- Semantic ------------------------------------------------------- */
-  --color-surface: #141418;
-  --color-surface-raised: #1C1C22;
-  --color-hairline: #26262E;
+  --color-surface: #0E0E15;
+  --color-surface-raised: #191922;
+  --color-hairline: #24242F;
   --color-success: #34D399;
   --color-danger: #F87171;
 
   /* ---- Typography ------------------------------------------------------ */
   --font-ar: var(--font-cairo), "Cairo", "Tajawal", system-ui, sans-serif;
   --font-en: var(--font-jakarta), "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
-  --font-display: var(--font-jakarta), var(--font-cairo), system-ui, sans-serif;
+  /* Space Grotesk carries the headlines: geometric, slightly mechanical, and
+     it holds up at heavy weight with negative tracking. Cairo follows it in
+     the stack so Arabic headings never fall back to a system serif. */
+  --font-display: var(--font-space), var(--font-cairo), var(--font-jakarta), system-ui, sans-serif;
 
-  /* ---- Radii ----------------------------------------------------------- */
-  --radius-xs: 0.375rem;
-  --radius-sm: 0.625rem;
-  --radius-md: 0.875rem;
-  --radius-lg: 1.25rem;
-  --radius-xl: 1.75rem;
-  --radius-2xl: 2.25rem;
+  /* ---- Radii — rounder than the old set; softness is the point --------- */
+  --radius-xs: 0.5rem;
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 2rem;
+  --radius-2xl: 2.75rem;
 
   /* ---- Elevation + brand glows ----------------------------------------- */
-  --shadow-card: 0 4px 24px -6px rgb(0 0 0 / 0.55);
-  --shadow-float: 0 18px 50px -12px rgb(0 0 0 / 0.7);
-  --shadow-glow: 0 0 0 1px rgb(254 229 0 / 0.22), 0 8px 32px -8px rgb(254 229 0 / 0.28);
-  --shadow-glow-lg: 0 0 0 1px rgb(254 229 0 / 0.35), 0 14px 48px -10px rgb(254 229 0 / 0.42);
+  --shadow-card: 0 4px 24px -6px rgb(0 0 0 / 0.6);
+  --shadow-float: 0 18px 50px -12px rgb(0 0 0 / 0.75);
+  --shadow-glow: 0 0 0 1px rgb(223 255 60 / 0.24), 0 8px 32px -8px rgb(223 255 60 / 0.3);
+  --shadow-glow-lg: 0 0 0 1px rgb(223 255 60 / 0.38), 0 14px 48px -10px rgb(223 255 60 / 0.45);
 
-  /* ---- Motion timing (200-300ms per design system) --------------------- */
+  /* ---- Motion timing --------------------------------------------------- */
   --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Overshoots slightly — the "satisfying" in a satisfying tap. */
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
   --animate-float-slow: float 9s ease-in-out infinite;
   --animate-float-mid: float 7s ease-in-out infinite;
   --animate-shimmer: shimmer 2.6s linear infinite;
@@ -110,6 +151,12 @@
   to { transform: translateX(-50%); }
 }
 
+/* Slow breathing glow behind the active category tile. */
+@keyframes accentPulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.06); }
+}
+
 /* ============================================================================
    BASE
    ========================================================================== */
@@ -142,6 +189,19 @@
     line-height: 1.75;
   }
 
+  /**
+   * Headings take the display face with tight tracking.
+   *
+   * Latin only: negative tracking on Arabic pulls joined letterforms into each
+   * other and breaks the script, so the rule is scoped away from html[lang=ar].
+   */
+  html[lang="en"] h1,
+  html[lang="en"] h2,
+  html[lang="en"] h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.035em;
+  }
+
   /* Visible focus ring for keyboard nav — never removed */
   :focus-visible {
     outline: 2px solid var(--color-gold-500);
@@ -164,26 +224,97 @@
 }
 
 /* ============================================================================
+   ACCENT UTILITIES
+
+   Declared with `@utility` rather than inside `@layer utilities` so Tailwind
+   registers them properly and variants compile — `hover:accent-border` is a
+   real class only because of this. Plain CSS in `@layer utilities` would emit
+   the base class but silently drop every variant of it.
+
+   All of them read `--accent` from an ancestor (set by `accentStyle()` in
+   src/lib/accents.ts), so one inline property retints a whole card — glow,
+   ring, price chip and button — with no colour ladder at the call site.
+   ========================================================================== */
+
+@utility accent-text {
+  color: var(--accent, var(--color-gold-500));
+}
+
+@utility accent-chip {
+  color: var(--accent, var(--color-gold-500));
+  background: color-mix(in oklab, var(--accent, var(--color-gold-500)) 13%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent, var(--color-gold-500)) 28%, transparent);
+}
+
+@utility accent-fill {
+  background: var(--accent, var(--color-gold-500));
+  color: var(--color-ink-950);
+}
+
+@utility accent-ring {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent, var(--color-gold-500)) 32%, transparent);
+}
+
+@utility accent-border {
+  border-color: color-mix(in oklab, var(--accent, var(--color-gold-500)) 42%, transparent);
+}
+
+/**
+ * Accent glow.
+ *
+ * A box-shadow rather than a blurred pseudo-element: one paint, no extra layer.
+ * A gridful of blurred ::after halos is what makes "glowing cards" tank scroll
+ * performance on mid-range phones.
+ */
+@utility glow-accent {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--accent, var(--color-gold-500)) 40%, transparent),
+    0 10px 40px -12px color-mix(in oklab, var(--accent, var(--color-gold-500)) 55%, transparent);
+}
+
+@utility glow-accent-soft {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--accent, var(--color-gold-500)) 22%, transparent),
+    0 8px 30px -14px color-mix(in oklab, var(--accent, var(--color-gold-500)) 40%, transparent);
+}
+
+/* ============================================================================
    COMPONENT UTILITIES
    ========================================================================== */
 
 @layer utilities {
   .glass {
-    background: color-mix(in oklab, var(--color-ink-900) 68%, transparent);
-    backdrop-filter: blur(18px) saturate(140%);
-    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    background: color-mix(in oklab, var(--color-ink-900) 62%, transparent);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
     border: 1px solid color-mix(in oklab, var(--color-cream) 8%, transparent);
   }
 
   .glass-strong {
-    background: color-mix(in oklab, var(--color-ink-950) 82%, transparent);
-    backdrop-filter: blur(24px) saturate(160%);
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    background: color-mix(in oklab, var(--color-ink-950) 80%, transparent);
+    backdrop-filter: blur(28px) saturate(170%);
+    -webkit-backdrop-filter: blur(28px) saturate(170%);
     border: 1px solid color-mix(in oklab, var(--color-gold-500) 12%, transparent);
   }
 
+  /* Frosted card that picks up whatever `--accent` its parent sets. */
+  .glass-accent {
+    background: color-mix(in oklab, var(--color-ink-900) 66%, transparent);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid color-mix(in oklab, var(--accent, var(--color-gold-500)) 16%, transparent);
+  }
+
   .text-gradient-gold {
-    background: linear-gradient(100deg, #FFF04D 0%, #FEE500 38%, #FFD600 62%, #FFC94D 100%);
+    background: linear-gradient(100deg, #ECFF9B 0%, #DFFF3C 38%, #C9F016 62%, #A3C400 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Headline gradient that sweeps through the pastel accents. */
+  .text-gradient-pop {
+    background: linear-gradient(100deg, #DFFF3C 0%, #B9A7FF 42%, #FFAE8F 74%, #DFFF3C 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -201,8 +332,29 @@
     background-size: 64px 64px;
   }
 
+  /**
+   * Film grain over the whole page.
+   *
+   * An inline SVG turbulence data-URI: no network request, no image decode, and
+   * it tiles at 160px so the repeat is invisible. Grain is what stops a flat
+   * near-black from banding on cheap panels.
+   */
+  .grain::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
   .animate-card-in {
     animation: cardIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .animate-accent-pulse {
+    animation: accentPulse 3.2s ease-in-out infinite;
   }
 
   .animate-shimmer-sweep {
@@ -237,6 +389,23 @@
 
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /**
+   * Category rail, mid-drag.
+   *
+   * `scroll-behavior: auto` is the important line. The track is normally
+   * `scroll-smooth` so the arrow buttons glide, but smooth scrolling also
+   * animates direct `scrollLeft` assignments — which makes a drag lag a frame
+   * or more behind the cursor and feel like it is fighting you. Dragging needs
+   * the instant, 1:1 mapping.
+   */
+  .rail-dragging {
+    cursor: grabbing;
+    user-select: none;
+    scroll-behavior: auto;
+    scroll-snap-type: none;
+  }
+  .rail-dragging * { pointer-events: none; }
 }
 
 /* ============================================================================

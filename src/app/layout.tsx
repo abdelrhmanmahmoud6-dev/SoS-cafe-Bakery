@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cairo, Plus_Jakarta_Sans } from "next/font/google";
+import { Cairo, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import { I18nProvider } from "@/lib/i18n";
 import { STORE } from "@/lib/dictionary";
 import "./globals.css";
@@ -8,6 +8,20 @@ const cairo = Cairo({
   subsets: ["arabic", "latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
   variable: "--font-cairo",
+  display: "swap",
+});
+
+/**
+ * Display face for headlines.
+ *
+ * Latin only — Arabic headings stay on Cairo, which sits next in the
+ * `--font-display` stack. Loaded at 500-700 only; the lighter weights are
+ * never used at display size and would just cost bytes.
+ */
+const space = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-space",
   display: "swap",
 });
 
@@ -56,7 +70,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0B0B0E",
+  themeColor: "#07070B",
   width: "device-width",
   initialScale: 1,
   // Zoom is never disabled — pinch-to-zoom stays available (a11y requirement).
@@ -104,8 +118,14 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     // Arabic + RTL is the server-rendered default; the provider swaps it live.
-    <html lang="ar" dir="rtl" className={`${cairo.variable} ${jakarta.variable}`}>
-      <body className="bg-ink-950 text-cream antialiased">
+    <html
+      lang="ar"
+      dir="rtl"
+      className={`${cairo.variable} ${jakarta.variable} ${space.variable}`}
+    >
+      {/* `grain` lays a fixed film-grain overlay over everything, which is what
+          keeps a near-black background from banding on cheap panels. */}
+      <body className="grain bg-ink-950 text-cream antialiased">
         {/* Scroll-reveal wrappers start at opacity 0 and are animated in by JS.
             If JS never runs, force them visible so the page is still readable. */}
         <noscript>

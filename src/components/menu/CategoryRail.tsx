@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import type { IconKey } from "@/lib/menu-data";
+import { accentStyle } from "@/lib/accents";
 import { cn } from "@/lib/utils";
 import { ItemImage } from "../ui/ItemImage";
 
@@ -111,6 +112,69 @@ function CategoryRailImpl({
     });
   }
 
+  /**
+   * Click-and-drag the rail with a mouse.
+   *
+   * Touch is deliberately excluded (`pointerType === "mouse"` only): a finger
+   * already gets native momentum scrolling, and hijacking it with pointer
+   * capture would replace a physics-accurate gesture with a worse one. This
+   * only fills the gap on desktop, where a trackpad user has no swipe at all.
+   *
+   * `hasDragged` suppresses the click that a browser fires at the end of a
+   * drag, so releasing over a tile does not also select that category.
+   */
+  const drag = useRef({ active: false, startX: 0, startScroll: 0, moved: false });
+
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.pointerType !== "mouse") return;
+    const el = trackRef.current;
+    if (!el) return;
+    drag.current = {
+      active: true,
+      startX: e.clientX,
+      startScroll: el.scrollLeft,
+      moved: false,
+    };
+    // Capture can throw if the pointer has already been released or was never
+    // a real device pointer. A throw here would abort the handler and leave the
+    // rail in a half-dragged state, so it is contained.
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch {
+      /* proceed without capture — the drag still tracks via pointermove */
+    }
+    el.classList.add("rail-dragging");
+  }
+
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    const el = trackRef.current;
+    if (!drag.current.active || !el) return;
+    const dx = e.clientX - drag.current.startX;
+    if (Math.abs(dx) > 4) drag.current.moved = true;
+    el.scrollLeft = drag.current.startScroll - dx;
+  }
+
+  function endDrag(e: React.PointerEvent<HTMLDivElement>) {
+    const el = trackRef.current;
+    if (!drag.current.active || !el) return;
+    drag.current.active = false;
+    el.classList.remove("rail-dragging");
+    try {
+      if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+    } catch {
+      /* already released */
+    }
+  }
+
+  /** Swallow the click that ends a drag, so it never selects a tile. */
+  function onClickCapture(e: React.MouseEvent) {
+    if (drag.current.moved) {
+      e.preventDefault();
+      e.stopPropagation();
+      drag.current.moved = false;
+    }
+  }
+
   return (
     <div className="relative">
       {/* Fades hinting that the strip continues past the frame. Pointer events
@@ -134,9 +198,14 @@ function CategoryRailImpl({
       <div
         ref={trackRef}
         onScroll={measure}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onClickCapture={onClickCapture}
         role="tablist"
         aria-label={t.menu.categoryLabel}
-        className="rail-scroll flex snap-x snap-proximity gap-3 overflow-x-auto scroll-smooth px-0.5 pb-3 pt-1"
+        className="no-scrollbar flex snap-x snap-proximity gap-3 overflow-x-auto scroll-smooth px-0.5 pb-4 pt-2"
       >
         {tiles.map((tile, i) => (
           <RailCard
@@ -195,8 +264,8 @@ function Arrow({
       aria-label={label}
       className={cn(
         "absolute top-1/2 z-30 hidden size-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full",
-        "border border-ink-600 bg-ink-900/90 text-cream backdrop-blur-sm",
-        "transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-500 sm:flex",
+        "glass text-cream",
+        "transition-[transform,color] duration-200 hover:scale-110 hover:text-gold-500 active:scale-90 sm:flex",
         side === "left" ? "left-1" : "right-1"
       )}
     >
@@ -238,10 +307,16 @@ function RailCardImpl({
         ease: [0.22, 1, 0.36, 1],
       }}
       className={cn(
-        "group relative w-30 shrink-0 snap-start cursor-pointer rounded-2xl text-start outline-none sm:w-34",
-        "transition-transform duration-200 ease-out will-change-transform",
-        "hover:-translate-y-1 focus-visible:-translate-y-1"
+        "group relative w-30 shrink-0 snap-start cursor-pointer rounded-3xl text-start outline-none sm:w-34",
+        // Scale, not just lift: the active section grows out of the rail so it
+        // reads as selected from the corner of the eye, mid-scroll.
+        "transition-transform duration-300 ease-out will-change-transform",
+        isActive
+          ? "scale-105"
+          : "hover:-translate-y-1.5 hover:scale-[1.03] focus-visible:-translate-y-1.5",
+        "active:scale-95"
       )}
+      style={accentStyle(tile.id)}
     >
       {/* The travelling highlight. One shared layout node for the whole rail,
           so switching sections animates a single element rather than two. */}
@@ -249,24 +324,27 @@ function RailCardImpl({
         <motion.span
           aria-hidden
           layoutId="category-rail-active"
-          transition={{ type: "spring", stiffness: 420, damping: 36 }}
-          className="pointer-events-none absolute -inset-0.5 z-20 rounded-[1.1rem] ring-2 ring-gold-500"
+          transition={{ type: "spring", stiffness: 420, damping: 34 }}
+          className="glow-accent pointer-events-none absolute -inset-1 z-20 rounded-[1.6rem]"
         />
       )}
 
-      <span className="relative block overflow-hidden rounded-2xl">
+      <span className="relative block overflow-hidden rounded-3xl">
         {tile.image ? (
           <ItemImage
             as="span"
             src={tile.image}
             alt=""
             icon={tile.icon}
-            className="aspect-[4/5] w-full"
+            className={cn(
+              "aspect-[4/5] w-full transition-transform duration-500 ease-out",
+              isActive ? "scale-105" : "group-hover:scale-105"
+            )}
             iconClassName="size-7"
             sizes="(max-width: 640px) 120px, 136px"
           />
         ) : (
-          <span className="flex aspect-[4/5] w-full items-center justify-center bg-[radial-gradient(120%_120%_at_50%_0%,rgb(254_229_0/0.22),transparent_70%)] text-gold-500">
+          <span className="flex aspect-[4/5] w-full items-center justify-center bg-[radial-gradient(120%_120%_at_50%_0%,rgb(223_255_60/0.24),transparent_70%)] text-gold-500">
             <LayoutGrid aria-hidden className="size-8" strokeWidth={1.5} />
           </span>
         )}
@@ -276,35 +354,37 @@ function RailCardImpl({
         <span
           aria-hidden
           className={cn(
-            "absolute inset-0 transition-opacity duration-200",
+            "absolute inset-0 transition-opacity duration-300",
             "bg-gradient-to-t from-ink-950 via-ink-950/55 to-ink-950/10",
             isActive ? "opacity-95" : "opacity-85 group-hover:opacity-95"
           )}
         />
 
+        {/* Inactive tiles get a hairline; the active one is ringed by the
+            travelling glow above, so a second ring here would double up. */}
         <span
           aria-hidden
           className={cn(
-            "absolute inset-0 rounded-2xl ring-1 transition-colors duration-200",
-            isActive ? "ring-transparent" : "ring-ink-600 group-hover:ring-gold-500/40"
+            "absolute inset-0 rounded-3xl transition-opacity duration-300",
+            isActive ? "opacity-0" : "accent-ring opacity-40 group-hover:opacity-100"
           )}
         />
 
-        <span className="absolute inset-x-0 bottom-0 flex flex-col gap-1 p-2.5">
+        <span className="absolute inset-x-0 bottom-0 flex flex-col items-start gap-1 p-2.5">
           <span
             className={cn(
-              "line-clamp-2 text-xs font-extrabold leading-tight transition-colors duration-200",
-              isActive ? "text-gold-500" : "text-cream"
+              "line-clamp-2 text-xs font-extrabold leading-tight transition-colors duration-300",
+              isActive ? "accent-text" : "text-cream"
             )}
           >
             {tile.label}
           </span>
           <span
             className={cn(
-              "w-fit rounded-md px-1.5 py-0.5 font-en text-[10px] font-extrabold num transition-colors duration-200",
+              "rounded-lg px-1.5 py-0.5 font-en text-[10px] font-extrabold num transition-colors duration-300",
               isActive
-                ? "bg-gold-500 text-ink-950"
-                : "bg-ink-950/70 text-muted-dim ring-1 ring-ink-600"
+                ? "accent-fill"
+                : "bg-ink-950/70 text-muted-dim ring-1 ring-ink-600 backdrop-blur-md"
             )}
           >
             {tile.count}

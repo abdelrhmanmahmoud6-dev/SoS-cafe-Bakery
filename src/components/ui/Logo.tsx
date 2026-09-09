@@ -43,9 +43,9 @@ export function Logo({
         <path id={arcTop} d="M 26 100 A 74 74 0 0 1 174 100" fill="none" />
         <path id={ring} d="M 100 178 A 78 78 0 0 0 100 22" fill="none" />
         <linearGradient id={`g-${uid}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#FFF04D" />
-          <stop offset="55%" stopColor="#FEE500" />
-          <stop offset="100%" stopColor="#FFD600" />
+          <stop offset="0%" stopColor="#ECFF9B" />
+          <stop offset="55%" stopColor="#DFFF3C" />
+          <stop offset="100%" stopColor="#C9F016" />
         </linearGradient>
       </defs>
 
@@ -54,7 +54,7 @@ export function Logo({
 
       {/* Arched brand text, top */}
       <text
-        fill="#26262E"
+        fill="#0E0E15"
         fontSize="20.5"
         fontWeight="800"
         fontFamily="var(--font-jakarta), system-ui, sans-serif"
@@ -71,7 +71,7 @@ export function Logo({
         cy="106"
         r="60"
         fill="none"
-        stroke="#26262E"
+        stroke="#0E0E15"
         strokeWidth="9"
         strokeDasharray="5 4.6"
         strokeLinecap="round"
@@ -79,7 +79,7 @@ export function Logo({
       />
 
       {/* Cup / glass / stack pictograms above the shield */}
-      <g fill="#26262E">
+      <g fill="#0E0E15">
         <rect x="62" y="60" width="15" height="11" rx="2.5" />
         <rect x="64.5" y="57" width="10" height="3" rx="1.5" />
         <rect x="81" y="57" width="10.5" height="14" rx="2" />
@@ -95,18 +95,18 @@ export function Logo({
       <path
         d="M46 78 H154 V116 C154 146 130 166 100 176 C70 166 46 146 46 116 Z"
         fill="none"
-        stroke="#26262E"
+        stroke="#0E0E15"
         strokeWidth="7"
         strokeLinejoin="round"
       />
-      <path d="M44 78 H156" stroke="#26262E" strokeWidth="8" strokeLinecap="round" />
+      <path d="M44 78 H156" stroke="#0E0E15" strokeWidth="8" strokeLinecap="round" />
 
       {/* SOS wordmark */}
       <text
         x="100"
         y="132"
         textAnchor="middle"
-        fill="#26262E"
+        fill="#0E0E15"
         fontSize="52"
         fontWeight="800"
         fontFamily="var(--font-jakarta), system-ui, sans-serif"
@@ -116,7 +116,7 @@ export function Logo({
       </text>
 
       {/* Wheat / wave sheaf at the shield base */}
-      <g stroke="#26262E" strokeWidth="4.5" fill="none" strokeLinecap="round">
+      <g stroke="#0E0E15" strokeWidth="4.5" fill="none" strokeLinecap="round">
         <path d="M62 156 C82 140 122 140 142 156" />
         <path d="M66 164 C86 148 120 148 140 164" />
         <path d="M72 171 C90 158 114 158 132 171" />
@@ -124,7 +124,7 @@ export function Logo({
 
       {/* est:2026 */}
       <text
-        fill="#26262E"
+        fill="#0E0E15"
         fontSize="15"
         fontWeight="700"
         fontFamily="var(--font-jakarta), system-ui, sans-serif"
