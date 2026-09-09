@@ -8,7 +8,7 @@ import type { IconKey } from "@/lib/menu-data";
 import { accentStyle } from "@/lib/accents";
 import { cn } from "@/lib/utils";
 import { ItemImage } from "../ui/ItemImage";
-import { SPRING_POP, SPRING_TRAVEL } from "../ui/Motion";
+import { SPRING_POP, SPRING_TRAVEL, useCoarsePointer } from "../ui/Motion";
 
 /* ============================================================================
    CATEGORY RAIL
@@ -289,6 +289,7 @@ function RailCardImpl({
   onSelect: (id: string) => void;
 }) {
   const { t } = useI18n();
+  const coarse = useCoarsePointer();
 
   return (
     <motion.button
@@ -309,14 +310,18 @@ function RailCardImpl({
         // than lifting — a lift on a 40px-tall shape is barely legible.
         scale: isActive ? 1.05 : 1,
       }}
-      whileHover={isActive ? undefined : { y: -3, scale: 1.03 }}
+      whileHover={isActive || coarse ? undefined : { y: -3, scale: 1.03 }}
       whileTap={{ scale: 0.94 }}
       transition={{
         ...SPRING_POP,
         delay: Math.min(index * 0.028, 0.34),
       }}
       className={cn(
-        "group relative flex shrink-0 snap-start cursor-pointer items-center gap-2.5 rounded-full py-1.5 pe-4 ps-1.5 text-start outline-none will-change-transform",
+        // No `will-change` here: it promotes every pill to its own layer for
+        // the life of the page, and fifteen permanent layers is memory a phone
+        // would rather spend on the menu. Framer promotes on demand while an
+        // animation is actually running.
+        "group relative flex shrink-0 snap-start cursor-pointer items-center gap-2.5 rounded-full py-1.5 pe-4 ps-1.5 text-start outline-none",
         // Selected pill sits above its neighbours so its ring is never clipped
         // by the pill that follows it in the track.
         isActive ? "btn-espresso z-10" : "border border-sand-300 bg-sand-50 shadow-card"

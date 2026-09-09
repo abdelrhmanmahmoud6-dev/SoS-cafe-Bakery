@@ -73,7 +73,7 @@ export function Hero({
       <CursorTrail
         images={photos}
         hostRef={ref}
-        className="pointer-events-none absolute inset-0 z-0 hidden sm:block"
+        className="pointer-events-none absolute inset-0 z-0"
       />
 
       <motion.div style={{ y, opacity }} className="relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-8">
@@ -107,7 +107,7 @@ export function Hero({
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.55 }}
-            className="mb-5 inline-flex items-center gap-2 rounded-full border border-sand-400 bg-sand-100/70 px-4 py-2 text-xs font-semibold text-muted backdrop-blur-sm sm:text-sm"
+            className="mb-5 inline-flex items-center gap-2 rounded-full border border-sand-400 bg-sand-100/70 px-4 py-2 text-xs font-semibold text-muted sm:backdrop-blur-sm sm:text-sm"
           >
             <MapPin aria-hidden className="size-4 text-gold-800" />
             {t.hero.location}
@@ -160,7 +160,7 @@ export function Hero({
 
             <MagneticButton
               href={STORE.phoneHref}
-              className="flex min-h-13 w-full items-center justify-center gap-2.5 rounded-2xl border border-sand-400 bg-sand-100/60 px-7 text-base font-bold text-espresso backdrop-blur-sm transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-800 sm:w-auto"
+              className="flex min-h-13 w-full items-center justify-center gap-2.5 rounded-2xl border border-sand-400 bg-sand-100/60 px-7 text-base font-bold text-espresso sm:backdrop-blur-sm transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-800 sm:w-auto"
             >
               <Phone aria-hidden className="size-5" />
               {t.hero.ctaCall}
@@ -172,7 +172,7 @@ export function Hero({
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.78, duration: 0.6 }}
-            className="mt-14 grid w-full max-w-2xl grid-cols-3 divide-x divide-sand-300 rounded-2xl border border-sand-300 bg-sand-100/50 py-5 backdrop-blur-sm rtl:divide-x-reverse"
+            className="mt-14 grid w-full max-w-2xl grid-cols-3 divide-x divide-sand-300 rounded-2xl border border-sand-300 bg-sand-100/50 py-5 sm:backdrop-blur-sm rtl:divide-x-reverse"
           >
             {stats.map((s) => (
               <div key={s.label} className="flex flex-col items-center gap-1 px-2">

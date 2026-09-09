@@ -9,7 +9,12 @@ import { useCart } from "@/store/cart";
 import { accentStyle } from "@/lib/accents";
 import { cn } from "@/lib/utils";
 import { ItemImage } from "./ui/ItemImage";
-import { cardEnter, SPRING_POP, SPRING_SOFT } from "./ui/Motion";
+import {
+  cardEnter,
+  useCoarsePointer,
+  SPRING_POP,
+  SPRING_SOFT,
+} from "./ui/Motion";
 
 /** Categories where add-ons are offered, so the customiser is worth opening. */
 export const ADDON_CATEGORIES = [
@@ -73,6 +78,7 @@ function MenuCardImpl({
   wide?: boolean;
 }) {
   const { t, sh, lang, pick } = useI18n();
+  const coarse = useCoarsePointer();
   const name = pick(item);
   const secondary = lang === "ar" ? item.en : item.ar;
 
@@ -104,10 +110,19 @@ function MenuCardImpl({
     <motion.article
       style={accentStyle(item.cat)}
       variants={cardEnter}
-      whileHover={item.available ? { y: -6, transition: SPRING_SOFT } : undefined}
+      // Hover only exists on a pointer device; on touch this never fires, so
+      // there is no reason to hand Framer a hover spring to watch for.
+      whileHover={
+        item.available && !coarse ? { y: -6, transition: SPRING_SOFT } : undefined
+      }
       className={cn(
-        "group relative flex overflow-hidden rounded-3xl border bg-sand-100/70 backdrop-blur-sm",
-        "transition-colors duration-300 will-change-transform",
+        "group relative flex overflow-hidden rounded-[1.75rem] border p-2",
+        // No backdrop-blur and no will-change here. A live blur per card is
+        // per-frame GPU work multiplied by the grid, and promoting every card
+        // to its own layer up front costs memory on a phone for a hover lift
+        // that a touch device never triggers — Framer promotes on demand while
+        // an animation is actually running.
+        "bg-sand-100 shadow-card transition-colors duration-300",
         // Landscape on the bento hero tile, portrait everywhere else.
         // `sm:min-h-60` is load-bearing: in the landscape layout the image side
         // has no intrinsic height (a `fill` image contributes none), so without
@@ -181,7 +196,7 @@ function MenuCardImpl({
                 />
               </>
             ) : (
-              <span className="accent-chip flex items-baseline gap-1 rounded-full px-3 py-1.5 shadow-card backdrop-blur-md">
+              <span className="accent-chip flex items-baseline gap-1 rounded-full px-3 py-1.5 shadow-card">
                 <span className="font-en text-xl font-extrabold leading-none num">
                   {item.price}
                 </span>
@@ -195,7 +210,7 @@ function MenuCardImpl({
           {/* Status badges, top corner */}
           <span className="absolute top-3 end-3 flex flex-col items-end gap-1.5">
             {!item.available ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-danger/30 bg-sand-50/90 px-2.5 py-1 text-[10px] font-extrabold text-danger backdrop-blur-md">
+              <span className="inline-flex items-center gap-1 rounded-full border border-danger/30 bg-sand-50 px-2.5 py-1 text-[10px] font-extrabold text-danger">
                 <Ban aria-hidden className="size-3" />
                 {sh.item.soldOut}
               </span>
@@ -288,10 +303,10 @@ function PriceChip({
   return (
     <span
       className={cn(
-        "inline-flex items-baseline gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold shadow-card backdrop-blur-md",
+        "inline-flex items-baseline gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold shadow-card",
         highlight
           ? "accent-chip"
-          : "bg-sand-50/90 text-muted ring-1 ring-sand-300"
+          : "bg-sand-50 text-muted ring-1 ring-sand-300"
       )}
     >
       <span className="opacity-75">{label}</span>

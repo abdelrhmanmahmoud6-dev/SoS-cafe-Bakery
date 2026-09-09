@@ -12,6 +12,7 @@ import {
   SectionHeading,
   AmbientShapes,
   cardEnter,
+  useSmallScreen,
 } from "./ui/Motion";
 import { CategoryRail, type RailTile } from "./menu/CategoryRail";
 import { MenuCard } from "./MenuCard";
@@ -35,13 +36,21 @@ function maxPrice(i: MenuItemDTO): number {
  * small (35ms): anything slower and the last card in a 16-card page lands over
  * half a second late, which feels sluggish rather than choreographed.
  */
-const gridStagger: Variants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.035, delayChildren: 0.04 },
-  },
-};
+function gridStagger(small: boolean): Variants {
+  return {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      // Tighter on a phone. The stagger is a per-card animation, and on mobile
+      // the grid is one column, so the same 35ms step spreads the same number
+      // of cards over a much taller scroll — the last ones would still be
+      // springing in well after the user had scrolled past them.
+      transition: small
+        ? { staggerChildren: 0.02, delayChildren: 0 }
+        : { staggerChildren: 0.035, delayChildren: 0.04 },
+    },
+  };
+}
 
 /**
  * Which cards become double-width bento tiles.
@@ -67,6 +76,7 @@ export function Menu({
   addons: MenuItemDTO[];
 }) {
   const { t, lang, pick } = useI18n();
+  const small = useSmallScreen();
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("default");
@@ -220,7 +230,7 @@ export function Menu({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={t.menu.searchPlaceholder}
-                className="h-14 w-full rounded-2xl border border-sand-300 bg-sand-100/60 ps-12 pe-14 text-base text-espresso backdrop-blur-md placeholder:text-muted-dim transition-colors duration-200 hover:border-sand-400 focus:border-gold-500/60 focus:outline-none"
+                className="h-14 w-full rounded-2xl border border-sand-300 bg-sand-100/60 ps-12 pe-14 text-base text-espresso sm:backdrop-blur-md placeholder:text-muted-dim transition-colors duration-200 hover:border-sand-400 focus:border-gold-500/60 focus:outline-none"
               />
               <AnimatePresence>
                 {query && (
@@ -251,7 +261,7 @@ export function Menu({
                 id="menu-sort"
                 value={sort}
                 onChange={(e) => setSort(e.target.value as SortKey)}
-                className="h-14 w-full cursor-pointer appearance-none rounded-2xl border border-sand-300 bg-sand-100/60 ps-12 pe-5 text-sm font-semibold text-espresso backdrop-blur-md transition-colors duration-200 hover:border-sand-400 focus:border-gold-500/60 focus:outline-none"
+                className="h-14 w-full cursor-pointer appearance-none rounded-2xl border border-sand-300 bg-sand-100/60 ps-12 pe-5 text-sm font-semibold text-espresso sm:backdrop-blur-md transition-colors duration-200 hover:border-sand-400 focus:border-gold-500/60 focus:outline-none"
               >
                 <option value="default">{t.menu.sort.default}</option>
                 <option value="priceAsc">{t.menu.sort.priceAsc}</option>
@@ -265,7 +275,7 @@ export function Menu({
         {/* Category rail — a photo strip, in its own bounded panel so the
             cards can never bleed into the row above or the counter below. */}
         <Reveal delay={0.16} className="mt-4">
-          <div className="relative rounded-3xl border border-sand-300/60 bg-sand-100/30 p-2 backdrop-blur-md">
+          <div className="relative rounded-3xl border border-sand-300/60 bg-sand-100/30 p-2 sm:backdrop-blur-md">
             <CategoryRail
               tiles={tiles}
               active={filter}
@@ -308,7 +318,7 @@ export function Menu({
                 this grid is what fixed the scroll jank in the first place. */}
             <motion.div
               key={filter}
-              variants={gridStagger}
+              variants={gridStagger(small)}
               initial="hidden"
               animate="show"
               className="mt-8 grid auto-rows-auto grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
@@ -323,7 +333,10 @@ export function Menu({
                     item={item}
                     category={catById.get(item.cat)}
                     onOpen={setSelected}
-                    priority={i < 4}
+                    // One column on mobile means far less is above the fold,
+                    // so eagerly fetching four full-width photos just competes
+                    // with the two that are actually visible.
+                    priority={i < (small ? 2 : 4)}
                     wide={isHeroTile(item, i)}
                   />
                 </motion.div>
@@ -335,7 +348,7 @@ export function Menu({
                 <button
                   type="button"
                   onClick={showMore}
-                  className="flex min-h-13 cursor-pointer items-center gap-2 rounded-2xl border border-sand-400 bg-sand-100/60 px-7 font-extrabold text-espresso backdrop-blur-md transition-[transform,color,border-color] duration-200 hover:-translate-y-0.5 hover:border-gold-500/60 hover:text-gold-800 active:scale-95"
+                  className="flex min-h-13 cursor-pointer items-center gap-2 rounded-2xl border border-sand-400 bg-sand-100/60 px-7 font-extrabold text-espresso sm:backdrop-blur-md transition-[transform,color,border-color] duration-200 hover:-translate-y-0.5 hover:border-gold-500/60 hover:text-gold-800 active:scale-95"
                 >
                   <ChevronDown aria-hidden className="size-5" />
                   {t.menu.showMore}
@@ -347,7 +360,7 @@ export function Menu({
             )}
           </>
         ) : (
-          <div className="animate-card-in mt-10 flex flex-col items-center gap-4 rounded-3xl border border-dashed border-sand-400 bg-sand-100/40 px-6 py-16 text-center backdrop-blur-md">
+          <div className="animate-card-in mt-10 flex flex-col items-center gap-4 rounded-3xl border border-dashed border-sand-400 bg-sand-100/40 px-6 py-16 text-center sm:backdrop-blur-md">
             <span className="flex size-16 items-center justify-center rounded-2xl bg-sand-200 text-muted-dim">
               <SearchX aria-hidden className="size-8" />
             </span>

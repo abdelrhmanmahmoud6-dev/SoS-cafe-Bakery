@@ -45,6 +45,38 @@ export const scaleIn: Variants = {
 };
 
 /* -------------------------------------------------------------------------- */
+/*  Environment hooks                                                         */
+/*                                                                            */
+/*  Both start `false` and resolve after mount, so the server and the client   */
+/*  agree on the first paint. Reading matchMedia during render would produce   */
+/*  a hydration mismatch on every touch device.                               */
+/* -------------------------------------------------------------------------- */
+
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const apply = () => setMatches(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, [query]);
+
+  return matches;
+}
+
+/** True on touch devices — no hover, so hover-only work can be skipped. */
+export function useCoarsePointer(): boolean {
+  return useMediaQuery("(pointer: coarse)");
+}
+
+/** True below the `md` breakpoint, matching the CSS mobile performance budget. */
+export function useSmallScreen(): boolean {
+  return useMediaQuery("(max-width: 767px)");
+}
+
+/* -------------------------------------------------------------------------- */
 /*  Spring presets                                                            */
 /*                                                                            */
 /*  Three springs, used everywhere, so motion across the product feels like    */
@@ -335,6 +367,18 @@ export function MagneticButton({
 
 export function AmbientShapes({ dense = false }: { dense?: boolean }) {
   const reduce = useReducedMotion();
+  const small = useSmallScreen();
+
+  /**
+   * These are large `blur-3xl` surfaces. Animating them forever means the
+   * compositor re-blurs a ~340px radius every frame for the life of the page,
+   * whether or not anything else is happening — on a phone that is a permanent
+   * tax on the frame budget, including while the user is scrolling the menu.
+   *
+   * On small screens the count is halved and the drift is switched off, so the
+   * colour is still there but it is painted once.
+   */
+  const still = reduce || small;
 
   const blobs = dense
     ? [
@@ -352,9 +396,11 @@ export function AmbientShapes({ dense = false }: { dense?: boolean }) {
         { x: "80%", y: "60%", s: 340, c: "rgb(139 116 214 / 0.10)", d: 2 },
       ];
 
+  const visible = small ? blobs.slice(0, 2) : blobs;
+
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      {blobs.map((b, i) => (
+      {visible.map((b, i) => (
         <motion.div
           key={i}
           className="absolute rounded-full blur-3xl"
@@ -366,7 +412,7 @@ export function AmbientShapes({ dense = false }: { dense?: boolean }) {
             background: `radial-gradient(circle at 30% 30%, ${b.c}, transparent 70%)`,
           }}
           animate={
-            reduce
+            still
               ? undefined
               : { y: [0, -26, 0], x: [0, 14, 0], scale: [1, 1.07, 1] }
           }

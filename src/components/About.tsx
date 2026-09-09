@@ -63,7 +63,7 @@ export function About({ counts }: { counts: Record<string, number> }) {
                   <motion.article
                     whileHover={{ y: -6 }}
                     transition={{ type: "spring", stiffness: 320, damping: 22 }}
-                    className="group relative h-full overflow-hidden rounded-3xl border border-sand-300 bg-sand-100/70 p-7 backdrop-blur-sm transition-colors duration-300 hover:border-gold-500/40"
+                    className="group relative h-full overflow-hidden rounded-3xl border border-sand-300 bg-sand-100/70 p-7 sm:backdrop-blur-sm transition-colors duration-300 hover:border-gold-500/40"
                   >
                     {/* micro-glow on hover */}
                     <div
