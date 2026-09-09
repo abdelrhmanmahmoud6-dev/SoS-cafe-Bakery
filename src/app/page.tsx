@@ -28,11 +28,28 @@ export default async function HomePage() {
   // third round trip to Postgres on every render.
   const addons = menu.items.filter((i) => i.cat === "addons" && i.available);
 
+  // Photos for the hero cursor trail. Best-sellers first so the effect shows
+  // off what the shop actually wants to sell, deduplicated because several
+  // items in a section can share one stock photo and a trail that repeats the
+  // same picture twice in a row looks broken rather than deliberate.
+  const heroPhotos = [
+    ...new Set(
+      menu.items
+        .filter((i) => i.available && i.imageUrl)
+        .sort((a, b) => Number(b.best) - Number(a.best))
+        .map((i) => i.imageUrl as string)
+    ),
+  ].slice(0, 10);
+
   return (
     <>
       <Navbar />
       <main id="main">
-        <Hero itemCount={menu.total} categoryCount={menu.categories.length} />
+        <Hero
+          itemCount={menu.total}
+          categoryCount={menu.categories.length}
+          photos={heroPhotos}
+        />
         <About counts={menu.counts} />
         <Menu
           categories={menu.categories}

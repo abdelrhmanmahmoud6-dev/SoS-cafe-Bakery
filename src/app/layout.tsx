@@ -125,7 +125,7 @@ export default function RootLayout({
     >
       {/* `grain` lays a fixed film-grain overlay over everything, which is what
           keeps a near-black background from banding on cheap panels. */}
-      <body className="grain bg-ink-950 text-cream antialiased">
+      <body className="grain bg-sand-50 text-espresso antialiased">
         {/* Scroll-reveal wrappers start at opacity 0 and are animated in by JS.
             If JS never runs, force them visible so the page is still readable. */}
         <noscript>

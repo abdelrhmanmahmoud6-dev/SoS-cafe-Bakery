@@ -100,7 +100,7 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsPayload }) {
   return (
     <div dir="ltr" className="flex flex-col gap-6">
       <div dir={lang === "ar" ? "rtl" : "ltr"}>
-        <h1 className="text-2xl font-extrabold text-cream sm:text-3xl">
+        <h1 className="text-2xl font-extrabold text-espresso sm:text-3xl">
           {a.title}
         </h1>
       </div>
@@ -115,14 +115,14 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsPayload }) {
           return (
             <div
               key={tile.label}
-              className="flex items-center gap-4 rounded-2xl border border-ink-700 bg-ink-900/80 p-5"
+              className="flex items-center gap-4 rounded-2xl border border-sand-300 bg-sand-100/80 p-5"
             >
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-gold-500/10 text-gold-500 ring-1 ring-gold-500/25">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-gold-500/10 text-gold-800 ring-1 ring-gold-500/25">
                 <Icon aria-hidden className="size-6" />
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-muted">{tile.label}</p>
-                <p className="mt-0.5 truncate font-en text-2xl font-extrabold text-cream num">
+                <p className="mt-0.5 truncate font-en text-2xl font-extrabold text-espresso num">
                   {tile.value}
                 </p>
                 {tile.sub && (
@@ -137,7 +137,7 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsPayload }) {
       </section>
 
       {!hasData && (
-        <p className="rounded-2xl border border-dashed border-ink-600 bg-ink-900/50 p-8 text-center text-muted">
+        <p className="rounded-2xl border border-dashed border-sand-400 bg-sand-100/50 p-8 text-center text-muted">
           {a.noData}
         </p>
       )}
@@ -230,8 +230,8 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsPayload }) {
       {/* Top products + status breakdown */}
       <div dir={lang === "ar" ? "rtl" : "ltr"} className="grid gap-6 lg:grid-cols-2">
         {/* Ranked magnitude => horizontal bars, sorted, directly labelled */}
-        <section className="rounded-2xl border border-ink-700 bg-ink-900/80 p-5">
-          <h2 className="mb-4 font-extrabold text-cream">{a.topProducts}</h2>
+        <section className="rounded-2xl border border-sand-300 bg-sand-100/80 p-5">
+          <h2 className="mb-4 font-extrabold text-espresso">{a.topProducts}</h2>
           {data.topProducts.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted">{a.noData}</p>
           ) : (
@@ -242,14 +242,14 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsPayload }) {
                 return (
                   <li key={p.nameEn}>
                     <div className="mb-1 flex items-baseline justify-between gap-3">
-                      <span className="truncate text-sm font-bold text-cream">
+                      <span className="truncate text-sm font-bold text-espresso">
                         {lang === "ar" ? p.nameAr : p.nameEn}
                       </span>
                       <span className="shrink-0 font-en text-sm font-bold text-muted num">
                         {p.quantity} · {formatEGP(p.revenue, lang)}
                       </span>
                     </div>
-                    <div className="h-2.5 overflow-hidden rounded-full bg-ink-800">
+                    <div className="h-2.5 overflow-hidden rounded-full bg-sand-200">
                       <div
                         className="h-full rounded-full bg-gold-500"
                         style={{ width: `${pct}%` }}
@@ -264,8 +264,8 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsPayload }) {
 
         {/* Status mix — labelled bars in ONE hue, so identity is the text,
             never the colour alone. */}
-        <section className="rounded-2xl border border-ink-700 bg-ink-900/80 p-5">
-          <h2 className="mb-4 font-extrabold text-cream">{a.statusBreakdown}</h2>
+        <section className="rounded-2xl border border-sand-300 bg-sand-100/80 p-5">
+          <h2 className="mb-4 font-extrabold text-espresso">{a.statusBreakdown}</h2>
           {data.statusBreakdown.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted">{a.noData}</p>
           ) : (
@@ -277,14 +277,14 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsPayload }) {
                 return (
                   <li key={s.status}>
                     <div className="mb-1 flex items-baseline justify-between gap-3">
-                      <span className="truncate text-sm font-bold text-cream">
+                      <span className="truncate text-sm font-bold text-espresso">
                         {statusLabel(s.status as OrderStatus, "TAKEAWAY")[lang]}
                       </span>
                       <span className="shrink-0 font-en text-sm font-bold text-muted num">
                         {s.count}
                       </span>
                     </div>
-                    <div className="h-2.5 overflow-hidden rounded-full bg-ink-800">
+                    <div className="h-2.5 overflow-hidden rounded-full bg-sand-200">
                       <div
                         className="h-full rounded-full bg-gold-500"
                         style={{ width: `${pct}%` }}
@@ -319,8 +319,8 @@ function ChartCard({
   lang: "ar" | "en";
 }) {
   return (
-    <section className="rounded-2xl border border-ink-700 bg-ink-900/80 p-5">
-      <h2 dir={rtl ? "rtl" : "ltr"} className="mb-4 font-extrabold text-cream">
+    <section className="rounded-2xl border border-sand-300 bg-sand-100/80 p-5">
+      <h2 dir={rtl ? "rtl" : "ltr"} className="mb-4 font-extrabold text-espresso">
         {title}
       </h2>
 
@@ -332,12 +332,12 @@ function ChartCard({
 
       {/* Table view — the same numbers, reachable without reading the chart */}
       <details dir={rtl ? "rtl" : "ltr"} className="mt-4 group">
-        <summary className="cursor-pointer list-none text-xs font-bold text-muted-dim transition-colors duration-200 hover:text-gold-500">
+        <summary className="cursor-pointer list-none text-xs font-bold text-muted-dim transition-colors duration-200 hover:text-gold-800">
           {lang === "ar" ? "عرض البيانات كجدول" : "View as table"}
         </summary>
-        <div className="mt-3 max-h-56 overflow-auto rounded-xl border border-ink-700">
+        <div className="mt-3 max-h-56 overflow-auto rounded-xl border border-sand-300">
           <table className="w-full text-start text-xs">
-            <thead className="sticky top-0 bg-ink-800 text-muted">
+            <thead className="sticky top-0 bg-sand-200 text-muted">
               <tr>
                 <th scope="col" className="p-2 text-start font-bold">
                   {lang === "ar" ? "التاريخ" : "Period"}
@@ -352,10 +352,10 @@ function ChartCard({
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.label} className="border-t border-ink-800">
-                  <td className="p-2 font-en text-cream num">{tickFn(r.label)}</td>
-                  <td className="p-2 font-en text-cream num">{r.revenue}</td>
-                  <td className="p-2 font-en text-cream num">{r.orders}</td>
+                <tr key={r.label} className="border-t border-sand-200">
+                  <td className="p-2 font-en text-espresso num">{tickFn(r.label)}</td>
+                  <td className="p-2 font-en text-espresso num">{r.revenue}</td>
+                  <td className="p-2 font-en text-espresso num">{r.orders}</td>
                 </tr>
               ))}
             </tbody>
@@ -389,12 +389,12 @@ function ChartTooltip({
   const point = payload[0].payload;
 
   return (
-    <div className="rounded-xl border border-ink-600 bg-ink-950/95 px-3.5 py-2.5 shadow-float backdrop-blur-sm">
+    <div className="rounded-xl border border-sand-400 bg-sand-50/95 px-3.5 py-2.5 shadow-float backdrop-blur-sm">
       <p className="font-en text-xs font-bold text-muted num">
         {labelFn(point.label)}
       </p>
       {/* Values wear text tokens; the gold dot beside them carries identity. */}
-      <p className="mt-1 flex items-center gap-2 text-sm font-extrabold text-cream">
+      <p className="mt-1 flex items-center gap-2 text-sm font-extrabold text-espresso">
         <span className="size-2 rounded-full bg-gold-500" />
         <span className="font-en num">{formatEGP(point.revenue, lang)}</span>
       </p>

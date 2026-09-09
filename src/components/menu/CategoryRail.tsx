@@ -206,7 +206,7 @@ function CategoryRailImpl({
         onClickCapture={onClickCapture}
         role="tablist"
         aria-label={t.menu.categoryLabel}
-        className="no-scrollbar flex snap-x snap-proximity gap-3 overflow-x-auto scroll-smooth px-0.5 pb-4 pt-2"
+        className="no-scrollbar flex snap-x snap-proximity items-center gap-2.5 overflow-x-auto scroll-smooth px-1 pb-3 pt-2"
       >
         {tiles.map((tile, i) => (
           <RailCard
@@ -231,8 +231,8 @@ function Fade({ side, show }: { side: "left" | "right"; show: boolean }) {
       className={cn(
         "pointer-events-none absolute inset-y-0 z-20 w-12 transition-opacity duration-200",
         side === "left"
-          ? "left-0 bg-gradient-to-r from-ink-950 to-transparent"
-          : "right-0 bg-gradient-to-l from-ink-950 to-transparent",
+          ? "left-0 bg-gradient-to-r from-sand-100 to-transparent"
+          : "right-0 bg-gradient-to-l from-sand-100 to-transparent",
         show ? "opacity-100" : "opacity-0"
       )}
     />
@@ -265,8 +265,8 @@ function Arrow({
       aria-label={label}
       className={cn(
         "absolute top-1/2 z-30 hidden size-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full",
-        "glass text-cream",
-        "transition-[transform,color] duration-200 hover:scale-110 hover:text-gold-500 active:scale-90 sm:flex",
+        "glass text-espresso",
+        "transition-[transform,color] duration-200 hover:scale-110 hover:text-gold-800 active:scale-90 sm:flex",
         side === "left" ? "left-1" : "right-1"
       )}
     >
@@ -301,101 +301,83 @@ function RailCardImpl({
       // Entrance staggers in; scale and lift are then driven by state, so the
       // selected tile springs up rather than easing. The stagger is capped so
       // the last tile in a long menu does not arrive half a second late.
-      initial={{ opacity: 0, y: 14, scale: 0.92 }}
+      initial={{ opacity: 0, y: 12, scale: 0.94 }}
       animate={{
         opacity: 1,
-        y: isActive ? -4 : 0,
-        // Scale, not just lift: the active section grows out of the rail so it
-        // reads as selected from the corner of the eye, mid-scroll.
-        scale: isActive ? 1.07 : 1,
+        y: 0,
+        // A pill is a small target, so the selected one grows a little rather
+        // than lifting — a lift on a 40px-tall shape is barely legible.
+        scale: isActive ? 1.05 : 1,
       }}
-      whileHover={isActive ? undefined : { y: -6, scale: 1.04 }}
+      whileHover={isActive ? undefined : { y: -3, scale: 1.03 }}
       whileTap={{ scale: 0.94 }}
       transition={{
         ...SPRING_POP,
         delay: Math.min(index * 0.028, 0.34),
       }}
       className={cn(
-        "group relative w-30 shrink-0 snap-start cursor-pointer rounded-3xl text-start outline-none will-change-transform sm:w-34",
-        // Selected tile sits above its neighbours so the glow is never clipped
-        // by the card that follows it in the track.
-        isActive && "z-10"
+        "group relative flex shrink-0 snap-start cursor-pointer items-center gap-2.5 rounded-full py-1.5 pe-4 ps-1.5 text-start outline-none will-change-transform",
+        // Selected pill sits above its neighbours so its ring is never clipped
+        // by the pill that follows it in the track.
+        isActive ? "btn-espresso z-10" : "border border-sand-300 bg-sand-50 shadow-card"
       )}
       style={accentStyle(tile.id)}
     >
-      {/* The travelling highlight. One shared layout node for the whole rail,
-          so switching sections animates a single element rather than two. */}
-      {isActive && (
-        <motion.span
-          aria-hidden
-          layoutId="category-rail-active"
-          transition={SPRING_TRAVEL}
-          className="glow-accent pointer-events-none absolute -inset-1 z-20 rounded-[1.6rem]"
-        />
-      )}
-
-      <span className="relative block overflow-hidden rounded-3xl">
+      {/* Thumbnail, inset in the pill. Rounded to a circle so the pill reads as
+          one shape rather than a square photo with a border stuck to it. */}
+      <span className="relative block size-9 shrink-0 overflow-hidden rounded-full">
         {tile.image ? (
           <ItemImage
             as="span"
             src={tile.image}
             alt=""
             icon={tile.icon}
-            className={cn(
-              "aspect-[4/5] w-full transition-transform duration-500 ease-out",
-              isActive ? "scale-105" : "group-hover:scale-105"
-            )}
-            iconClassName="size-7"
-            sizes="(max-width: 640px) 120px, 136px"
+            className="size-full"
+            iconClassName="size-4"
+            sizes="36px"
           />
         ) : (
-          <span className="flex aspect-[4/5] w-full items-center justify-center bg-[radial-gradient(120%_120%_at_50%_0%,rgb(250_204_21/0.24),transparent_70%)] text-gold-500">
-            <LayoutGrid aria-hidden className="size-8" strokeWidth={1.5} />
+          <span
+            className={cn(
+              "flex size-full items-center justify-center",
+              isActive ? "bg-sand-50/15 text-sand-50" : "bg-sand-200 text-espresso"
+            )}
+          >
+            <LayoutGrid aria-hidden className="size-4" strokeWidth={2} />
           </span>
         )}
-
-        {/* Scrim: the label sits on photography, so it needs its own contrast
-            floor rather than relying on whatever the picture happens to be. */}
-        <span
-          aria-hidden
-          className={cn(
-            "absolute inset-0 transition-opacity duration-300",
-            "bg-gradient-to-t from-ink-950 via-ink-950/55 to-ink-950/10",
-            isActive ? "opacity-95" : "opacity-85 group-hover:opacity-95"
-          )}
-        />
-
-        {/* Inactive tiles get a hairline; the active one is ringed by the
-            travelling glow above, so a second ring here would double up. */}
-        <span
-          aria-hidden
-          className={cn(
-            "absolute inset-0 rounded-3xl transition-opacity duration-300",
-            isActive ? "opacity-0" : "accent-ring opacity-40 group-hover:opacity-100"
-          )}
-        />
-
-        <span className="absolute inset-x-0 bottom-0 flex flex-col items-start gap-1 p-2.5">
-          <span
-            className={cn(
-              "line-clamp-2 text-xs font-extrabold leading-tight transition-colors duration-300",
-              isActive ? "accent-text" : "text-cream"
-            )}
-          >
-            {tile.label}
-          </span>
-          <span
-            className={cn(
-              "rounded-lg px-1.5 py-0.5 font-en text-[10px] font-extrabold num transition-colors duration-300",
-              isActive
-                ? "accent-fill"
-                : "bg-ink-950/70 text-muted-dim ring-1 ring-ink-600 backdrop-blur-md"
-            )}
-          >
-            {tile.count}
-          </span>
-        </span>
       </span>
+
+      <span
+        className={cn(
+          "whitespace-nowrap text-sm font-extrabold transition-colors duration-200",
+          isActive ? "text-sand-50" : "text-espresso"
+        )}
+      >
+        {tile.label}
+      </span>
+
+      <span
+        className={cn(
+          "rounded-full px-1.5 py-0.5 font-en text-[10px] font-extrabold num",
+          isActive
+            ? "bg-gold-500 text-espresso"
+            : "bg-sand-200 text-muted ring-1 ring-sand-300"
+        )}
+      >
+        {tile.count}
+      </span>
+
+      {/* Neon underline on the selected pill — the one place the Gen Z accent
+          survives into the warm palette, per the brief. */}
+      {isActive && (
+        <motion.span
+          aria-hidden
+          layoutId="category-rail-active"
+          transition={SPRING_TRAVEL}
+          className="pointer-events-none absolute inset-x-4 -bottom-1 h-1 rounded-full bg-gold-500"
+        />
+      )}
     </motion.button>
   );
 }

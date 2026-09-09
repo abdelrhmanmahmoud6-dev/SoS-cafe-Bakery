@@ -69,7 +69,7 @@ export function ItemImage({
   return (
     <Tag
       className={cn(
-        "relative block overflow-hidden bg-gradient-to-br from-ink-800 to-ink-900",
+        "relative block overflow-hidden bg-gradient-to-br from-sand-200 to-sand-100",
         className
       )}
     >
@@ -80,7 +80,7 @@ export function ItemImage({
           {!loaded && (
             <span
               aria-hidden
-              className="absolute inset-0 animate-pulse bg-gradient-to-br from-ink-700 to-ink-800"
+              className="absolute inset-0 animate-pulse bg-gradient-to-br from-sand-300 to-sand-200"
             />
           )}
 
@@ -120,7 +120,7 @@ export function ItemImage({
       ) : (
         <span
           aria-hidden
-          className="flex size-full items-center justify-center bg-[radial-gradient(120%_120%_at_50%_0%,rgb(250_204_21/0.14),transparent_70%)] text-gold-500/70"
+          className="flex size-full items-center justify-center bg-[radial-gradient(120%_120%_at_50%_0%,rgb(202_138_4/0.16),transparent_70%)] text-gold-800/70"
         >
           <CategoryIcon name={icon} className={iconClassName} strokeWidth={1.5} />
         </span>

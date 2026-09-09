@@ -32,7 +32,7 @@ export function CartButton({ className = "" }: { className?: string }) {
       transition={{ type: "spring", stiffness: 600, damping: 20 }}
       className={
         className ||
-        "relative flex size-11 cursor-pointer items-center justify-center rounded-2xl border border-ink-600 bg-ink-800/70 text-cream transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-500"
+        "relative flex size-11 cursor-pointer items-center justify-center rounded-2xl border border-sand-400 bg-sand-200/70 text-espresso transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-800"
       }
     >
       <ShoppingBag aria-hidden className="size-5" />
@@ -45,7 +45,7 @@ export function CartButton({ className = "" }: { className?: string }) {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 500, damping: 22 }}
-            className="absolute -end-1.5 -top-1.5 flex min-w-5 items-center justify-center rounded-full bg-gold-500 px-1 font-en text-[10px] font-extrabold text-ink-950 shadow-glow num"
+            className="absolute -end-1.5 -top-1.5 flex min-w-5 items-center justify-center rounded-full bg-gold-500 px-1 font-en text-[10px] font-extrabold text-espresso shadow-glow num"
           >
             {/* Re-keyed on the count so every change remounts and re-runs the
                 pop. Without this the badge silently swaps digits, and adding an

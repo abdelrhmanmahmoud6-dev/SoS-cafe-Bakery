@@ -71,7 +71,7 @@ export function CartDrawer() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={close}
-              className="fixed inset-0 z-60 bg-ink-950/80 backdrop-blur-sm"
+              className="fixed inset-0 z-60 bg-espresso/40 backdrop-blur-sm"
             />
 
             <motion.aside
@@ -82,16 +82,16 @@ export function CartDrawer() {
               animate={{ x: 0 }}
               exit={{ x: isRTL ? "-100%" : "100%" }}
               transition={{ type: "spring", stiffness: 320, damping: 34 }}
-              className="fixed inset-y-0 end-0 z-70 flex w-[min(28rem,100vw)] flex-col border-s border-ink-700 bg-ink-900 shadow-float"
+              className="fixed inset-y-0 end-0 z-70 flex w-[min(28rem,100vw)] flex-col border-s border-sand-300 bg-sand-100 shadow-float"
             >
               {/* Header */}
-              <header className="flex shrink-0 items-center justify-between gap-3 border-b border-ink-700 p-5">
+              <header className="flex shrink-0 items-center justify-between gap-3 border-b border-sand-300 p-5">
                 <div className="flex items-center gap-2.5">
-                  <span className="flex size-10 items-center justify-center rounded-xl bg-gold-500/12 text-gold-500 ring-1 ring-gold-500/25">
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-gold-500/12 text-gold-800 ring-1 ring-gold-500/25">
                     <ShoppingBag aria-hidden className="size-5" />
                   </span>
                   <div>
-                    <h2 className="text-lg font-extrabold text-cream">
+                    <h2 className="text-lg font-extrabold text-espresso">
                       {sh.cart.title}
                     </h2>
                     <p className="text-xs font-semibold text-muted-dim">
@@ -103,7 +103,7 @@ export function CartDrawer() {
                   type="button"
                   onClick={close}
                   aria-label={sh.cart.close}
-                  className="flex size-11 cursor-pointer items-center justify-center rounded-xl border border-ink-600 text-cream transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-500"
+                  className="flex size-11 cursor-pointer items-center justify-center rounded-xl border border-sand-400 text-espresso transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-800"
                 >
                   <X aria-hidden className="size-5" />
                 </button>
@@ -112,10 +112,10 @@ export function CartDrawer() {
               {lines.length === 0 ? (
                 /* Empty state */
                 <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
-                  <span className="flex size-16 items-center justify-center rounded-2xl bg-ink-800 text-muted-dim">
+                  <span className="flex size-16 items-center justify-center rounded-2xl bg-sand-200 text-muted-dim">
                     <ShoppingBag aria-hidden className="size-8" />
                   </span>
-                  <h3 className="text-lg font-extrabold text-cream">
+                  <h3 className="text-lg font-extrabold text-espresso">
                     {sh.cart.empty}
                   </h3>
                   <p className="max-w-xs leading-relaxed text-muted">
@@ -129,7 +129,7 @@ export function CartDrawer() {
                         .getElementById("menu")
                         ?.scrollIntoView({ behavior: "smooth" });
                     }}
-                    className="mt-1 flex min-h-12 cursor-pointer items-center gap-2 rounded-2xl bg-gold-500 px-6 font-extrabold text-ink-950 transition-colors duration-200 hover:bg-gold-400"
+                    className="mt-1 flex min-h-12 cursor-pointer items-center gap-2 rounded-full btn-espresso px-6 font-extrabold transition-colors duration-200 hover:brightness-125"
                   >
                     {sh.cart.browseMenu}
                   </button>
@@ -148,17 +148,17 @@ export function CartDrawer() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, height: 0, marginBottom: 0 }}
                             transition={{ duration: 0.22 }}
-                            className="overflow-hidden rounded-2xl border border-ink-700 bg-ink-800/70 p-4"
+                            className="overflow-hidden rounded-2xl border border-sand-300 bg-sand-200/70 p-4"
                           >
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0 flex-1">
-                                <h3 className="text-pretty font-extrabold leading-snug text-cream">
+                                <h3 className="text-pretty font-extrabold leading-snug text-espresso">
                                   {lang === "ar" ? line.nameAr : line.nameEn}
                                 </h3>
 
                                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
                                   {line.size && (
-                                    <span className="rounded-md bg-gold-500/12 px-2 py-0.5 font-en text-[11px] font-extrabold text-gold-500">
+                                    <span className="rounded-md bg-gold-500/12 px-2 py-0.5 font-en text-[11px] font-extrabold text-gold-800">
                                       {line.size}
                                     </span>
                                   )}
@@ -198,24 +198,24 @@ export function CartDrawer() {
                                   type="button"
                                   onClick={() => decrement(line.key)}
                                   aria-label={sh.cart.decrease}
-                                  className="flex size-11 cursor-pointer items-center justify-center rounded-xl bg-ink-700 text-cream transition-colors duration-200 hover:bg-ink-600"
+                                  className="flex size-11 cursor-pointer items-center justify-center rounded-xl bg-sand-300 text-espresso transition-colors duration-200 hover:bg-sand-400"
                                 >
                                   <Minus aria-hidden className="size-4" />
                                 </button>
-                                <span className="w-8 text-center font-en font-extrabold text-cream num">
+                                <span className="w-8 text-center font-en font-extrabold text-espresso num">
                                   {line.quantity}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => increment(line.key)}
                                   aria-label={sh.cart.increase}
-                                  className="flex size-11 cursor-pointer items-center justify-center rounded-xl bg-ink-700 text-cream transition-colors duration-200 hover:bg-ink-600"
+                                  className="flex size-11 cursor-pointer items-center justify-center rounded-xl bg-sand-300 text-espresso transition-colors duration-200 hover:bg-sand-400"
                                 >
                                   <Plus aria-hidden className="size-4" />
                                 </button>
                               </div>
 
-                              <span className="font-en text-lg font-extrabold text-gold-500 num">
+                              <span className="font-en text-lg font-extrabold text-gold-800 num">
                                 {formatEGP(linePrice(line), lang)}
                               </span>
                             </div>
@@ -235,7 +235,7 @@ export function CartDrawer() {
                   </div>
 
                   {/* Footer: order type + totals */}
-                  <footer className="shrink-0 border-t border-ink-700 bg-ink-900 p-5">
+                  <footer className="shrink-0 border-t border-sand-300 bg-sand-100 p-5">
                     <div
                       role="group"
                       aria-label={sh.checkout.orderType}
@@ -258,8 +258,8 @@ export function CartDrawer() {
                             className={cn(
                               "flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border text-sm font-bold transition-colors duration-200",
                               active
-                                ? "border-gold-500 bg-gold-500/12 text-gold-500"
-                                : "border-ink-600 bg-ink-800 text-muted hover:text-cream"
+                                ? "border-gold-500 bg-gold-500/12 text-gold-800"
+                                : "border-sand-400 bg-sand-200 text-muted hover:text-espresso"
                             )}
                           >
                             <Icon aria-hidden className="size-4" />
@@ -291,8 +291,8 @@ export function CartDrawer() {
                               className={cn(
                                 "flex min-h-11 cursor-pointer items-center justify-center rounded-xl border px-2 text-center text-xs font-bold leading-tight transition-colors duration-200",
                                 active
-                                  ? "border-gold-500 bg-gold-500/12 text-gold-500"
-                                  : "border-ink-600 bg-ink-800 text-muted hover:text-cream"
+                                  ? "border-gold-500 bg-gold-500/12 text-gold-800"
+                                  : "border-sand-400 bg-sand-200 text-muted hover:text-espresso"
                               )}
                             >
                               {opt.label}
@@ -305,7 +305,7 @@ export function CartDrawer() {
                     <dl className="mb-4 flex flex-col gap-1.5 text-sm">
                       <div className="flex items-center justify-between">
                         <dt className="text-muted">{sh.cart.subtotal}</dt>
-                        <dd className="font-en font-bold text-cream num">
+                        <dd className="font-en font-bold text-espresso num">
                           {formatEGP(subtotal, lang)}
                         </dd>
                       </div>
@@ -320,17 +320,17 @@ export function CartDrawer() {
                         delivery > 0 && (
                           <div className="flex items-center justify-between">
                             <dt className="text-muted">{sh.cart.deliveryFee}</dt>
-                            <dd className="font-en font-bold text-cream num">
+                            <dd className="font-en font-bold text-espresso num">
                               {formatEGP(delivery, lang)}
                             </dd>
                           </div>
                         )
                       )}
-                      <div className="mt-1.5 flex items-center justify-between border-t border-ink-700 pt-2.5">
-                        <dt className="font-extrabold text-cream">
+                      <div className="mt-1.5 flex items-center justify-between border-t border-sand-300 pt-2.5">
+                        <dt className="font-extrabold text-espresso">
                           {courierPriced ? sh.checkout.foodTotal : sh.cart.total}
                         </dt>
-                        <dd className="font-en text-xl font-extrabold text-gold-500 num">
+                        <dd className="font-en text-xl font-extrabold text-gold-800 num">
                           {formatEGP(total, lang)}
                         </dd>
                       </div>
@@ -339,7 +339,7 @@ export function CartDrawer() {
                     <button
                       type="button"
                       onClick={() => setCheckoutOpen(true)}
-                      className="flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gold-500 px-5 font-extrabold text-ink-950 shadow-glow transition-colors duration-200 hover:bg-gold-400"
+                      className="flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-full btn-espresso px-5 font-extrabold transition-colors duration-200 hover:brightness-125"
                     >
                       {sh.cart.checkout}
                       <Arrow aria-hidden className="size-5" />

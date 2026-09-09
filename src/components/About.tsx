@@ -36,7 +36,7 @@ export function About({ counts }: { counts: Record<string, number> }) {
         {/* Story */}
         <div className="mx-auto mt-14 grid max-w-5xl gap-8 lg:grid-cols-5">
           <Reveal className="lg:col-span-3">
-            <p className="text-pretty text-lg font-semibold leading-relaxed text-cream sm:text-xl">
+            <p className="text-pretty text-lg font-semibold leading-relaxed text-espresso sm:text-xl">
               {t.about.lead}
             </p>
           </Reveal>
@@ -50,7 +50,7 @@ export function About({ counts }: { counts: Record<string, number> }) {
         {/* Values */}
         <div className="mt-20">
           <Reveal>
-            <h3 className="mb-8 text-center text-xl font-extrabold tracking-tight text-cream sm:text-2xl">
+            <h3 className="mb-8 text-center text-xl font-extrabold tracking-tight text-espresso sm:text-2xl">
               {t.about.valuesTitle}
             </h3>
           </Reveal>
@@ -63,7 +63,7 @@ export function About({ counts }: { counts: Record<string, number> }) {
                   <motion.article
                     whileHover={{ y: -6 }}
                     transition={{ type: "spring", stiffness: 320, damping: 22 }}
-                    className="group relative h-full overflow-hidden rounded-3xl border border-ink-700 bg-ink-900/70 p-7 backdrop-blur-sm transition-colors duration-300 hover:border-gold-500/40"
+                    className="group relative h-full overflow-hidden rounded-3xl border border-sand-300 bg-sand-100/70 p-7 backdrop-blur-sm transition-colors duration-300 hover:border-gold-500/40"
                   >
                     {/* micro-glow on hover */}
                     <div
@@ -71,20 +71,20 @@ export function About({ counts }: { counts: Record<string, number> }) {
                       className="pointer-events-none absolute -inset-px rounded-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                       style={{
                         background:
-                          "radial-gradient(400px circle at 50% 0%, rgb(250 204 21 / 0.10), transparent 60%)",
+                          "radial-gradient(400px circle at 50% 0%, rgb(202 138 4 / 0.10), transparent 60%)",
                       }}
                     />
 
-                    <span className="relative flex size-13 items-center justify-center rounded-2xl bg-gold-500/10 text-gold-500 ring-1 ring-gold-500/25 transition-all duration-300 group-hover:bg-gold-500 group-hover:text-ink-950">
+                    <span className="relative flex size-13 items-center justify-center rounded-2xl bg-gold-500/10 text-gold-800 ring-1 ring-gold-500/25 transition-all duration-300 group-hover:bg-gold-500 group-hover:text-espresso">
                       <Icon aria-hidden className="size-6" />
                     </span>
 
-                    <h4 className="relative mt-5 text-lg font-extrabold text-cream">{v.title}</h4>
+                    <h4 className="relative mt-5 text-lg font-extrabold text-espresso">{v.title}</h4>
                     <p className="relative mt-2.5 leading-relaxed text-muted">{v.desc}</p>
 
                     <span
                       aria-hidden
-                      className="absolute end-6 top-6 font-en text-5xl font-extrabold text-cream/[0.04] num"
+                      className="absolute end-6 top-6 font-en text-5xl font-extrabold text-espresso/[0.04] num"
                     >
                       0{i + 1}
                     </span>
@@ -98,7 +98,7 @@ export function About({ counts }: { counts: Record<string, number> }) {
         {/* Highlights */}
         <div className="mt-20">
           <Reveal>
-            <h3 className="mb-8 text-center text-xl font-extrabold tracking-tight text-cream sm:text-2xl">
+            <h3 className="mb-8 text-center text-xl font-extrabold tracking-tight text-espresso sm:text-2xl">
               {t.about.highlightsTitle}
             </h3>
           </Reveal>
@@ -116,21 +116,21 @@ export function About({ counts }: { counts: Record<string, number> }) {
                     href="#menu"
                     whileHover={{ y: -6, scale: 1.015 }}
                     transition={{ type: "spring", stiffness: 320, damping: 22 }}
-                    className="group flex h-full cursor-pointer flex-col justify-between gap-6 rounded-3xl border border-ink-700 bg-gradient-to-b from-ink-800 to-ink-900 p-7 transition-colors duration-300 hover:border-gold-500/40"
+                    className="group flex h-full cursor-pointer flex-col justify-between gap-6 rounded-3xl border border-sand-300 bg-gradient-to-b from-sand-200 to-sand-100 p-7 transition-colors duration-300 hover:border-gold-500/40"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <Icon
                         aria-hidden
-                        className="size-8 text-gold-500 transition-transform duration-300 group-hover:scale-110"
+                        className="size-8 text-gold-800 transition-transform duration-300 group-hover:scale-110"
                         strokeWidth={1.75}
                       />
-                      <span className="rounded-full border border-gold-500/25 bg-gold-500/10 px-3 py-1 font-en text-xs font-extrabold text-gold-500 num">
+                      <span className="rounded-full border border-gold-500/25 bg-gold-500/10 px-3 py-1 font-en text-xs font-extrabold text-gold-800 num">
                         {count} {t.itemsWord}
                       </span>
                     </div>
 
                     <div>
-                      <h4 className="text-lg font-extrabold text-cream">{h.title}</h4>
+                      <h4 className="text-lg font-extrabold text-espresso">{h.title}</h4>
                       <p className="mt-2 leading-relaxed text-muted">{h.desc}</p>
                     </div>
                   </motion.a>

@@ -215,8 +215,8 @@ export function CheckoutModal({
   }
 
   const inputClass =
-    "h-13 w-full rounded-xl border border-ink-600 bg-ink-800 px-4 text-cream placeholder:text-muted-dim transition-colors duration-200 focus:border-gold-500/60 focus:outline-none";
-  const labelClass = "mb-1.5 block text-sm font-bold text-cream";
+    "h-13 w-full rounded-xl border border-sand-400 bg-sand-200 px-4 text-espresso placeholder:text-muted-dim transition-colors duration-200 focus:border-gold-500/60 focus:outline-none";
+  const labelClass = "mb-1.5 block text-sm font-bold text-espresso";
 
   return (
     <AnimatePresence>
@@ -228,7 +228,7 @@ export function CheckoutModal({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={() => !submitting && onClose()}
-            className="absolute inset-0 bg-ink-950/88 backdrop-blur-md"
+            className="absolute inset-0 bg-espresso/45 backdrop-blur-md"
           />
 
           <motion.div
@@ -240,7 +240,7 @@ export function CheckoutModal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 330, damping: 30 }}
-            className="relative flex max-h-[94dvh] w-full max-w-xl flex-col overflow-hidden rounded-t-3xl border border-ink-700 bg-ink-900 shadow-float sm:rounded-3xl"
+            className="relative flex max-h-[94dvh] w-full max-w-xl flex-col overflow-hidden rounded-t-3xl border border-sand-300 bg-sand-100 shadow-float sm:rounded-3xl"
           >
             {placedCode ? (
               /* ---------------- SUCCESS ---------------- */
@@ -255,7 +255,7 @@ export function CheckoutModal({
                 </motion.span>
 
                 <div>
-                  <h2 id="checkout-title" className="text-2xl font-extrabold text-cream">
+                  <h2 id="checkout-title" className="text-2xl font-extrabold text-espresso">
                     {sh.checkout.successTitle}
                   </h2>
                   <p className="mt-2 leading-relaxed text-muted">
@@ -264,16 +264,16 @@ export function CheckoutModal({
                 </div>
 
                 <div className="w-full rounded-2xl border border-gold-500/30 bg-gold-500/[0.07] p-5">
-                  <p className="text-xs font-bold uppercase tracking-wider text-gold-500">
+                  <p className="text-xs font-bold uppercase tracking-wider text-gold-800">
                     {sh.checkout.orderCode}
                   </p>
-                  <p className="mt-1.5 font-en text-3xl font-extrabold text-cream num">
+                  <p className="mt-1.5 font-en text-3xl font-extrabold text-espresso num">
                     {placedCode}
                   </p>
                   <button
                     type="button"
                     onClick={copyCode}
-                    className="mt-3 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-ink-600 px-4 text-sm font-bold text-muted transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-500"
+                    className="mt-3 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-sand-400 px-4 text-sm font-bold text-muted transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-800"
                   >
                     {copied ? (
                       <Check aria-hidden className="size-4" />
@@ -342,7 +342,7 @@ export function CheckoutModal({
                         type="button"
                         onClick={() => setShowPreview((v) => !v)}
                         aria-expanded={showPreview}
-                        className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 text-xs font-bold text-muted-dim transition-colors duration-200 hover:text-gold-500"
+                        className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 text-xs font-bold text-muted-dim transition-colors duration-200 hover:text-gold-800"
                       >
                         <ChevronDown
                           aria-hidden
@@ -356,7 +356,7 @@ export function CheckoutModal({
                       {showPreview && (
                         <pre
                           dir="rtl"
-                          className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap rounded-xl border border-ink-700 bg-ink-950 p-3.5 text-start text-[11px] leading-relaxed text-muted"
+                          className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap rounded-xl border border-sand-300 bg-sand-50 p-3.5 text-start text-[11px] leading-relaxed text-muted"
                         >
                           {buildWhatsAppMessage(receipt)}
                         </pre>
@@ -368,14 +368,14 @@ export function CheckoutModal({
                 <div className="flex w-full flex-col gap-2.5 sm:flex-row">
                   <Link
                     href={`/track?orderId=${placedCode}`}
-                    className="flex min-h-13 flex-1 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gold-500 px-5 font-extrabold text-ink-950 transition-colors duration-200 hover:bg-gold-400"
+                    className="flex min-h-13 flex-1 cursor-pointer items-center justify-center gap-2 rounded-full btn-espresso px-5 font-extrabold transition-colors duration-200 hover:brightness-125"
                   >
                     {sh.checkout.trackNow}
                   </Link>
                   <button
                     type="button"
                     onClick={onClose}
-                    className="flex min-h-13 cursor-pointer items-center justify-center rounded-2xl border border-ink-600 px-5 font-bold text-cream transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-500"
+                    className="flex min-h-13 cursor-pointer items-center justify-center rounded-2xl border border-sand-400 px-5 font-bold text-espresso transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-800"
                   >
                     {sh.checkout.newOrder}
                   </button>
@@ -384,8 +384,8 @@ export function CheckoutModal({
             ) : (
               /* ---------------- FORM ---------------- */
               <>
-                <header className="flex shrink-0 items-center justify-between gap-3 border-b border-ink-700 p-5">
-                  <h2 id="checkout-title" className="text-xl font-extrabold text-cream">
+                <header className="flex shrink-0 items-center justify-between gap-3 border-b border-sand-300 p-5">
+                  <h2 id="checkout-title" className="text-xl font-extrabold text-espresso">
                     {sh.checkout.title}
                   </h2>
                   <button
@@ -393,7 +393,7 @@ export function CheckoutModal({
                     onClick={onClose}
                     disabled={submitting}
                     aria-label={sh.cart.close}
-                    className="flex size-11 cursor-pointer items-center justify-center rounded-xl border border-ink-600 text-cream transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-500 disabled:opacity-50"
+                    className="flex size-11 cursor-pointer items-center justify-center rounded-xl border border-sand-400 text-espresso transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-800 disabled:opacity-50"
                   >
                     <X aria-hidden className="size-5" />
                   </button>
@@ -406,7 +406,7 @@ export function CheckoutModal({
                   <div className="flex-1 overflow-y-auto p-5">
                     {/* Contact */}
                     <section>
-                      <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-gold-500">
+                      <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-gold-800">
                         {sh.checkout.step1}
                       </h3>
                       <div className="grid gap-3 sm:grid-cols-2">
@@ -445,7 +445,7 @@ export function CheckoutModal({
 
                     {/* Order type */}
                     <section className="mt-6">
-                      <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-gold-500">
+                      <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-gold-800">
                         {sh.checkout.step2}
                       </h3>
                       <div className="grid gap-3 sm:grid-cols-2">
@@ -477,17 +477,17 @@ export function CheckoutModal({
                                 "flex cursor-pointer flex-col items-start gap-1 rounded-2xl border p-4 text-start transition-colors duration-200",
                                 active
                                   ? "border-gold-500 bg-gold-500/12"
-                                  : "border-ink-600 bg-ink-800 hover:border-ink-500"
+                                  : "border-sand-400 bg-sand-200 hover:border-sand-500"
                               )}
                             >
                               <Icon
                                 aria-hidden
                                 className={cn(
                                   "size-5",
-                                  active ? "text-gold-500" : "text-muted"
+                                  active ? "text-gold-800" : "text-muted"
                                 )}
                               />
-                              <span className="font-extrabold text-cream">
+                              <span className="font-extrabold text-espresso">
                                 {opt.label}
                               </span>
                               <span className="text-xs text-muted-dim">
@@ -534,15 +534,15 @@ export function CheckoutModal({
                                       "flex min-h-16 cursor-pointer flex-col items-start justify-center gap-0.5 rounded-2xl border p-3.5 text-start transition-colors duration-200",
                                       active
                                         ? "border-gold-500 bg-gold-500/12"
-                                        : "border-ink-600 bg-ink-800 hover:border-ink-500"
+                                        : "border-sand-400 bg-sand-200 hover:border-sand-500"
                                     )}
                                   >
-                                    <span className="flex items-center gap-1.5 text-sm font-extrabold text-cream">
+                                    <span className="flex items-center gap-1.5 text-sm font-extrabold text-espresso">
                                       <MapPin
                                         aria-hidden
                                         className={cn(
                                           "size-4 shrink-0",
-                                          active ? "text-gold-500" : "text-muted"
+                                          active ? "text-gold-800" : "text-muted"
                                         )}
                                       />
                                       {opt.label}
@@ -584,7 +584,7 @@ export function CheckoutModal({
 
                     {/* Payment */}
                     <section className="mt-6">
-                      <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-gold-500">
+                      <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-gold-800">
                         {sh.checkout.step3}
                       </h3>
                       <div className="grid gap-3 sm:grid-cols-2">
@@ -616,17 +616,17 @@ export function CheckoutModal({
                                 "flex cursor-pointer flex-col items-start gap-1 rounded-2xl border p-4 text-start transition-colors duration-200",
                                 active
                                   ? "border-gold-500 bg-gold-500/12"
-                                  : "border-ink-600 bg-ink-800 hover:border-ink-500"
+                                  : "border-sand-400 bg-sand-200 hover:border-sand-500"
                               )}
                             >
                               <Icon
                                 aria-hidden
                                 className={cn(
                                   "size-5",
-                                  active ? "text-gold-500" : "text-muted"
+                                  active ? "text-gold-800" : "text-muted"
                                 )}
                               />
-                              <span className="font-extrabold text-cream">
+                              <span className="font-extrabold text-espresso">
                                 {opt.label}
                               </span>
                               <span className="text-xs text-muted-dim">
@@ -667,8 +667,8 @@ export function CheckoutModal({
                                     className={cn(
                                       "flex min-h-12 cursor-pointer items-center gap-2 rounded-xl border px-3 text-sm font-bold transition-colors duration-200",
                                       active
-                                        ? "border-gold-500 bg-gold-500/12 text-cream"
-                                        : "border-ink-600 bg-ink-800 text-muted hover:border-ink-500 hover:text-cream"
+                                        ? "border-gold-500 bg-gold-500/12 text-espresso"
+                                        : "border-sand-400 bg-sand-200 text-muted hover:border-sand-500 hover:text-espresso"
                                     )}
                                   >
                                     {/* Brand swatch is decorative; the text
@@ -687,13 +687,13 @@ export function CheckoutModal({
 
                           {/* Transfer number + one-click copy */}
                           <div className="rounded-2xl border border-gold-500/25 bg-gold-500/[0.07] p-4">
-                            <p className="text-sm leading-relaxed text-cream">
+                            <p className="text-sm leading-relaxed text-espresso">
                               {sh.checkout.vodafoneInstructions}
                             </p>
                             <div className="my-2 flex flex-wrap items-center gap-3">
                               <p
                                 dir="ltr"
-                                className="font-en text-2xl font-extrabold text-gold-500 num"
+                                className="font-en text-2xl font-extrabold text-gold-800 num"
                               >
                                 {WALLET_TRANSFER_NUMBER}
                               </p>
@@ -704,7 +704,7 @@ export function CheckoutModal({
                                   "flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl border px-3.5 text-xs font-bold transition-colors duration-200",
                                   numberCopied
                                     ? "border-emerald-400/50 bg-emerald-400/10 text-emerald-300"
-                                    : "border-ink-600 bg-ink-800 text-cream hover:border-gold-500/60 hover:text-gold-500"
+                                    : "border-sand-400 bg-sand-200 text-espresso hover:border-gold-500/60 hover:text-gold-800"
                                 )}
                               >
                                 {numberCopied ? (
@@ -771,11 +771,11 @@ export function CheckoutModal({
                   </div>
 
                   {/* Sticky totals + submit */}
-                  <footer className="shrink-0 border-t border-ink-700 bg-ink-900 p-5">
+                  <footer className="shrink-0 border-t border-sand-300 bg-sand-100 p-5">
                     <dl className="mb-3.5 flex flex-col gap-1 text-sm">
                       <div className="flex items-center justify-between">
                         <dt className="text-muted">{sh.cart.subtotal}</dt>
-                        <dd className="font-en font-bold text-cream num">
+                        <dd className="font-en font-bold text-espresso num">
                           {formatEGP(subtotal, lang)}
                         </dd>
                       </div>
@@ -790,17 +790,17 @@ export function CheckoutModal({
                         delivery > 0 && (
                           <div className="flex items-center justify-between">
                             <dt className="text-muted">{sh.cart.deliveryFee}</dt>
-                            <dd className="font-en font-bold text-cream num">
+                            <dd className="font-en font-bold text-espresso num">
                               {formatEGP(delivery, lang)}
                             </dd>
                           </div>
                         )
                       )}
-                      <div className="mt-1 flex items-center justify-between border-t border-ink-700 pt-2">
-                        <dt className="font-extrabold text-cream">
+                      <div className="mt-1 flex items-center justify-between border-t border-sand-300 pt-2">
+                        <dt className="font-extrabold text-espresso">
                           {courierPriced ? sh.checkout.foodTotal : sh.cart.total}
                         </dt>
-                        <dd className="font-en text-xl font-extrabold text-gold-500 num">
+                        <dd className="font-en text-xl font-extrabold text-gold-800 num">
                           {formatEGP(total, lang)}
                         </dd>
                       </div>
@@ -819,7 +819,7 @@ export function CheckoutModal({
                     <button
                       type="submit"
                       disabled={submitting || lines.length === 0}
-                      className="flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gold-500 px-5 font-extrabold text-ink-950 shadow-glow transition-colors duration-200 hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-full btn-espresso px-5 font-extrabold transition-colors duration-200 hover:brightness-125 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {submitting && (
                         <Loader2 aria-hidden className="size-5 animate-spin" />

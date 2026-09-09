@@ -103,13 +103,13 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             placeholder={sh.track.placeholder}
             dir="ltr"
-            className="h-14 w-full rounded-2xl border border-ink-700 bg-ink-900/80 ps-12 pe-4 font-en text-base uppercase tracking-wider text-cream placeholder:normal-case placeholder:tracking-normal placeholder:text-muted-dim transition-colors duration-200 focus:border-gold-500/60 focus:outline-none"
+            className="h-14 w-full rounded-2xl border border-sand-300 bg-sand-100/80 ps-12 pe-4 font-en text-base uppercase tracking-wider text-espresso placeholder:normal-case placeholder:tracking-normal placeholder:text-muted-dim transition-colors duration-200 focus:border-gold-500/60 focus:outline-none"
           />
         </div>
         <button
           type="submit"
           disabled={loading || !code.trim()}
-          className="flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gold-500 px-8 font-extrabold text-ink-950 shadow-glow transition-colors duration-200 hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-full btn-espresso px-8 font-extrabold transition-colors duration-200 hover:brightness-125 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? (
             <Loader2 aria-hidden className="size-5 animate-spin" />
@@ -128,12 +128,12 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mt-8 flex flex-col items-center gap-3 rounded-3xl border border-dashed border-ink-600 bg-ink-900/50 px-6 py-14 text-center"
+            className="mt-8 flex flex-col items-center gap-3 rounded-3xl border border-dashed border-sand-400 bg-sand-100/50 px-6 py-14 text-center"
           >
-            <span className="flex size-16 items-center justify-center rounded-2xl bg-ink-800 text-muted-dim">
+            <span className="flex size-16 items-center justify-center rounded-2xl bg-sand-200 text-muted-dim">
               <PackageSearch aria-hidden className="size-8" />
             </span>
-            <h2 className="text-xl font-extrabold text-cream">
+            <h2 className="text-xl font-extrabold text-espresso">
               {sh.track.notFound}
             </h2>
             <p className="max-w-sm leading-relaxed text-muted">
@@ -151,13 +151,13 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
             className="mt-8 flex flex-col gap-5"
           >
             {/* Summary header */}
-            <div className="rounded-3xl border border-ink-700 bg-ink-900/70 p-6">
+            <div className="rounded-3xl border border-sand-300 bg-sand-100/70 p-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-gold-500">
+                  <p className="text-xs font-bold uppercase tracking-wider text-gold-800">
                     {sh.track.orderCode}
                   </p>
-                  <p className="mt-1 font-en text-2xl font-extrabold text-cream num">
+                  <p className="mt-1 font-en text-2xl font-extrabold text-espresso num">
                     {order.code}
                   </p>
                   <p className="mt-1 text-sm text-muted-dim">
@@ -166,7 +166,7 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
                 </div>
 
                 <div className="flex flex-col items-end gap-1.5 text-end">
-                  <span className="rounded-full border border-ink-600 bg-ink-800 px-3 py-1.5 text-xs font-bold text-muted">
+                  <span className="rounded-full border border-sand-400 bg-sand-200 px-3 py-1.5 text-xs font-bold text-muted">
                     {ORDER_TYPE_LABELS[order.orderType as OrderType]?.[lang]}
                     {order.deliveryArea &&
                       ` · ${
@@ -175,17 +175,17 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
                         ]
                       }`}
                   </span>
-                  <span className="rounded-full border border-ink-600 bg-ink-800 px-3 py-1.5 text-xs font-bold text-muted">
+                  <span className="rounded-full border border-sand-400 bg-sand-200 px-3 py-1.5 text-xs font-bold text-muted">
                     {PAYMENT_LABELS[order.paymentMethod as PaymentMethod]?.[lang]}
                   </span>
                 </div>
               </div>
 
               {order.address && (
-                <p className="mt-4 flex items-start gap-2 border-t border-ink-700 pt-4 text-sm leading-relaxed text-muted">
-                  <MapPin aria-hidden className="mt-0.5 size-4 shrink-0 text-gold-500" />
+                <p className="mt-4 flex items-start gap-2 border-t border-sand-300 pt-4 text-sm leading-relaxed text-muted">
+                  <MapPin aria-hidden className="mt-0.5 size-4 shrink-0 text-gold-800" />
                   <span>
-                    <span className="font-bold text-cream">
+                    <span className="font-bold text-espresso">
                       {sh.track.deliverTo}:{" "}
                     </span>
                     {order.address}
@@ -208,7 +208,7 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
                 </div>
               </div>
             ) : (
-              <div className="rounded-3xl border border-ink-700 bg-ink-900/70 p-6">
+              <div className="rounded-3xl border border-sand-300 bg-sand-100/70 p-6">
                 <ol className="flex flex-col gap-0">
                   {TRACKING_STEPS.map((step, i) => {
                     const done = i <= currentStep;
@@ -240,8 +240,8 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
                             className={cn(
                               "relative flex size-12 shrink-0 items-center justify-center rounded-2xl border transition-colors duration-300",
                               done
-                                ? "border-gold-500 bg-gold-500 text-ink-950"
-                                : "border-ink-600 bg-ink-800 text-muted-dim"
+                                ? "border-gold-500 bg-gold-500 text-espresso"
+                                : "border-sand-400 bg-sand-200 text-muted-dim"
                             )}
                           >
                             <StepIcon aria-hidden className="size-5" />
@@ -259,7 +259,7 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
                           </motion.span>
 
                           {!isLast && (
-                            <span className="relative my-1 w-0.5 flex-1 overflow-hidden rounded-full bg-ink-700">
+                            <span className="relative my-1 w-0.5 flex-1 overflow-hidden rounded-full bg-sand-300">
                               <motion.span
                                 initial={{ scaleY: 0 }}
                                 animate={{ scaleY: i < currentStep ? 1 : 0 }}
@@ -276,7 +276,7 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
                           <p
                             className={cn(
                               "pt-3 font-extrabold transition-colors duration-300",
-                              done ? "text-cream" : "text-muted-dim"
+                              done ? "text-espresso" : "text-muted-dim"
                             )}
                           >
                             {
@@ -301,7 +301,7 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
                   })}
                 </ol>
 
-                <p className="mt-2 flex items-center gap-2 border-t border-ink-700 pt-4 text-xs font-semibold text-muted-dim">
+                <p className="mt-2 flex items-center gap-2 border-t border-sand-300 pt-4 text-xs font-semibold text-muted-dim">
                   <RefreshCw aria-hidden className="size-3.5" />
                   {sh.track.autoRefresh}
                 </p>
@@ -309,24 +309,24 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
             )}
 
             {/* Items */}
-            <div className="rounded-3xl border border-ink-700 bg-ink-900/70 p-6">
-              <h2 className="mb-4 text-lg font-extrabold text-cream">
+            <div className="rounded-3xl border border-sand-300 bg-sand-100/70 p-6">
+              <h2 className="mb-4 text-lg font-extrabold text-espresso">
                 {sh.track.items}
               </h2>
               <ul className="flex flex-col gap-3">
                 {order.items.map((item, i) => (
                   <li
                     key={i}
-                    className="flex items-start justify-between gap-4 border-b border-ink-800 pb-3 last:border-0 last:pb-0"
+                    className="flex items-start justify-between gap-4 border-b border-sand-200 pb-3 last:border-0 last:pb-0"
                   >
                     <div className="min-w-0">
-                      <p className="font-bold text-cream">
-                        <span className="font-en text-gold-500 num">
+                      <p className="font-bold text-espresso">
+                        <span className="font-en text-gold-800 num">
                           {item.quantity}×
                         </span>{" "}
                         {lang === "ar" ? item.nameAr : item.nameEn}
                         {item.size && (
-                          <span className="ms-1.5 rounded bg-gold-500/12 px-1.5 py-0.5 font-en text-[10px] font-extrabold text-gold-500">
+                          <span className="ms-1.5 rounded bg-gold-500/12 px-1.5 py-0.5 font-en text-[10px] font-extrabold text-gold-800">
                             {item.size}
                           </span>
                         )}
@@ -339,17 +339,17 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
                         </p>
                       )}
                     </div>
-                    <span className="shrink-0 font-en font-bold text-cream num">
+                    <span className="shrink-0 font-en font-bold text-espresso num">
                       {formatEGP(item.lineTotal, lang)}
                     </span>
                   </li>
                 ))}
               </ul>
 
-              <dl className="mt-4 flex flex-col gap-1.5 border-t border-ink-700 pt-4 text-sm">
+              <dl className="mt-4 flex flex-col gap-1.5 border-t border-sand-300 pt-4 text-sm">
                 <div className="flex justify-between">
                   <dt className="text-muted">{sh.cart.subtotal}</dt>
-                  <dd className="font-en font-bold text-cream num">
+                  <dd className="font-en font-bold text-espresso num">
                     {formatEGP(order.subtotal, lang)}
                   </dd>
                 </div>
@@ -367,15 +367,15 @@ export function TrackClient({ initialCode }: { initialCode: string }) {
                   order.deliveryFee > 0 && (
                     <div className="flex justify-between">
                       <dt className="text-muted">{sh.cart.deliveryFee}</dt>
-                      <dd className="font-en font-bold text-cream num">
+                      <dd className="font-en font-bold text-espresso num">
                         {formatEGP(order.deliveryFee, lang)}
                       </dd>
                     </div>
                   )
                 )}
-                <div className="mt-1 flex justify-between border-t border-ink-700 pt-2">
-                  <dt className="font-extrabold text-cream">{sh.cart.total}</dt>
-                  <dd className="font-en text-xl font-extrabold text-gold-500 num">
+                <div className="mt-1 flex justify-between border-t border-sand-300 pt-2">
+                  <dt className="font-extrabold text-espresso">{sh.cart.total}</dt>
+                  <dd className="font-en text-xl font-extrabold text-gold-800 num">
                     {formatEGP(order.total, lang)}
                   </dd>
                 </div>

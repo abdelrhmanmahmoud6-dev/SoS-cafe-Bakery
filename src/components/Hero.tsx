@@ -6,6 +6,7 @@ import { ArrowDown, MapPin, Phone, UtensilsCrossed, Sparkles } from "lucide-reac
 import { useI18n } from "@/lib/i18n";
 import { STORE } from "@/lib/dictionary";
 import { MagneticButton, AmbientShapes } from "./ui/Motion";
+import { CursorTrail } from "./ui/CursorTrail";
 import { Logo } from "./ui/Logo";
 
 /** Decorative marquee wording — independent of the live menu data. */
@@ -23,9 +24,12 @@ const MARQUEE_WORDS = [
 export function Hero({
   itemCount,
   categoryCount,
+  photos = [],
 }: {
   itemCount: number;
   categoryCount: number;
+  /** Menu photography for the cursor trail. */
+  photos?: string[];
 }) {
   const { t, lang, isRTL } = useI18n();
   const reduce = useReducedMotion();
@@ -53,12 +57,23 @@ export function Hero({
       id="home"
       className="relative isolate flex min-h-dvh scroll-mt-28 flex-col justify-center overflow-hidden pb-20 pt-28 sm:pt-32"
     >
+      {/* Cursor trail. Sits above the ambience and below the content, so the
+          photos pass behind the headline rather than over it, and z-0 keeps it
+          under the z-10 content layer that owns the buttons. */}
       {/* Ambient background */}
       <AmbientShapes dense />
       <div aria-hidden className="ambient-grid pointer-events-none absolute inset-0 opacity-45 mask-fade-b" />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-40 h-96 bg-[radial-gradient(60%_100%_at_50%_0%,rgb(250_204_21/0.16),transparent_70%)]"
+        className="pointer-events-none absolute inset-x-0 -top-40 h-96 bg-[radial-gradient(60%_100%_at_50%_0%,rgb(202_138_4/0.14),transparent_70%)]"
+      />
+
+      {/* Cursor trail. Painted above the ambience but below the z-10 content
+          layer, so photos pass behind the headline instead of over it. */}
+      <CursorTrail
+        images={photos}
+        hostRef={ref}
+        className="pointer-events-none absolute inset-0 z-0 hidden sm:block"
       />
 
       <motion.div style={{ y, opacity }} className="relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-8">
@@ -74,14 +89,14 @@ export function Hero({
               animate={reduce ? undefined : { y: [0, -10, 0] }}
               transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
             >
-              <Logo size={104} className="drop-shadow-[0_10px_44px_rgba(250,204,21,0.36)]" />
+              <Logo size={104} className="drop-shadow-[0_14px_36px_rgba(60,50,40,0.22)]" />
             </motion.div>
 
             <motion.span
               initial={{ opacity: 0, scale: 0.6 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.45, type: "spring", stiffness: 300, damping: 16 }}
-              className="absolute -bottom-3.5 start-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-gold-500/40 bg-ink-900 px-3.5 py-1 font-en text-[11px] font-extrabold uppercase tracking-[0.16em] text-gold-500 shadow-glow rtl:translate-x-1/2"
+              className="absolute -bottom-3.5 start-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-gold-500/40 bg-sand-100 px-3.5 py-1 font-en text-[11px] font-extrabold uppercase tracking-[0.16em] text-gold-800 shadow-glow rtl:translate-x-1/2"
             >
               {t.hero.badge}
             </motion.span>
@@ -92,9 +107,9 @@ export function Hero({
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.55 }}
-            className="mb-5 inline-flex items-center gap-2 rounded-full border border-ink-600 bg-ink-900/70 px-4 py-2 text-xs font-semibold text-muted backdrop-blur-sm sm:text-sm"
+            className="mb-5 inline-flex items-center gap-2 rounded-full border border-sand-400 bg-sand-100/70 px-4 py-2 text-xs font-semibold text-muted backdrop-blur-sm sm:text-sm"
           >
-            <MapPin aria-hidden className="size-4 text-gold-500" />
+            <MapPin aria-hidden className="size-4 text-gold-800" />
             {t.hero.location}
           </motion.div>
 
@@ -103,7 +118,7 @@ export function Hero({
             {words.map((word, wi) => (
               <span key={wi} className="block overflow-hidden py-0.5">
                 <motion.span
-                  className={wi === 1 ? "inline-block text-gradient-gold" : "inline-block text-cream"}
+                  className={wi === 1 ? "inline-block text-gradient-gold" : "inline-block text-espresso"}
                   initial={{ y: "110%", opacity: 0 }}
                   animate={{ y: "0%", opacity: 1 }}
                   transition={{
@@ -137,7 +152,7 @@ export function Hero({
           >
             <MagneticButton
               href="#menu"
-              className="group flex min-h-13 w-full items-center justify-center gap-2.5 rounded-2xl bg-gold-500 px-7 text-base font-extrabold text-ink-950 shadow-glow transition-colors duration-200 hover:bg-gold-400 sm:w-auto"
+              className="group flex min-h-13 w-full items-center justify-center gap-2.5 rounded-full btn-espresso px-7 text-base font-extrabold transition-colors duration-200 hover:brightness-125 sm:w-auto"
             >
               <UtensilsCrossed aria-hidden className="size-5" />
               {t.hero.ctaMenu}
@@ -145,7 +160,7 @@ export function Hero({
 
             <MagneticButton
               href={STORE.phoneHref}
-              className="flex min-h-13 w-full items-center justify-center gap-2.5 rounded-2xl border border-ink-600 bg-ink-900/60 px-7 text-base font-bold text-cream backdrop-blur-sm transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-500 sm:w-auto"
+              className="flex min-h-13 w-full items-center justify-center gap-2.5 rounded-2xl border border-sand-400 bg-sand-100/60 px-7 text-base font-bold text-espresso backdrop-blur-sm transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-800 sm:w-auto"
             >
               <Phone aria-hidden className="size-5" />
               {t.hero.ctaCall}
@@ -157,12 +172,12 @@ export function Hero({
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.78, duration: 0.6 }}
-            className="mt-14 grid w-full max-w-2xl grid-cols-3 divide-x divide-ink-700 rounded-2xl border border-ink-700 bg-ink-900/50 py-5 backdrop-blur-sm rtl:divide-x-reverse"
+            className="mt-14 grid w-full max-w-2xl grid-cols-3 divide-x divide-sand-300 rounded-2xl border border-sand-300 bg-sand-100/50 py-5 backdrop-blur-sm rtl:divide-x-reverse"
           >
             {stats.map((s) => (
               <div key={s.label} className="flex flex-col items-center gap-1 px-2">
                 <dt className="sr-only">{s.label}</dt>
-                <dd className="font-en text-2xl font-extrabold text-gold-500 num sm:text-3xl">
+                <dd className="font-en text-2xl font-extrabold text-gold-800 num sm:text-3xl">
                   {s.value}
                 </dd>
                 <span aria-hidden className="text-[11px] font-semibold leading-tight text-muted sm:text-xs">
@@ -180,7 +195,7 @@ export function Hero({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.1, duration: 0.6 }}
-        className="absolute inset-x-0 bottom-6 z-10 mx-auto flex w-fit cursor-pointer flex-col items-center justify-center gap-1.5 px-4 py-1.5 text-[11px] font-semibold text-muted-dim transition-colors duration-200 hover:text-gold-500"
+        className="absolute inset-x-0 bottom-6 z-10 mx-auto flex w-fit cursor-pointer flex-col items-center justify-center gap-1.5 px-4 py-1.5 text-[11px] font-semibold text-muted-dim transition-colors duration-200 hover:text-gold-800"
       >
         <span>{t.hero.scroll}</span>
         <motion.span
@@ -202,7 +217,7 @@ export function Hero({
               {MARQUEE_WORDS.map((w, wi) => (
                 <span
                   key={`${dup}-${wi}`}
-                  className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-gold-500/45"
+                  className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-gold-800/45"
                 >
                   <Sparkles className="size-3" />
                   {lang === "ar" ? w.ar : w.en}

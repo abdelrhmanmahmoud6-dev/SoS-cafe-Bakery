@@ -33,7 +33,7 @@ export default async function TrackPage({
       >
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 -top-32 z-0 h-96 bg-[radial-gradient(60%_100%_at_50%_0%,rgb(250_204_21/0.12),transparent_70%)]"
+          className="pointer-events-none absolute inset-x-0 -top-32 z-0 h-96 bg-[radial-gradient(60%_100%_at_50%_0%,rgb(202_138_4/0.12),transparent_70%)]"
         />
         <div className="relative z-10">
           <TrackPageHeader />

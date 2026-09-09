@@ -25,12 +25,17 @@ export const ADDON_CATEGORIES = [
 
    Design
    ------
-   A frosted, rounded slab that lifts on hover and lights up in ITS OWN section
-   colour — peach for the bakery, lavender for the blended drinks, aqua for the
-   cold ones. The hue arrives as a single inline `--accent` property from
-   `accentStyle()`; every tinted part below (glow, price chip, quick-add button,
-   best-seller badge) reads that one variable, so there is no colour ladder here
-   and adding a category means adding one line to src/lib/accents.ts.
+   A soft cream slab, lit from the top-left by the neumorphic shadow pair, that
+   lifts on hover and picks up ITS OWN section colour — peach for the bakery,
+   lavender for the blended drinks, aqua for the cold ones. The hue arrives as
+   a single inline `--accent` from `accentStyle()`; every tinted part reads that
+   one variable, so there is no colour ladder here and adding a category means
+   adding one line to src/lib/accents.ts.
+
+   The photo is inset inside the card with its own radius rather than running to
+   the card edge. On a dark theme a bleeding photo reads as depth; on cream it
+   reads as a sticker, because there is no shadow between the image and the page
+   to separate them. The inset margin is what keeps the card feeling like paper.
 
    Motion
    ------
@@ -101,7 +106,7 @@ function MenuCardImpl({
       variants={cardEnter}
       whileHover={item.available ? { y: -6, transition: SPRING_SOFT } : undefined}
       className={cn(
-        "group relative flex overflow-hidden rounded-3xl border bg-ink-900/70 backdrop-blur-sm",
+        "group relative flex overflow-hidden rounded-3xl border bg-sand-100/70 backdrop-blur-sm",
         "transition-colors duration-300 will-change-transform",
         // Landscape on the bento hero tile, portrait everywhere else.
         // `sm:min-h-60` is load-bearing: in the landscape layout the image side
@@ -110,8 +115,8 @@ function MenuCardImpl({
         // need and the hero tile would render as a letterbox strip.
         wide ? "flex-col sm:min-h-60 sm:flex-row" : "flex-col",
         item.available
-          ? "border-ink-700/80 hover:accent-border"
-          : "border-ink-700/50 opacity-55"
+          ? "border-sand-300 hover:accent-border"
+          : "border-sand-300/70 opacity-60"
       )}
     >
       {/* Accent glow. A sibling with a box-shadow rather than a blurred halo:
@@ -119,7 +124,7 @@ function MenuCardImpl({
       {item.available && (
         <span
           aria-hidden
-          className="glow-accent pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          className="glow-accent pointer-events-none absolute inset-0 rounded-[1.75rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         />
       )}
 
@@ -134,7 +139,7 @@ function MenuCardImpl({
       >
         <span
           className={cn(
-            "relative block overflow-hidden",
+            "relative block overflow-hidden rounded-[1.35rem]",
             wide && "sm:w-1/2 sm:shrink-0"
           )}
         >
@@ -155,7 +160,7 @@ function MenuCardImpl({
               floor rather than relying on whatever the picture happens to be. */}
           <span
             aria-hidden
-            className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/25 to-transparent"
+            className="absolute inset-0 bg-gradient-to-t from-sand-50 via-sand-50/25 to-transparent"
           />
 
           {/* Price, floating on the image — the number a customer scans for
@@ -176,7 +181,7 @@ function MenuCardImpl({
                 />
               </>
             ) : (
-              <span className="accent-chip flex items-baseline gap-1 rounded-xl px-2.5 py-1.5 backdrop-blur-md">
+              <span className="accent-chip flex items-baseline gap-1 rounded-full px-3 py-1.5 shadow-card backdrop-blur-md">
                 <span className="font-en text-xl font-extrabold leading-none num">
                   {item.price}
                 </span>
@@ -190,7 +195,7 @@ function MenuCardImpl({
           {/* Status badges, top corner */}
           <span className="absolute top-3 end-3 flex flex-col items-end gap-1.5">
             {!item.available ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-rose-400/30 bg-ink-950/80 px-2.5 py-1 text-[10px] font-extrabold text-rose-300 backdrop-blur-md">
+              <span className="inline-flex items-center gap-1 rounded-full border border-danger/30 bg-sand-50/90 px-2.5 py-1 text-[10px] font-extrabold text-danger backdrop-blur-md">
                 <Ban aria-hidden className="size-3" />
                 {sh.item.soldOut}
               </span>
@@ -216,7 +221,7 @@ function MenuCardImpl({
         >
           <span
             className={cn(
-              "text-pretty font-extrabold leading-snug text-cream",
+              "text-pretty font-extrabold leading-snug text-espresso",
               wide ? "text-[15px] sm:text-xl" : "text-[15px]"
             )}
           >
@@ -247,10 +252,10 @@ function MenuCardImpl({
         whileTap={item.available ? { scale: 0.82 } : undefined}
         transition={SPRING_POP}
         className={cn(
-          "absolute bottom-3.5 end-3.5 flex size-11 items-center justify-center rounded-2xl",
+          "absolute bottom-4 end-4 flex size-11 items-center justify-center rounded-full",
           item.available
-            ? "accent-fill cursor-pointer shadow-lg"
-            : "cursor-not-allowed bg-ink-800 text-muted-dim"
+            ? "btn-espresso cursor-pointer"
+            : "cursor-not-allowed bg-sand-200 text-muted-dim"
         )}
       >
         <Plus aria-hidden className="size-5" strokeWidth={3} />
@@ -283,10 +288,10 @@ function PriceChip({
   return (
     <span
       className={cn(
-        "inline-flex items-baseline gap-1 rounded-lg px-2 py-1 text-[10px] font-bold backdrop-blur-md",
+        "inline-flex items-baseline gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold shadow-card backdrop-blur-md",
         highlight
           ? "accent-chip"
-          : "bg-ink-950/70 text-muted ring-1 ring-ink-600"
+          : "bg-sand-50/90 text-muted ring-1 ring-sand-300"
       )}
     >
       <span className="opacity-75">{label}</span>

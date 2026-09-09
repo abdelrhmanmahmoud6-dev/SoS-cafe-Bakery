@@ -10,7 +10,7 @@ export function TrackPageHeader() {
   return (
     <div className="mx-auto mb-10 flex max-w-2xl flex-col items-center gap-4 text-center">
       <Reveal>
-        <span className="flex size-16 items-center justify-center rounded-3xl bg-gold-500/12 text-gold-500 ring-1 ring-gold-500/25">
+        <span className="flex size-16 items-center justify-center rounded-3xl bg-gold-500/12 text-gold-800 ring-1 ring-gold-500/25">
           <PackageSearch aria-hidden className="size-8" />
         </span>
       </Reveal>

@@ -22,7 +22,7 @@ export function LoginForm() {
         : null;
 
   const inputClass =
-    "h-13 w-full rounded-xl border border-ink-600 bg-ink-800 px-4 text-cream placeholder:text-muted-dim transition-colors duration-200 focus:border-gold-500/60 focus:outline-none";
+    "h-13 w-full rounded-xl border border-sand-400 bg-sand-200 px-4 text-espresso placeholder:text-muted-dim transition-colors duration-200 focus:border-gold-500/60 focus:outline-none";
 
   return (
     <motion.div
@@ -33,7 +33,7 @@ export function LoginForm() {
     >
       <div className="mb-7 flex flex-col items-center gap-3 text-center">
         <Logo size={72} />
-        <h1 className="text-2xl font-extrabold text-cream">{sh.admin.brand}</h1>
+        <h1 className="text-2xl font-extrabold text-espresso">{sh.admin.brand}</h1>
         <p className="flex items-center gap-1.5 text-sm text-muted-dim">
           <Lock aria-hidden className="size-3.5" />
           {sh.admin.login}
@@ -42,10 +42,10 @@ export function LoginForm() {
 
       <form
         action={formAction}
-        className="flex flex-col gap-4 rounded-3xl border border-ink-700 bg-ink-900/80 p-6 shadow-float"
+        className="flex flex-col gap-4 rounded-3xl border border-sand-300 bg-sand-100/80 p-6 shadow-float"
       >
         <div>
-          <label htmlFor="email" className="mb-1.5 block text-sm font-bold text-cream">
+          <label htmlFor="email" className="mb-1.5 block text-sm font-bold text-espresso">
             {sh.admin.email}
           </label>
           <input
@@ -63,7 +63,7 @@ export function LoginForm() {
         <div>
           <label
             htmlFor="password"
-            className="mb-1.5 block text-sm font-bold text-cream"
+            className="mb-1.5 block text-sm font-bold text-espresso"
           >
             {sh.admin.password}
           </label>
@@ -91,7 +91,7 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={pending}
-          className="flex min-h-13 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gold-500 px-5 font-extrabold text-ink-950 shadow-glow transition-colors duration-200 hover:bg-gold-400 disabled:opacity-60"
+          className="flex min-h-13 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gold-500 px-5 font-extrabold text-espresso shadow-glow transition-colors duration-200 hover:bg-gold-400 disabled:opacity-60"
         >
           {pending && <Loader2 aria-hidden className="size-5 animate-spin" />}
           {pending ? sh.admin.signingIn : sh.admin.signIn}

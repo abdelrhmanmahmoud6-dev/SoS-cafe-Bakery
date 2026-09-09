@@ -340,14 +340,16 @@ export function AmbientShapes({ dense = false }: { dense?: boolean }) {
     ? [
         // Four hues, not four tints of one: the drifting colour behind the
         // page is where the palette gets introduced before any UI states it.
-        { x: "8%", y: "12%", s: 340, c: "rgb(250 204 21 / 0.16)", d: 0 },
-        { x: "78%", y: "8%", s: 280, c: "rgb(185 167 255 / 0.16)", d: 1.4 },
-        { x: "62%", y: "62%", s: 400, c: "rgb(255 174 143 / 0.12)", d: 2.6 },
-        { x: "16%", y: "72%", s: 250, c: "rgb(94 234 212 / 0.11)", d: 3.4 },
+        // Deeper and weaker than the dark-mode set — a pale wash on cream
+        // reads as a milky smudge, so these lean toward the pigment end.
+        { x: "8%", y: "12%", s: 340, c: "rgb(202 138 4 / 0.16)", d: 0 },
+        { x: "78%", y: "8%", s: 280, c: "rgb(139 116 214 / 0.13)", d: 1.4 },
+        { x: "62%", y: "62%", s: 400, c: "rgb(210 122 82 / 0.12)", d: 2.6 },
+        { x: "16%", y: "72%", s: 250, c: "rgb(60 170 152 / 0.10)", d: 3.4 },
       ]
     : [
-        { x: "12%", y: "18%", s: 300, c: "rgb(250 204 21 / 0.11)", d: 0 },
-        { x: "80%", y: "60%", s: 340, c: "rgb(185 167 255 / 0.10)", d: 2 },
+        { x: "12%", y: "18%", s: 300, c: "rgb(202 138 4 / 0.12)", d: 0 },
+        { x: "80%", y: "60%", s: 340, c: "rgb(139 116 214 / 0.10)", d: 2 },
       ];
 
   return (
@@ -403,7 +405,7 @@ export function SectionHeading({
       )}
     >
       <Reveal>
-        <span className="inline-flex items-center gap-2 rounded-full border border-gold-500/25 bg-gold-500/8 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-gold-500">
+        <span className="inline-flex items-center gap-2 rounded-full border border-gold-500/25 bg-gold-500/8 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-gold-800">
           <span className="size-1.5 rounded-full bg-gold-500" />
           {eyebrow}
         </span>

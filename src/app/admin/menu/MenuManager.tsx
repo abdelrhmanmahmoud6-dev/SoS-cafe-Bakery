@@ -92,7 +92,7 @@ function UrlThumb({
     return (
       <span
         className={cn(
-          "flex shrink-0 items-center justify-center bg-ink-800 text-muted-dim",
+          "flex shrink-0 items-center justify-center bg-sand-200 text-muted-dim",
           box
         )}
       >
@@ -111,7 +111,7 @@ function UrlThumb({
       alt=""
       loading="lazy"
       onError={() => setFailed(true)}
-      className={cn("shrink-0 object-cover ring-1 ring-ink-600", box)}
+      className={cn("shrink-0 object-cover ring-1 ring-sand-400", box)}
     />
   );
 }
@@ -182,7 +182,7 @@ export function MenuManager({
       {/* Header */}
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-cream sm:text-3xl">
+          <h1 className="text-2xl font-extrabold text-espresso sm:text-3xl">
             {m.title}
           </h1>
           <p className="mt-1 text-sm text-muted">
@@ -193,7 +193,7 @@ export function MenuManager({
         <button
           type="button"
           onClick={() => setCreating(true)}
-          className="flex min-h-12 cursor-pointer items-center gap-2 rounded-xl bg-gold-500 px-5 font-extrabold text-ink-950 shadow-glow transition-colors duration-200 hover:bg-gold-400"
+          className="flex min-h-12 cursor-pointer items-center gap-2 rounded-xl bg-gold-500 px-5 font-extrabold text-espresso shadow-glow transition-colors duration-200 hover:bg-gold-400"
         >
           <Plus aria-hidden className="size-5" />
           {m.add}
@@ -226,7 +226,7 @@ export function MenuManager({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={m.searchPlaceholder}
-            className="h-13 w-full rounded-xl border border-ink-700 bg-ink-900 ps-12 pe-4 text-cream placeholder:text-muted-dim focus:border-gold-500/60 focus:outline-none"
+            className="h-13 w-full rounded-xl border border-sand-300 bg-sand-100 ps-12 pe-4 text-espresso placeholder:text-muted-dim focus:border-gold-500/60 focus:outline-none"
           />
         </div>
         <div className="sm:w-64">
@@ -237,7 +237,7 @@ export function MenuManager({
             id="admin-cat-filter"
             value={catFilter}
             onChange={(e) => setCatFilter(e.target.value)}
-            className="h-13 w-full cursor-pointer appearance-none rounded-xl border border-ink-700 bg-ink-900 px-4 text-sm font-semibold text-cream focus:border-gold-500/60 focus:outline-none"
+            className="h-13 w-full cursor-pointer appearance-none rounded-xl border border-sand-300 bg-sand-100 px-4 text-sm font-semibold text-espresso focus:border-gold-500/60 focus:outline-none"
           >
             <option value="all">{sh.admin.orders.filterAll}</option>
             {categories.map((c) => (
@@ -250,9 +250,9 @@ export function MenuManager({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-2xl border border-ink-700">
+      <div className="overflow-x-auto rounded-2xl border border-sand-300">
         <table className="w-full min-w-[46rem] text-start text-sm">
-          <thead className="bg-ink-800 text-muted">
+          <thead className="bg-sand-200 text-muted">
             <tr>
               <th scope="col" className="p-3 text-start font-bold">
                 {m.nameAr} / {m.nameEn}
@@ -276,7 +276,7 @@ export function MenuManager({
               <tr
                 key={item.id}
                 className={cn(
-                  "border-t border-ink-800 transition-colors duration-150 hover:bg-ink-800/40",
+                  "border-t border-sand-200 transition-colors duration-150 hover:bg-sand-200/40",
                   !item.available && "opacity-55"
                 )}
               >
@@ -288,12 +288,12 @@ export function MenuManager({
                       size="sm"
                     />
                     <div className="min-w-0">
-                      <p className="flex items-center gap-1.5 font-bold text-cream">
+                      <p className="flex items-center gap-1.5 font-bold text-espresso">
                         {item.ar}
                         {item.best && (
                           <Star
                             aria-label="Best seller"
-                            className="size-3.5 shrink-0 fill-gold-500 text-gold-500"
+                            className="size-3.5 shrink-0 fill-gold-800 text-gold-800"
                           />
                         )}
                       </p>
@@ -308,7 +308,7 @@ export function MenuManager({
                     ? categories.find((c) => c.id === item.cat)?.ar
                     : categories.find((c) => c.id === item.cat)?.en}
                 </td>
-                <td className="p-3 font-en font-bold text-gold-500 num">
+                <td className="p-3 font-en font-bold text-gold-800 num">
                   {item.sizes
                     ? `L ${item.sizes.L} · XL ${item.sizes.XL}`
                     : formatEGP(item.price ?? 0, lang)}
@@ -342,7 +342,7 @@ export function MenuManager({
                       type="button"
                       onClick={() => setEditing(item)}
                       aria-label={`${m.edit}: ${item.ar}`}
-                      className="flex size-11 cursor-pointer items-center justify-center rounded-lg text-muted transition-colors duration-200 hover:bg-ink-800 hover:text-gold-500"
+                      className="flex size-11 cursor-pointer items-center justify-center rounded-lg text-muted transition-colors duration-200 hover:bg-sand-200 hover:text-gold-800"
                     >
                       <Pencil aria-hidden className="size-4" />
                     </button>
@@ -512,8 +512,8 @@ function ItemEditor({
   const urlLooksWrong = imageUrl.trim() !== "" && !isUsableImageUrl(imageUrl);
 
   const inputClass =
-    "h-12 w-full rounded-xl border border-ink-600 bg-ink-800 px-4 text-cream placeholder:text-muted-dim focus:border-gold-500/60 focus:outline-none";
-  const labelClass = "mb-1.5 block text-sm font-bold text-cream";
+    "h-12 w-full rounded-xl border border-sand-400 bg-sand-200 px-4 text-espresso placeholder:text-muted-dim focus:border-gold-500/60 focus:outline-none";
+  const labelClass = "mb-1.5 block text-sm font-bold text-espresso";
 
   return (
     <div className="fixed inset-0 z-80 flex items-end justify-center sm:items-center sm:p-6">
@@ -522,7 +522,7 @@ function ItemEditor({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-ink-950/88 backdrop-blur-md"
+        className="absolute inset-0 bg-espresso/45 backdrop-blur-md"
       />
 
       <motion.div
@@ -533,17 +533,17 @@ function ItemEditor({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 24, scale: 0.97 }}
         transition={{ type: "spring", stiffness: 330, damping: 30 }}
-        className="relative flex max-h-[94dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-ink-700 bg-ink-900 shadow-float sm:rounded-3xl"
+        className="relative flex max-h-[94dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-sand-300 bg-sand-100 shadow-float sm:rounded-3xl"
       >
-        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-ink-700 p-5">
-          <h2 id="editor-title" className="text-xl font-extrabold text-cream">
+        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-sand-300 p-5">
+          <h2 id="editor-title" className="text-xl font-extrabold text-espresso">
             {item ? m.edit : m.add}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label={m.cancel}
-            className="flex size-11 cursor-pointer items-center justify-center rounded-xl border border-ink-600 text-cream hover:border-gold-500/60 hover:text-gold-500"
+            className="flex size-11 cursor-pointer items-center justify-center rounded-xl border border-sand-400 text-espresso hover:border-gold-500/60 hover:text-gold-800"
           >
             <X aria-hidden className="size-5" />
           </button>
@@ -594,8 +594,8 @@ function ItemEditor({
                     className={cn(
                       "min-h-12 cursor-pointer rounded-xl border text-sm font-bold transition-colors duration-200",
                       twoSizes === opt.key
-                        ? "border-gold-500 bg-gold-500/12 text-gold-500"
-                        : "border-ink-600 bg-ink-800 text-muted hover:text-cream"
+                        ? "border-gold-500 bg-gold-500/12 text-gold-800"
+                        : "border-sand-400 bg-sand-200 text-muted hover:text-espresso"
                     )}
                   >
                     {opt.label}
@@ -651,7 +651,7 @@ function ItemEditor({
                         type="button"
                         onClick={() => fileRef.current?.click()}
                         disabled={uploading}
-                        className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-ink-600 px-4 text-sm font-bold text-cream hover:border-gold-500/60 hover:text-gold-500 disabled:opacity-60"
+                        className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-sand-400 px-4 text-sm font-bold text-espresso hover:border-gold-500/60 hover:text-gold-800 disabled:opacity-60"
                       >
                         {uploading ? <Loader2 aria-hidden className="size-4 animate-spin" /> : <Upload aria-hidden className="size-4" />}
                         {uploading ? m.uploading : m.uploadImage}
@@ -715,11 +715,11 @@ function ItemEditor({
 
             {/* Flags */}
             <div className="mt-5 flex flex-wrap gap-3">
-              <label className="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-xl border border-ink-600 bg-ink-800 px-4 text-sm font-bold text-cream">
+              <label className="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-xl border border-sand-400 bg-sand-200 px-4 text-sm font-bold text-espresso">
                 <input type="checkbox" checked={best} onChange={(e) => setBest(e.target.checked)} className="size-4 accent-gold-500" />
                 {m.bestSeller}
               </label>
-              <label className="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-xl border border-ink-600 bg-ink-800 px-4 text-sm font-bold text-cream">
+              <label className="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-xl border border-sand-400 bg-sand-200 px-4 text-sm font-bold text-espresso">
                 <input type="checkbox" checked={available} onChange={(e) => setAvailable(e.target.checked)} className="size-4 accent-gold-500" />
                 {m.available}
               </label>
@@ -733,11 +733,11 @@ function ItemEditor({
             )}
           </div>
 
-          <footer className="flex shrink-0 gap-3 border-t border-ink-700 p-5">
+          <footer className="flex shrink-0 gap-3 border-t border-sand-300 p-5">
             <button
               type="submit"
               disabled={saving}
-              className="flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-gold-500 px-5 font-extrabold text-ink-950 hover:bg-gold-400 disabled:opacity-60"
+              className="flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-gold-500 px-5 font-extrabold text-espresso hover:bg-gold-400 disabled:opacity-60"
             >
               {saving && <Loader2 aria-hidden className="size-5 animate-spin" />}
               {saving ? m.saving : m.save}
@@ -745,7 +745,7 @@ function ItemEditor({
             <button
               type="button"
               onClick={onClose}
-              className="min-h-12 cursor-pointer rounded-xl border border-ink-600 px-5 font-bold text-cream hover:border-gold-500/60 hover:text-gold-500"
+              className="min-h-12 cursor-pointer rounded-xl border border-sand-400 px-5 font-bold text-espresso hover:border-gold-500/60 hover:text-gold-800"
             >
               {m.cancel}
             </button>

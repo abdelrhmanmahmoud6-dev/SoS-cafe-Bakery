@@ -17,7 +17,7 @@ export default function GlobalError({
 }) {
   return (
     <html lang="ar" dir="rtl">
-      <body className="bg-ink-950 text-cream antialiased">
+      <body className="bg-sand-50 text-espresso antialiased">
         <ErrorState reset={reset} showAutoRetry={false} />
       </body>
     </html>

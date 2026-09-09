@@ -138,7 +138,7 @@ export function ItemSheet({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="absolute inset-0 bg-ink-950/85 backdrop-blur-md"
+            className="absolute inset-0 bg-espresso/45 backdrop-blur-md"
           />
 
           <motion.div
@@ -150,7 +150,7 @@ export function ItemSheet({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 330, damping: 30 }}
-            className="relative flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-ink-700 bg-ink-900 shadow-float sm:rounded-3xl"
+            className="relative flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-sand-300 bg-sand-100 shadow-float sm:rounded-3xl"
           >
             {/* Product photo, when the item has one */}
             {item.imageUrl && (
@@ -166,7 +166,7 @@ export function ItemSheet({
             {/* Header */}
             <div className="relative shrink-0 overflow-hidden bg-gradient-to-br from-gold-500 to-gold-600 px-6 pb-6 pt-5">
               <div className="relative flex items-start justify-between gap-4">
-                <span className="flex size-12 items-center justify-center rounded-2xl bg-ink-950/12 text-ink-950">
+                <span className="flex size-12 items-center justify-center rounded-2xl bg-sand-50/12 text-espresso">
                   <CategoryIcon name={category.icon} className="size-6" />
                 </span>
                 <button
@@ -174,7 +174,7 @@ export function ItemSheet({
                   type="button"
                   onClick={onClose}
                   aria-label={sh.cart.close}
-                  className="flex size-11 cursor-pointer items-center justify-center rounded-xl bg-ink-950/12 text-ink-950 transition-colors duration-200 hover:bg-ink-950 hover:text-gold-500"
+                  className="flex size-11 cursor-pointer items-center justify-center rounded-xl bg-sand-50/12 text-espresso transition-colors duration-200 hover:bg-sand-50 hover:text-gold-800"
                 >
                   <X aria-hidden className="size-5" />
                 </button>
@@ -182,11 +182,11 @@ export function ItemSheet({
 
               <h2
                 id="item-sheet-title"
-                className="relative mt-4 text-pretty text-2xl font-extrabold leading-tight text-ink-950"
+                className="relative mt-4 text-pretty text-2xl font-extrabold leading-tight text-espresso"
               >
                 {pick(item)}
               </h2>
-              <p className="relative mt-1 text-sm font-semibold text-ink-950/65 [unicode-bidi:isolate]">
+              <p className="relative mt-1 text-sm font-semibold text-espresso/65 [unicode-bidi:isolate]">
                 {lang === "ar" ? item.en : item.ar}
               </p>
             </div>
@@ -209,7 +209,7 @@ export function ItemSheet({
               {/* Size */}
               {item.sizes && (
                 <fieldset className="mt-6">
-                  <legend className="mb-2.5 text-sm font-extrabold text-cream">
+                  <legend className="mb-2.5 text-sm font-extrabold text-espresso">
                     {sh.item.chooseSize}
                   </legend>
                   <div className="grid grid-cols-2 gap-3">
@@ -225,18 +225,18 @@ export function ItemSheet({
                             "flex min-h-16 cursor-pointer flex-col items-start justify-center gap-0.5 rounded-2xl border px-4 transition-colors duration-200",
                             active
                               ? "border-gold-500 bg-gold-500/12"
-                              : "border-ink-600 bg-ink-800 hover:border-ink-500"
+                              : "border-sand-400 bg-sand-200 hover:border-sand-500"
                           )}
                         >
                           <span
                             className={cn(
                               "text-xs font-bold",
-                              active ? "text-gold-500" : "text-muted"
+                              active ? "text-gold-800" : "text-muted"
                             )}
                           >
                             {key === "L" ? "وسط L" : "كبير XL"}
                           </span>
-                          <span className="font-en text-lg font-extrabold text-cream num">
+                          <span className="font-en text-lg font-extrabold text-espresso num">
                             {formatEGP(item.sizes![key], lang)}
                           </span>
                         </button>
@@ -249,7 +249,7 @@ export function ItemSheet({
               {/* Add-ons */}
               {showAddons && addons.length > 0 && (
                 <fieldset className="mt-6">
-                  <legend className="mb-2.5 text-sm font-extrabold text-cream">
+                  <legend className="mb-2.5 text-sm font-extrabold text-espresso">
                     {sh.item.addons}
                   </legend>
                   <div className="flex flex-wrap gap-2">
@@ -270,16 +270,16 @@ export function ItemSheet({
                           className={cn(
                             "flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-3.5 text-sm font-bold transition-colors duration-200",
                             active
-                              ? "border-gold-500 bg-gold-500/12 text-gold-500"
-                              : "border-ink-600 bg-ink-800 text-muted hover:border-ink-500 hover:text-cream"
+                              ? "border-gold-500 bg-gold-500/12 text-gold-800"
+                              : "border-sand-400 bg-sand-200 text-muted hover:border-sand-500 hover:text-espresso"
                           )}
                         >
                           <span
                             className={cn(
                               "flex size-4 items-center justify-center rounded border",
                               active
-                                ? "border-gold-500 bg-gold-500 text-ink-950"
-                                : "border-ink-500"
+                                ? "border-gold-500 bg-gold-500 text-espresso"
+                                : "border-sand-500"
                             )}
                           >
                             {active && <Check aria-hidden className="size-3" strokeWidth={3} />}
@@ -296,8 +296,8 @@ export function ItemSheet({
               )}
 
               {/* Quantity */}
-              <div className="mt-6 flex items-center justify-between rounded-2xl border border-ink-600 bg-ink-800 p-3">
-                <span className="ps-2 text-sm font-extrabold text-cream">
+              <div className="mt-6 flex items-center justify-between rounded-2xl border border-sand-400 bg-sand-200 p-3">
+                <span className="ps-2 text-sm font-extrabold text-espresso">
                   {sh.cart.quantity}
                 </span>
                 <div className="flex items-center gap-1.5">
@@ -306,13 +306,13 @@ export function ItemSheet({
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                     disabled={quantity <= 1}
                     aria-label={sh.cart.decrease}
-                    className="flex size-11 cursor-pointer items-center justify-center rounded-xl bg-ink-700 text-cream transition-colors duration-200 hover:bg-ink-600 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex size-11 cursor-pointer items-center justify-center rounded-xl bg-sand-300 text-espresso transition-colors duration-200 hover:bg-sand-400 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <Minus aria-hidden className="size-4" />
                   </button>
                   <span
                     aria-live="polite"
-                    className="w-10 text-center font-en text-lg font-extrabold text-cream num"
+                    className="w-10 text-center font-en text-lg font-extrabold text-espresso num"
                   >
                     {quantity}
                   </span>
@@ -320,7 +320,7 @@ export function ItemSheet({
                     type="button"
                     onClick={() => setQuantity((q) => Math.min(99, q + 1))}
                     aria-label={sh.cart.increase}
-                    className="flex size-11 cursor-pointer items-center justify-center rounded-xl bg-ink-700 text-cream transition-colors duration-200 hover:bg-ink-600"
+                    className="flex size-11 cursor-pointer items-center justify-center rounded-xl bg-sand-300 text-espresso transition-colors duration-200 hover:bg-sand-400"
                   >
                     <Plus aria-hidden className="size-4" />
                   </button>
@@ -329,7 +329,7 @@ export function ItemSheet({
             </div>
 
             {/* Sticky footer */}
-            <div className="shrink-0 border-t border-ink-700 bg-ink-900 p-5">
+            <div className="shrink-0 border-t border-sand-300 bg-sand-100 p-5">
               <button
                 type="button"
                 onClick={handleAdd}
@@ -338,9 +338,9 @@ export function ItemSheet({
                   "flex min-h-13 w-full cursor-pointer items-center justify-between gap-3 rounded-2xl px-5 font-extrabold transition-colors duration-200",
                   item.available
                     ? justAdded
-                      ? "bg-emerald-400 text-ink-950"
-                      : "bg-gold-500 text-ink-950 hover:bg-gold-400"
-                    : "cursor-not-allowed bg-ink-700 text-muted-dim"
+                      ? "bg-emerald-400 text-espresso"
+                      : "bg-gold-500 text-espresso hover:brightness-125"
+                    : "cursor-not-allowed bg-sand-300 text-muted-dim"
                 )}
               >
                 <span className="flex items-center gap-2">

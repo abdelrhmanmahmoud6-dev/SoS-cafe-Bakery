@@ -84,27 +84,27 @@ export function Contact() {
                     "group flex h-full cursor-pointer flex-col gap-4 rounded-3xl border p-7 transition-colors duration-300",
                     c.primary
                       ? "border-gold-500/40 bg-gold-500/[0.07] hover:border-gold-500/70"
-                      : "border-ink-700 bg-ink-900/70 hover:border-gold-500/40"
+                      : "border-sand-300 bg-sand-100/70 hover:border-gold-500/40"
                   )}
                 >
                   <span
                     className={cn(
                       "flex size-13 items-center justify-center rounded-2xl transition-all duration-300",
                       c.primary
-                        ? "bg-gold-500 text-ink-950"
-                        : "bg-gold-500/10 text-gold-500 ring-1 ring-gold-500/25 group-hover:bg-gold-500 group-hover:text-ink-950"
+                        ? "bg-gold-500 text-espresso"
+                        : "bg-gold-500/10 text-gold-800 ring-1 ring-gold-500/25 group-hover:bg-gold-500 group-hover:text-espresso"
                     )}
                   >
                     <Icon aria-hidden className="size-6" />
                   </span>
 
                   <div>
-                    <h3 className="flex items-center gap-2 text-lg font-extrabold text-cream">
+                    <h3 className="flex items-center gap-2 text-lg font-extrabold text-espresso">
                       {c.title}
                       {c.external && (
                         <ExternalLink
                           aria-hidden
-                          className="size-3.5 text-muted-dim transition-colors duration-200 group-hover:text-gold-500"
+                          className="size-3.5 text-muted-dim transition-colors duration-200 group-hover:text-gold-800"
                         />
                       )}
                     </h3>
@@ -113,7 +113,7 @@ export function Contact() {
 
                   <p
                     dir="ltr"
-                    className="mt-auto font-en text-lg font-extrabold text-gold-500 num text-start"
+                    className="mt-auto font-en text-lg font-extrabold text-gold-800 num text-start"
                   >
                     {c.value}
                   </p>
@@ -125,13 +125,13 @@ export function Contact() {
 
         {/* Hours + live status */}
         <Reveal delay={0.24} className="mt-5">
-          <div className="flex flex-col gap-6 rounded-3xl border border-ink-700 bg-gradient-to-br from-ink-800 to-ink-900 p-7 sm:flex-row sm:items-center sm:justify-between sm:p-9">
+          <div className="flex flex-col gap-6 rounded-3xl border border-sand-300 bg-gradient-to-br from-sand-200 to-sand-100 p-7 sm:flex-row sm:items-center sm:justify-between sm:p-9">
             <div className="flex items-start gap-4">
-              <span className="flex size-13 shrink-0 items-center justify-center rounded-2xl bg-gold-500/10 text-gold-500 ring-1 ring-gold-500/25">
+              <span className="flex size-13 shrink-0 items-center justify-center rounded-2xl bg-gold-500/10 text-gold-800 ring-1 ring-gold-500/25">
                 <Clock aria-hidden className="size-6" />
               </span>
               <div>
-                <h3 className="text-lg font-extrabold text-cream">{t.contact.hoursTitle}</h3>
+                <h3 className="text-lg font-extrabold text-espresso">{t.contact.hoursTitle}</h3>
                 <p className="mt-1 text-muted">{t.contact.hoursValue}</p>
               </div>
             </div>
@@ -143,10 +143,10 @@ export function Contact() {
               className={cn(
                 "flex shrink-0 items-center gap-3 rounded-2xl border px-5 py-3.5 transition-colors duration-300",
                 open === null
-                  ? "border-ink-600 bg-ink-800"
+                  ? "border-sand-400 bg-sand-200"
                   : open
                     ? "border-success/35 bg-success/10"
-                    : "border-ink-600 bg-ink-800"
+                    : "border-sand-400 bg-sand-200"
               )}
             >
               <span className="relative flex size-3">
@@ -192,17 +192,17 @@ export function Contact() {
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gold-500 via-gold-500 to-gold-600 p-8 sm:p-12">
             <div
               aria-hidden
-              className="absolute -end-16 -top-16 size-64 rounded-full bg-ink-950/10 blur-2xl"
+              className="absolute -end-16 -top-16 size-64 rounded-full bg-sand-50/10 blur-2xl"
             />
             <div className="relative flex flex-col items-center gap-6 text-center">
-              <h3 className="text-balance text-2xl font-extrabold leading-tight text-ink-950 sm:text-3xl">
+              <h3 className="text-balance text-2xl font-extrabold leading-tight text-espresso sm:text-3xl">
                 {t.contact.title}
               </h3>
 
               <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                 <MagneticButton
                   href={STORE.phoneHref}
-                  className="flex min-h-13 w-full items-center justify-center gap-2.5 rounded-2xl bg-ink-950 px-7 font-extrabold text-gold-500 transition-colors duration-200 hover:bg-ink-900 sm:w-auto"
+                  className="flex min-h-13 w-full items-center justify-center gap-2.5 rounded-2xl bg-sand-50 px-7 font-extrabold text-gold-800 transition-colors duration-200 hover:bg-sand-100 sm:w-auto"
                 >
                   <Phone aria-hidden className="size-5" />
                   <span dir="ltr" className="font-en num">
@@ -214,7 +214,7 @@ export function Contact() {
                   href={waGeneralLink(lang)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-13 w-full items-center justify-center gap-2.5 rounded-2xl border-2 border-ink-950/25 px-7 font-extrabold text-ink-950 transition-colors duration-200 hover:bg-ink-950/10 sm:w-auto"
+                  className="flex min-h-13 w-full items-center justify-center gap-2.5 rounded-2xl border-2 border-sand-50/25 px-7 font-extrabold text-espresso transition-colors duration-200 hover:bg-sand-50/10 sm:w-auto"
                 >
                   <MessageCircle aria-hidden className="size-5" />
                   {t.nav.whatsapp}

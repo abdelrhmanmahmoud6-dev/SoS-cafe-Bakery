@@ -37,7 +37,7 @@ export function Footer() {
 
   return (
     <>
-      <footer className="relative overflow-hidden border-t border-ink-700 bg-ink-900/60">
+      <footer className="relative overflow-hidden border-t border-sand-300 bg-sand-100/60">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-500/40 to-transparent"
@@ -50,10 +50,10 @@ export function Footer() {
               <div className="flex items-center gap-3">
                 <Logo size={56} />
                 <div className="flex flex-col leading-tight">
-                  <span className="font-en text-lg font-extrabold text-cream">
+                  <span className="font-en text-lg font-extrabold text-espresso">
                     SOS Bakery And Coffee
                   </span>
-                  <span className="font-en text-xs font-bold uppercase tracking-[0.16em] text-gold-500 num">
+                  <span className="font-en text-xs font-bold uppercase tracking-[0.16em] text-gold-800 num">
                     est. {STORE.est}
                   </span>
                 </div>
@@ -71,7 +71,7 @@ export function Footer() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={s.label}
-                      className="flex size-11 cursor-pointer items-center justify-center rounded-xl border border-ink-600 bg-ink-800 text-muted transition-all duration-200 hover:border-gold-500/60 hover:bg-gold-500 hover:text-ink-950"
+                      className="flex size-11 cursor-pointer items-center justify-center rounded-xl border border-sand-400 bg-sand-200 text-muted transition-all duration-200 hover:border-gold-500/60 hover:bg-gold-500 hover:text-espresso"
                     >
                       <Icon className="size-5" />
                     </a>
@@ -82,7 +82,7 @@ export function Footer() {
 
             {/* Quick links */}
             <nav className="lg:col-span-3" aria-label={t.footer.quickLinks}>
-              <h3 className="text-sm font-extrabold uppercase tracking-[0.14em] text-gold-500">
+              <h3 className="text-sm font-extrabold uppercase tracking-[0.14em] text-gold-800">
                 {t.footer.quickLinks}
               </h3>
               <ul className="mt-5 flex flex-col gap-1">
@@ -90,7 +90,7 @@ export function Footer() {
                   <li key={id}>
                     <a
                       href={`#${id}`}
-                      className="inline-flex min-h-11 cursor-pointer items-center font-semibold text-muted transition-colors duration-200 hover:text-gold-500"
+                      className="inline-flex min-h-11 cursor-pointer items-center font-semibold text-muted transition-colors duration-200 hover:text-gold-800"
                     >
                       {t.nav[id] as string}
                     </a>
@@ -101,7 +101,7 @@ export function Footer() {
 
             {/* Contact */}
             <div className="lg:col-span-4">
-              <h3 className="text-sm font-extrabold uppercase tracking-[0.14em] text-gold-500">
+              <h3 className="text-sm font-extrabold uppercase tracking-[0.14em] text-gold-800">
                 {t.footer.contactUs}
               </h3>
               <ul className="mt-5 flex flex-col gap-3">
@@ -110,9 +110,9 @@ export function Footer() {
                     href={STORE.mapsHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex cursor-pointer items-start gap-3 text-muted transition-colors duration-200 hover:text-gold-500"
+                    className="flex cursor-pointer items-start gap-3 text-muted transition-colors duration-200 hover:text-gold-800"
                   >
-                    <MapPin aria-hidden className="mt-0.5 size-4 shrink-0 text-gold-500" />
+                    <MapPin aria-hidden className="mt-0.5 size-4 shrink-0 text-gold-800" />
                     <span className="leading-relaxed">
                       {lang === "ar" ? STORE.addressAr : STORE.addressEn}
                       <br />
@@ -125,9 +125,9 @@ export function Footer() {
                 <li>
                   <a
                     href={STORE.phoneHref}
-                    className="flex min-h-11 cursor-pointer items-center gap-3 text-muted transition-colors duration-200 hover:text-gold-500"
+                    className="flex min-h-11 cursor-pointer items-center gap-3 text-muted transition-colors duration-200 hover:text-gold-800"
                   >
-                    <Phone aria-hidden className="size-4 shrink-0 text-gold-500" />
+                    <Phone aria-hidden className="size-4 shrink-0 text-gold-800" />
                     <span dir="ltr" className="font-en font-bold num">
                       {STORE.phone}
                     </span>
@@ -138,9 +138,9 @@ export function Footer() {
                     href={waGeneralLink(lang)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex min-h-11 cursor-pointer items-center gap-3 text-muted transition-colors duration-200 hover:text-gold-500"
+                    className="flex min-h-11 cursor-pointer items-center gap-3 text-muted transition-colors duration-200 hover:text-gold-800"
                   >
-                    <MessageCircle aria-hidden className="size-4 shrink-0 text-gold-500" />
+                    <MessageCircle aria-hidden className="size-4 shrink-0 text-gold-800" />
                     <span className="font-bold">{t.nav.whatsapp}</span>
                   </a>
                 </li>
@@ -149,7 +149,7 @@ export function Footer() {
           </div>
 
           {/* Bottom bar */}
-          <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-ink-700 pt-7 sm:flex-row">
+          <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-sand-300 pt-7 sm:flex-row">
             <p className="text-sm text-muted-dim">
               <span className="num">©</span> <span className="num">2026</span>{" "}
               {STORE.nameEn}. {t.footer.rights}
@@ -171,7 +171,7 @@ export function Footer() {
             whileTap={{ scale: 0.94 }}
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             aria-label={t.footer.backToTop}
-            className="fixed bottom-5 end-5 z-40 flex size-13 cursor-pointer items-center justify-center rounded-2xl bg-gold-500 text-ink-950 shadow-glow-lg transition-colors duration-200 hover:bg-gold-400"
+            className="fixed bottom-5 end-5 z-40 flex size-13 cursor-pointer items-center justify-center rounded-2xl bg-gold-500 text-espresso shadow-glow-lg transition-colors duration-200 hover:bg-gold-400"
           >
             <ArrowUp aria-hidden className="size-5" />
           </motion.button>

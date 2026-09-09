@@ -6,22 +6,26 @@
    (e.g. --color-gold-500 -> bg-gold-500 / text-gold-500 / border-gold-500).
 
    ---------------------------------------------------------------------------
-   DESIGN DIRECTION — "neon bakery"
+   DESIGN DIRECTION — "warm boutique"
 
-   Obsidian base, neon-yellow primary, pastel accents per menu section.
+   Cream/beige light base, deep espresso for type and primary buttons, neon
+   yellow kept for active selections and badges.
 
-   The neutral ramp is NOT grey: every step carries a slight violet undertone
-   (hue ~260). Flat grey reads as unfinished on a dark screen, whereas a tinted
-   near-black reads as deliberate and lets a saturated accent sit on top without
-   the two fighting.
+   NAMING: the surface ramp is `sand-*` and runs LIGHT to DARK — sand-50 is the
+   page background, sand-500 the deepest border. It replaced an obsidian
+   `ink-*` ramp that ran dark to light. The rename was mechanical (352 usages)
+   and deliberate: leaving a token called `ink-950` holding #FDFBF7 would have
+   made every future edit a guessing game.
 
-   The primary ramp is still named `gold-*`. That is on purpose: ~270 usages
-   across 23 files — the admin panel included — already point at it, so
-   retuning the ramp in place restyles the whole product coherently instead of
-   leaving two palettes half-applied. The hue is now neon yellow (#FACC15).
+   `--color-espresso` is the ink of this design: body copy, headings, and the
+   primary button fill. Text sitting ON espresso uses `sand-50`.
+
+   The accent ramp is still named `gold-*` — ~270 usages including the admin
+   panel point at it, so retuning in place keeps the whole product coherent.
 
    Pastel accents (lavender / peach / aqua / blush) are mapped per category in
-   src/lib/accents.ts, so a waffle card glows peach and a mojito glows aqua.
+   src/lib/accents.ts. They were tuned for a near-black ground, so on cream they
+   are DEEPENED at use time rather than used raw — see `.accent-chip`.
    ========================================================================== */
 
 @theme {
@@ -41,14 +45,22 @@
   --color-gold-800: #A16207;
   --color-gold-900: #713F12;
 
-  /* ---- Obsidian neutrals (violet-tinted, never flat grey) -------------- */
-  --color-ink-950: #07070B; /* page background */
-  --color-ink-900: #0E0E15; /* elevated surface */
-  --color-ink-850: #13131C;
-  --color-ink-800: #191922; /* card surface */
-  --color-ink-700: #24242F; /* raised card / hover */
-  --color-ink-600: #32323F; /* border strong */
-  --color-ink-500: #474756;
+  /* ---- Warm sand neutrals — LIGHT to DARK ------------------------------
+     Every step carries a warm (yellow-orange) undertone rather than being a
+     neutral grey tint of white. A cool white next to espresso brown reads
+     clinical; the warmth is what makes it read as a cafe. */
+  --color-sand-50: #FDFBF7; /* page background — lightest */
+  --color-sand-100: #FAF6EE; /* elevated surface */
+  --color-sand-150: #F7F2E8;
+  --color-sand-200: #F3EDE2; /* card surface / gradient end */
+  --color-sand-300: #E9E0D0; /* raised card / hairline */
+  --color-sand-400: #D8CBB6; /* border strong */
+  --color-sand-500: #BCAB92;
+
+  /* ---- Espresso — the ink of this design ------------------------------
+     Body copy, headings, and the primary button fill. 14.8:1 on sand-50. */
+  --color-espresso: #2C1E1A;
+  --color-espresso-soft: #4A362F; /* secondary headings, 9.1:1 on sand-50 */
 
   /* ---- Pastel accents — one per menu mood ------------------------------
      These hexes are mirrored in src/lib/accents.ts, which hands them to
@@ -71,22 +83,29 @@
   --color-blush-400: #FF8FC7; /* smoothie, rice pudding */
   --color-blush-500: #FF63AE;
 
-  /* ---- Neutral light / warm accents ------------------------------------ */
-  --color-cream: #FFFDF7;
-  --color-cream-dim: #EFEDE4;
-  --color-amber-soft: #FFC94D;
-  --color-amber-deep: #E0A800;
+  /* ---- Warm accents ---------------------------------------------------- */
+  --color-amber-soft: #C98A2B;
+  --color-amber-deep: #9A6516;
 
-  /* ---- Muted foregrounds (all >= 4.5:1 on ink-950) --------------------- */
-  --color-muted: #A6A6B4; /* 7.6:1 on ink-950 */
-  --color-muted-dim: #8C8C9C; /* 5.8:1 on ink-950 */
+  /* ---- Muted foregrounds ----------------------------------------------
+     Warm browns, not greys, and both re-derived for a LIGHT ground: the old
+     values (#A6A6B4 / #8C8C9C) were chosen for contrast against near-black and
+     would land around 2:1 on cream — unreadable.
+
+     Both are set against the DARKEST surface they actually appear on
+     (sand-300 hairline cards), not against the page, so they cannot fail on a
+     nested surface. muted-dim was #857263, which measured 3.93:1 on sand-200 —
+     under the 4.5 floor — and is now #786454. muted was pulled down with it to
+     keep a visible three-step hierarchy: espresso, muted, muted-dim. */
+  --color-muted: #5C4B3E; /* 8.2:1 on sand-50, 6.9:1 on sand-200 */
+  --color-muted-dim: #786454; /* 5.4:1 on sand-50, 4.8:1 on sand-200 */
 
   /* ---- Semantic ------------------------------------------------------- */
-  --color-surface: #0E0E15;
-  --color-surface-raised: #191922;
-  --color-hairline: #24242F;
-  --color-success: #34D399;
-  --color-danger: #F87171;
+  --color-surface: #FAF6EE;
+  --color-surface-raised: #F3EDE2;
+  --color-hairline: #E9E0D0;
+  --color-success: #1E7A52;
+  --color-danger: #B3261E;
 
   /* ---- Typography ------------------------------------------------------ */
   --font-ar: var(--font-cairo), "Cairo", "Tajawal", system-ui, sans-serif;
@@ -104,11 +123,28 @@
   --radius-xl: 2rem;
   --radius-2xl: 2.75rem;
 
-  /* ---- Elevation + brand glows ----------------------------------------- */
-  --shadow-card: 0 4px 24px -6px rgb(0 0 0 / 0.6);
-  --shadow-float: 0 18px 50px -12px rgb(0 0 0 / 0.75);
-  --shadow-glow: 0 0 0 1px rgb(250 204 21 / 0.28), 0 8px 32px -8px rgb(250 204 21 / 0.34);
-  --shadow-glow-lg: 0 0 0 1px rgb(250 204 21 / 0.42), 0 14px 48px -10px rgb(250 204 21 / 0.5);
+  /* ---- Elevation — soft neumorphic ------------------------------------
+     Two shadows per step: a warm grey-brown below-right and a near-white
+     above-left. That paired light source is what makes a surface read as
+     raised out of the page rather than floating above it on a drop shadow.
+     The dark half is brown-tinted (60 50 40), never neutral black — a black
+     shadow on cream turns the beige grey and kills the warmth. */
+  --shadow-card:
+    6px 6px 16px -4px rgb(60 50 40 / 0.14),
+    -5px -5px 14px -4px rgb(255 255 255 / 0.9);
+  --shadow-float:
+    14px 18px 40px -10px rgb(60 50 40 / 0.2),
+    -8px -8px 24px -8px rgb(255 255 255 / 0.85);
+  /* Pressed: the same light source, inverted inward. */
+  --shadow-pressed:
+    inset 4px 4px 10px -2px rgb(60 50 40 / 0.16),
+    inset -3px -3px 8px -2px rgb(255 255 255 / 0.85);
+  /* Espresso buttons cast a real, warm-tinted drop shadow — a neumorphic
+     inset would be invisible on a near-black fill. */
+  --shadow-espresso: 0 10px 22px -8px rgb(44 30 26 / 0.5), 0 2px 6px -2px rgb(44 30 26 / 0.3);
+  --shadow-espresso-lg: 0 16px 32px -10px rgb(44 30 26 / 0.55), 0 3px 8px -2px rgb(44 30 26 / 0.35);
+  --shadow-glow: 0 0 0 1px rgb(202 138 4 / 0.35), 0 8px 26px -8px rgb(250 204 21 / 0.55);
+  --shadow-glow-lg: 0 0 0 1px rgb(202 138 4 / 0.45), 0 14px 40px -10px rgb(250 204 21 / 0.7);
 
   /* ---- Motion timing --------------------------------------------------- */
   --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
@@ -174,8 +210,14 @@
   }
 
   body {
-    background-color: var(--color-ink-950);
-    color: var(--color-cream);
+    /* A flat cream reads as "unstyled white page". The gradient gives the
+       page a light source — warmer and slightly deeper toward the bottom —
+       which is what the neumorphic surfaces are lit against. Fixed so it does
+       not slide away as a long menu scrolls. */
+    background-color: var(--color-sand-50);
+    background-image: linear-gradient(170deg, #FDFBF7 0%, #FAF6EE 45%, #F3EDE2 100%);
+    background-attachment: fixed;
+    color: var(--color-espresso);
     font-family: var(--font-en);
     /* base 16px, line-height 1.5 per accessibility guideline */
     font-size: 1rem;
@@ -206,14 +248,16 @@
 
   /* Visible focus ring for keyboard nav — never removed */
   :focus-visible {
-    outline: 2px solid var(--color-gold-500);
+    /* gold-500 on cream is only ~1.7:1 — invisible as a focus ring on this
+       ground. gold-700 keeps the brand hue and clears 3:1. */
+    outline: 2px solid var(--color-gold-700);
     outline-offset: 3px;
     border-radius: 4px;
   }
 
   ::selection {
     background: var(--color-gold-500);
-    color: var(--color-ink-950);
+    color: var(--color-espresso);
   }
 
   /* Numbers stay LTR even inside RTL paragraphs */
@@ -238,27 +282,33 @@
    ring, price chip and button — with no colour ladder at the call site.
    ========================================================================== */
 
+/**
+ * The pastel accents were tuned against near-black. Used raw on cream they sit
+ * at roughly 1.6-2:1 and vanish. Every text use below therefore mixes the
+ * accent DOWN into espresso until it is readable, while backgrounds keep the
+ * accent bright — the hue survives, the contrast is earned.
+ */
 @utility accent-text {
-  color: var(--accent, var(--color-gold-500));
+  color: color-mix(in oklab, var(--accent, var(--color-gold-500)) 42%, var(--color-espresso));
 }
 
 @utility accent-chip {
-  color: var(--accent, var(--color-gold-500));
-  background: color-mix(in oklab, var(--accent, var(--color-gold-500)) 13%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent, var(--color-gold-500)) 28%, transparent);
+  color: color-mix(in oklab, var(--accent, var(--color-gold-500)) 34%, var(--color-espresso));
+  background: color-mix(in oklab, var(--accent, var(--color-gold-500)) 26%, var(--color-sand-50));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent, var(--color-gold-500)) 55%, var(--color-sand-200));
 }
 
 @utility accent-fill {
   background: var(--accent, var(--color-gold-500));
-  color: var(--color-ink-950);
+  color: var(--color-espresso);
 }
 
 @utility accent-ring {
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent, var(--color-gold-500)) 32%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent, var(--color-gold-500)) 45%, var(--color-sand-300));
 }
 
 @utility accent-border {
-  border-color: color-mix(in oklab, var(--accent, var(--color-gold-500)) 42%, transparent);
+  border-color: color-mix(in oklab, var(--accent, var(--color-gold-500)) 60%, var(--color-sand-400));
 }
 
 /**
@@ -268,16 +318,35 @@
  * A gridful of blurred ::after halos is what makes "glowing cards" tank scroll
  * performance on mid-range phones.
  */
+/**
+ * On cream, a "glow" cannot be a bloom of light — there is no darkness for it
+ * to bloom into. It is instead a saturated hairline plus a soft coloured cast
+ * beneath the card, which is how colour reads as energy on a light ground.
+ */
 @utility glow-accent {
   box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--accent, var(--color-gold-500)) 40%, transparent),
-    0 10px 40px -12px color-mix(in oklab, var(--accent, var(--color-gold-500)) 55%, transparent);
+    0 0 0 1.5px color-mix(in oklab, var(--accent, var(--color-gold-500)) 70%, var(--color-sand-400)),
+    0 12px 28px -10px color-mix(in oklab, var(--accent, var(--color-gold-500)) 60%, transparent),
+    0 4px 10px -4px rgb(60 50 40 / 0.14);
 }
 
 @utility glow-accent-soft {
   box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--accent, var(--color-gold-500)) 22%, transparent),
-    0 8px 30px -14px color-mix(in oklab, var(--accent, var(--color-gold-500)) 40%, transparent);
+    0 0 0 1px color-mix(in oklab, var(--accent, var(--color-gold-500)) 45%, var(--color-sand-300)),
+    0 8px 22px -12px color-mix(in oklab, var(--accent, var(--color-gold-500)) 45%, transparent);
+}
+
+/** Soft neumorphic slab. */
+@utility neu {
+  background: var(--color-sand-100);
+  box-shadow: var(--shadow-card);
+}
+
+/** Primary action: espresso pill with a warm drop shadow. */
+@utility btn-espresso {
+  background: var(--color-espresso);
+  color: var(--color-sand-50);
+  box-shadow: var(--shadow-espresso);
 }
 
 /* ============================================================================
@@ -285,30 +354,41 @@
    ========================================================================== */
 
 @layer utilities {
+  /**
+   * Frosted glass, light edition.
+   *
+   * On a dark ground the glass border was a white sliver catching light. On
+   * cream the same trick inverts: the pane is a near-white wash and the border
+   * is a warm SHADOW line, because on a light ground an edge reads by being
+   * darker than what surrounds it, not brighter.
+   */
   .glass {
-    background: color-mix(in oklab, var(--color-ink-900) 62%, transparent);
-    backdrop-filter: blur(20px) saturate(150%);
-    -webkit-backdrop-filter: blur(20px) saturate(150%);
-    border: 1px solid color-mix(in oklab, var(--color-cream) 8%, transparent);
+    background: color-mix(in oklab, var(--color-sand-50) 72%, transparent);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid color-mix(in oklab, var(--color-sand-400) 55%, transparent);
   }
 
   .glass-strong {
-    background: color-mix(in oklab, var(--color-ink-950) 80%, transparent);
-    backdrop-filter: blur(28px) saturate(170%);
-    -webkit-backdrop-filter: blur(28px) saturate(170%);
-    border: 1px solid color-mix(in oklab, var(--color-gold-500) 12%, transparent);
+    background: color-mix(in oklab, var(--color-sand-50) 86%, transparent);
+    backdrop-filter: blur(28px) saturate(150%);
+    -webkit-backdrop-filter: blur(28px) saturate(150%);
+    border: 1px solid color-mix(in oklab, var(--color-sand-400) 70%, transparent);
   }
 
   /* Frosted card that picks up whatever `--accent` its parent sets. */
   .glass-accent {
-    background: color-mix(in oklab, var(--color-ink-900) 66%, transparent);
+    background: color-mix(in oklab, var(--color-sand-50) 78%, transparent);
     backdrop-filter: blur(16px) saturate(140%);
     -webkit-backdrop-filter: blur(16px) saturate(140%);
-    border: 1px solid color-mix(in oklab, var(--accent, var(--color-gold-500)) 16%, transparent);
+    border: 1px solid color-mix(in oklab, var(--accent, var(--color-gold-500)) 45%, var(--color-sand-300));
   }
 
+  /* Deepened for a light ground: the bright end of the yellow ramp is
+     invisible as text on cream, so the gradient runs through the 600-800
+     steps and keeps only a hint of the neon at the top. */
   .text-gradient-gold {
-    background: linear-gradient(100deg, #FEEE7A 0%, #FFE712 34%, #FACC15 62%, #EAB308 100%);
+    background: linear-gradient(100deg, #A16207 0%, #CA8A04 38%, #EAB308 68%, #A16207 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -316,21 +396,21 @@
 
   /* Headline gradient that sweeps through the pastel accents. */
   .text-gradient-pop {
-    background: linear-gradient(100deg, #FACC15 0%, #B9A7FF 42%, #FFAE8F 74%, #FACC15 100%);
+    background: linear-gradient(100deg, #2C1E1A 0%, #6D4B94 45%, #B4552E 76%, #2C1E1A 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
   .ring-hairline {
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-cream) 9%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-sand-400) 60%, transparent);
   }
 
   /* Grain + radial ambience for section backdrops */
   .ambient-grid {
     background-image:
-      linear-gradient(to right, color-mix(in oklab, var(--color-cream) 4%, transparent) 1px, transparent 1px),
-      linear-gradient(to bottom, color-mix(in oklab, var(--color-cream) 4%, transparent) 1px, transparent 1px);
+      linear-gradient(to right, color-mix(in oklab, var(--color-sand-500) 22%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklab, var(--color-sand-500) 22%, transparent) 1px, transparent 1px);
     background-size: 64px 64px;
   }
 
@@ -338,8 +418,10 @@
    * Film grain over the whole page.
    *
    * An inline SVG turbulence data-URI: no network request, no image decode, and
-   * it tiles at 160px so the repeat is invisible. Grain is what stops a flat
-   * near-black from banding on cheap panels.
+   * it tiles at 160px so the repeat is invisible. On cream it does a different
+   * job than it did on near-black — not de-banding, but giving the paper a
+   * tooth so the flat areas read as stock rather than as screen. Dialled well
+   * down, because dark speckle is far more visible on a light ground.
    */
   .grain::after {
     content: "";
@@ -347,7 +429,8 @@
     inset: 0;
     z-index: 9999;
     pointer-events: none;
-    opacity: 0.035;
+    opacity: 0.02;
+    mix-blend-mode: multiply;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 

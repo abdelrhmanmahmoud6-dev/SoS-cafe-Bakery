@@ -59,8 +59,8 @@ export function ErrorState({
 
   if (retrying) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-ink-950 px-6 text-center">
-        <RefreshCw aria-hidden className="size-8 animate-spin text-gold-500" />
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-sand-50 px-6 text-center">
+        <RefreshCw aria-hidden className="size-8 animate-spin text-gold-800" />
         <p className="text-muted" role="status">
           جاري إعادة المحاولة…
           <span className="mx-2 opacity-40">·</span>
@@ -71,13 +71,13 @@ export function ErrorState({
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-ink-950 px-6 py-16 text-center">
-      <span className="flex size-20 items-center justify-center rounded-3xl bg-gold-500/10 text-gold-500 ring-1 ring-gold-500/25">
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-sand-50 px-6 py-16 text-center">
+      <span className="flex size-20 items-center justify-center rounded-3xl bg-gold-500/10 text-gold-800 ring-1 ring-gold-500/25">
         <WifiOff aria-hidden className="size-9" />
       </span>
 
       <div className="max-w-md">
-        <h1 className="text-2xl font-extrabold text-cream sm:text-3xl">
+        <h1 className="text-2xl font-extrabold text-espresso sm:text-3xl">
           في مشكلة مؤقتة في الاتصال
         </h1>
         <p className="mt-2 leading-relaxed text-muted">
@@ -87,7 +87,7 @@ export function ErrorState({
         {/* dir="ltr" so the trailing full stop renders at the end of the
             sentence rather than being reordered by the RTL context. */}
         <div dir="ltr">
-          <p className="mt-5 font-en text-lg font-extrabold text-cream">
+          <p className="mt-5 font-en text-lg font-extrabold text-espresso">
             Temporary connection problem
           </p>
           <p className="mt-1 font-en leading-relaxed text-muted">
@@ -107,7 +107,7 @@ export function ErrorState({
             retriesUsed = 0;
             reset();
           }}
-          className="flex min-h-13 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gold-500 px-7 font-extrabold text-ink-950 transition-colors duration-200 hover:bg-gold-400"
+          className="flex min-h-13 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gold-500 px-7 font-extrabold text-espresso transition-colors duration-200 hover:bg-gold-400"
         >
           <RefreshCw aria-hidden className="size-5" />
           حاول تاني / Try again
@@ -115,7 +115,7 @@ export function ErrorState({
 
         <a
           href="tel:+201034326985"
-          className="flex min-h-13 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-ink-600 px-7 font-bold text-cream transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-500"
+          className="flex min-h-13 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-sand-400 px-7 font-bold text-espresso transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-800"
         >
           <Phone aria-hidden className="size-5" />
           <span dir="ltr" className="font-en num">

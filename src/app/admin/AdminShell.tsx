@@ -55,14 +55,14 @@ export function AdminShell({
   }
 
   return (
-    <div className="min-h-dvh bg-ink-950">
+    <div className="min-h-dvh bg-sand-50">
       {/* Top bar */}
-      <header className="sticky top-0 z-50 border-b border-ink-700 bg-ink-950/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-sand-300 bg-sand-50/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[100rem] items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
             <Logo size={40} animated={false} />
             <div className="hidden flex-col leading-tight sm:flex">
-              <span className="text-sm font-extrabold text-cream">
+              <span className="text-sm font-extrabold text-espresso">
                 {sh.admin.brand}
               </span>
               <span className="text-[11px] text-muted-dim">{adminName}</span>
@@ -84,7 +84,7 @@ export function AdminShell({
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "relative flex min-h-11 cursor-pointer items-center gap-2 rounded-xl px-3 text-sm font-bold transition-colors duration-200 sm:px-4",
-                    active ? "text-ink-950" : "text-muted hover:text-cream"
+                    active ? "text-espresso" : "text-muted hover:text-espresso"
                   )}
                 >
                   {active && (
@@ -113,8 +113,8 @@ export function AdminShell({
               className={cn(
                 "flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-3 text-sm font-bold transition-colors duration-200",
                 soundOn
-                  ? "border-gold-500/50 bg-gold-500/10 text-gold-500"
-                  : "border-ink-600 text-muted hover:text-cream"
+                  ? "border-gold-500/50 bg-gold-500/10 text-gold-800"
+                  : "border-sand-400 text-muted hover:text-espresso"
               )}
             >
               {soundOn ? (
@@ -138,7 +138,7 @@ export function AdminShell({
               type="button"
               onClick={toggleLang}
               aria-label="Switch language"
-              className="flex size-11 cursor-pointer items-center justify-center rounded-xl border border-ink-600 text-cream transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-500"
+              className="flex size-11 cursor-pointer items-center justify-center rounded-xl border border-sand-400 text-espresso transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-800"
             >
               <Languages aria-hidden className="size-4" />
               <span className="sr-only">{lang === "ar" ? "EN" : "ع"}</span>
@@ -147,7 +147,7 @@ export function AdminShell({
             <form action={logoutAction}>
               <button
                 type="submit"
-                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-ink-600 px-3 text-sm font-bold text-muted transition-colors duration-200 hover:border-rose-400/50 hover:text-rose-300"
+                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-sand-400 px-3 text-sm font-bold text-muted transition-colors duration-200 hover:border-rose-400/50 hover:text-rose-300"
               >
                 <LogOut aria-hidden className="size-4" />
                 <span className="hidden md:inline">{sh.admin.logout}</span>

@@ -220,7 +220,7 @@ export function Menu({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={t.menu.searchPlaceholder}
-                className="h-14 w-full rounded-2xl border border-ink-700 bg-ink-900/60 ps-12 pe-14 text-base text-cream backdrop-blur-md placeholder:text-muted-dim transition-colors duration-200 hover:border-ink-600 focus:border-gold-500/60 focus:outline-none"
+                className="h-14 w-full rounded-2xl border border-sand-300 bg-sand-100/60 ps-12 pe-14 text-base text-espresso backdrop-blur-md placeholder:text-muted-dim transition-colors duration-200 hover:border-sand-400 focus:border-gold-500/60 focus:outline-none"
               />
               <AnimatePresence>
                 {query && (
@@ -231,7 +231,7 @@ export function Menu({
                     exit={{ opacity: 0, scale: 0.8 }}
                     onClick={() => setQuery("")}
                     aria-label={t.menu.clearSearch}
-                    className="absolute end-2 top-1/2 flex size-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-xl bg-ink-800 text-muted transition-[transform,color,background-color] duration-200 hover:bg-ink-700 hover:text-cream active:scale-90"
+                    className="absolute end-2 top-1/2 flex size-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-xl bg-sand-200 text-muted transition-[transform,color,background-color] duration-200 hover:bg-sand-300 hover:text-espresso active:scale-90"
                   >
                     <X aria-hidden className="size-4" />
                   </motion.button>
@@ -251,7 +251,7 @@ export function Menu({
                 id="menu-sort"
                 value={sort}
                 onChange={(e) => setSort(e.target.value as SortKey)}
-                className="h-14 w-full cursor-pointer appearance-none rounded-2xl border border-ink-700 bg-ink-900/60 ps-12 pe-5 text-sm font-semibold text-cream backdrop-blur-md transition-colors duration-200 hover:border-ink-600 focus:border-gold-500/60 focus:outline-none"
+                className="h-14 w-full cursor-pointer appearance-none rounded-2xl border border-sand-300 bg-sand-100/60 ps-12 pe-5 text-sm font-semibold text-espresso backdrop-blur-md transition-colors duration-200 hover:border-sand-400 focus:border-gold-500/60 focus:outline-none"
               >
                 <option value="default">{t.menu.sort.default}</option>
                 <option value="priceAsc">{t.menu.sort.priceAsc}</option>
@@ -265,7 +265,7 @@ export function Menu({
         {/* Category rail — a photo strip, in its own bounded panel so the
             cards can never bleed into the row above or the counter below. */}
         <Reveal delay={0.16} className="mt-4">
-          <div className="relative rounded-3xl border border-ink-700/60 bg-ink-900/30 p-2 backdrop-blur-md">
+          <div className="relative rounded-3xl border border-sand-300/60 bg-sand-100/30 p-2 backdrop-blur-md">
             <CategoryRail
               tiles={tiles}
               active={filter}
@@ -276,16 +276,16 @@ export function Menu({
 
         {/* Results counter — a distinct band with its own vertical rhythm and a
             hairline rule, so the counter and the filter bar cannot collide. */}
-        <div className="mt-8 flex min-h-11 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-ink-700/70 pb-4">
+        <div className="mt-8 flex min-h-11 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-sand-300/70 pb-4">
           <p aria-live="polite" className="text-sm font-bold text-muted">
-            <span className="text-gold-500 num">{results.length}</span>{" "}
+            <span className="text-gold-800 num">{results.length}</span>{" "}
             {t.itemsWord}
           </p>
           {filtersActive && (
             <button
               type="button"
               onClick={reset}
-              className="inline-flex min-h-11 cursor-pointer items-center text-sm font-bold text-muted underline-offset-4 transition-colors duration-200 hover:text-gold-500 hover:underline"
+              className="inline-flex min-h-11 cursor-pointer items-center text-sm font-bold text-muted underline-offset-4 transition-colors duration-200 hover:text-gold-800 hover:underline"
             >
               {t.menu.resetFilters}
             </button>
@@ -335,11 +335,11 @@ export function Menu({
                 <button
                   type="button"
                   onClick={showMore}
-                  className="flex min-h-13 cursor-pointer items-center gap-2 rounded-2xl border border-ink-600 bg-ink-900/60 px-7 font-extrabold text-cream backdrop-blur-md transition-[transform,color,border-color] duration-200 hover:-translate-y-0.5 hover:border-gold-500/60 hover:text-gold-500 active:scale-95"
+                  className="flex min-h-13 cursor-pointer items-center gap-2 rounded-2xl border border-sand-400 bg-sand-100/60 px-7 font-extrabold text-espresso backdrop-blur-md transition-[transform,color,border-color] duration-200 hover:-translate-y-0.5 hover:border-gold-500/60 hover:text-gold-800 active:scale-95"
                 >
                   <ChevronDown aria-hidden className="size-5" />
                   {t.menu.showMore}
-                  <span className="rounded-lg bg-ink-800 px-2 py-0.5 font-en text-xs text-muted-dim num">
+                  <span className="rounded-lg bg-sand-200 px-2 py-0.5 font-en text-xs text-muted-dim num">
                     {remaining}
                   </span>
                 </button>
@@ -347,11 +347,11 @@ export function Menu({
             )}
           </>
         ) : (
-          <div className="animate-card-in mt-10 flex flex-col items-center gap-4 rounded-3xl border border-dashed border-ink-600 bg-ink-900/40 px-6 py-16 text-center backdrop-blur-md">
-            <span className="flex size-16 items-center justify-center rounded-2xl bg-ink-800 text-muted-dim">
+          <div className="animate-card-in mt-10 flex flex-col items-center gap-4 rounded-3xl border border-dashed border-sand-400 bg-sand-100/40 px-6 py-16 text-center backdrop-blur-md">
+            <span className="flex size-16 items-center justify-center rounded-2xl bg-sand-200 text-muted-dim">
               <SearchX aria-hidden className="size-8" />
             </span>
-            <h3 className="text-xl font-extrabold text-cream">
+            <h3 className="text-xl font-extrabold text-espresso">
               {t.menu.emptyTitle}
             </h3>
             <p className="max-w-md leading-relaxed text-muted">
@@ -370,7 +370,7 @@ export function Menu({
                     setFilter("all");
                     setQuery(pick(s));
                   }}
-                  className="min-h-11 cursor-pointer rounded-2xl border border-ink-600 bg-ink-800 px-4 text-sm font-bold text-cream transition-[transform,color,border-color] duration-200 hover:border-gold-500/60 hover:text-gold-500 active:scale-95"
+                  className="min-h-11 cursor-pointer rounded-2xl border border-sand-400 bg-sand-200 px-4 text-sm font-bold text-espresso transition-[transform,color,border-color] duration-200 hover:border-gold-500/60 hover:text-gold-800 active:scale-95"
                 >
                   {pick(s)}
                 </button>
