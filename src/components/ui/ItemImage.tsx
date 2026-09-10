@@ -100,13 +100,24 @@ export function ItemImage({
               )}
             />
           ) : (
-            /* Host is not allow-listed. Serve it directly rather than not at
-               all — unoptimised, but visible. */
+            /* Host is not allow-listed, so this bypasses the Next optimiser and
+               downloads the publisher's original file at whatever size they
+               host it — often 1600px+ for a card that renders around 280px.
+               `sizes` cannot help here: without a `srcset` there is nothing for
+               the browser to choose between.
+
+               What is left is to keep it off the critical path — lazy, decoded
+               off the main thread, and explicitly deprioritised so it never
+               competes with the images that are above the fold.
+
+               The real fix is to stop serving third-party originals at all;
+               see the note in image-hosts.mjs. */
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={url}
               alt={alt}
               loading={priority ? "eager" : "lazy"}
+              fetchPriority={priority ? "high" : "low"}
               decoding="async"
               onLoad={() => setLoaded(true)}
               onError={() => setFailed(true)}

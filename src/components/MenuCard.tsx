@@ -16,6 +16,37 @@ import {
   SPRING_SOFT,
 } from "./ui/Motion";
 
+/* ============================================================================
+   IMAGE SIZING
+
+   `sizes` tells the browser how wide the image will actually be, so it can pick
+   the smallest srcset entry that still looks sharp. Getting it wrong is silent:
+   the picture looks fine and the phone just downloads more than it needed.
+
+   The previous descriptor ended in `25vw`, which is wrong at the top end
+   because the grid sits in a `max-w-7xl` (1280px) container. Past that width
+   the card stops growing but `25vw` keeps climbing — on a 1920px display it
+   claimed 480px for a card that renders at ~280px, so every menu photo was
+   fetched at roughly double the pixels it could display.
+
+   Measured against the real grid: 1 column below 420px, 2 up to 1023, 3 up to
+   1279, then 4 inside a container that is capped — hence a fixed px value at
+   the end rather than another vw.
+   ========================================================================== */
+
+/** Standard card: one grid column, minus the card's own 8px padding. */
+const CARD_SIZES =
+  "(max-width: 419px) 85vw, (max-width: 1023px) 45vw, (max-width: 1279px) 30vw, 280px";
+
+/**
+ * Bento hero tile. It spans two columns, but from `sm` up the photo takes only
+ * half the tile — which lands back at roughly one column. Below `sm` the tile
+ * stacks and the photo goes full width, which is the only place the two
+ * descriptors genuinely diverge.
+ */
+const WIDE_SIZES =
+  "(max-width: 639px) 92vw, (max-width: 1023px) 45vw, (max-width: 1279px) 30vw, 300px";
+
 /** Categories where add-ons are offered, so the customiser is worth opening. */
 export const ADDON_CATEGORIES = [
   "waffle",
@@ -164,6 +195,7 @@ function MenuCardImpl({
             alt={name}
             icon={category?.icon ?? "coffee"}
             priority={priority}
+            sizes={wide ? WIDE_SIZES : CARD_SIZES}
             className={cn(
               "w-full shrink-0 transition-transform duration-500 ease-out group-hover:scale-105",
               wide ? "aspect-[5/4] sm:h-full sm:aspect-auto" : "aspect-[5/4]"

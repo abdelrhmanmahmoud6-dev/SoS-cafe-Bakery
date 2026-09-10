@@ -76,6 +76,27 @@ export function useSmallScreen(): boolean {
   return useMediaQuery("(max-width: 767px)");
 }
 
+/**
+ * Whether the pointer image trail may run at all.
+ *
+ * Phrased as "is this a wide screen" rather than "is this not a small screen",
+ * and that direction is the whole point. `useSmallScreen()` starts `false`,
+ * meaning "not small", so gating the trail on `!small` would mount it on a
+ * phone for the first tick — attaching its touch listeners and rendering its
+ * layer before the media query had resolved. Starting from `false` here means
+ * disabled is the default everywhere, and a viewport of 768px or less never
+ * flips it on: the component is never mounted, no listeners are attached, and
+ * no DOM is created.
+ *
+ * 769px because 768px and below is defined as mobile for this purpose. That is
+ * one pixel wider than the CSS performance budget's `max-width: 767px`, which
+ * only differs on a viewport that is exactly 768px — an iPad in portrait, where
+ * disabling the trail is also what we want.
+ */
+export function useTrailEnabled(): boolean {
+  return useMediaQuery("(min-width: 769px)");
+}
+
 /* -------------------------------------------------------------------------- */
 /*  Spring presets                                                            */
 /*                                                                            */

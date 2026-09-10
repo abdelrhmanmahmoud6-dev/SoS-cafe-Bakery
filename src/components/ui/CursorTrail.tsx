@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ItemImage } from "./ItemImage";
-import { useSmallScreen } from "./Motion";
+import { useSmallScreen, useTrailEnabled } from "./Motion";
 
 /* ============================================================================
    CURSOR / TOUCH IMAGE TRAIL
@@ -97,6 +97,10 @@ export function CursorTrail({
 }) {
   const reduce = useReducedMotion();
   const small = useSmallScreen();
+  // Second gate, independent of the one in Hero. If this component is ever
+  // mounted from somewhere else, it still refuses to run on a phone rather
+  // than relying on every call site to remember.
+  const enabled = useTrailEnabled();
   const layerRef = useRef<HTMLDivElement>(null);
   const [trail, setTrail] = useState<TrailItem[]>([]);
 
@@ -213,7 +217,9 @@ export function CursorTrail({
 
   useEffect(() => {
     const host = hostRef.current;
-    if (!host || reduce) return;
+    // `enabled` is false on mobile and on the first tick everywhere, so no
+    // listener is ever attached to a touch device.
+    if (!host || reduce || !enabled) return;
 
     const opts: AddEventListenerOptions = { passive: true };
 
@@ -273,7 +279,10 @@ export function CursorTrail({
       host.removeEventListener("touchend", clear);
       host.removeEventListener("touchcancel", clear);
     };
-  }, [hostRef, reduce, clearTrail]);
+  }, [hostRef, reduce, enabled, clearTrail]);
+
+  // Nothing rendered at all below the breakpoint — no layer, no children.
+  if (!enabled) return null;
 
   return (
     // Viewport-fixed, transparent, click-through, and clipped to its own box.

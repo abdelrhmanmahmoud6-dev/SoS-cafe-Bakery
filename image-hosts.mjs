@@ -14,6 +14,20 @@
  * skips AVIF/WebP conversion and resizing.
  *
  * Add a host here to have its images optimised.
+ *
+ * ---------------------------------------------------------------------------
+ * KNOWN GAP (measured 2026-09-10): 46 of 165 menu items — 28% — point at hosts
+ * that are NOT on this list, spread across 23 different domains (Bing and
+ * Google image proxies, individual food blogs, a delivery aggregator). Each of
+ * those is served as the publisher's original file, frequently 1600-1920px wide
+ * for a card that renders around 280px.
+ *
+ * Allow-listing them one by one does not hold: the list grows every time an
+ * admin pastes a link from somewhere new. The two real options are a wildcard
+ * pattern, which turns /_next/image into an open image proxy anyone on the
+ * internet can point at any URL, or ingesting pasted images into storage we
+ * own and serving them from our own domain. The second is correct; it is a
+ * feature, not a config change.
  */
 export const OPTIMIZED_IMAGE_HOSTS = [
   "images.unsplash.com",

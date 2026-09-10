@@ -5,7 +5,7 @@ import { useRef } from "react";
 import { ArrowDown, MapPin, Phone, UtensilsCrossed, Sparkles } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { STORE } from "@/lib/dictionary";
-import { MagneticButton, AmbientShapes } from "./ui/Motion";
+import { MagneticButton, AmbientShapes, useTrailEnabled } from "./ui/Motion";
 import { CursorTrail } from "./ui/CursorTrail";
 import { Logo } from "./ui/Logo";
 
@@ -33,6 +33,9 @@ export function Hero({
 }) {
   const { t, lang, isRTL } = useI18n();
   const reduce = useReducedMotion();
+  // False until a viewport wider than 768px is confirmed, so the trail is
+  // never mounted on a phone — not even for the first render.
+  const trailEnabled = useTrailEnabled();
   const ref = useRef<HTMLElement>(null);
 
   const { scrollYProgress } = useScroll({
@@ -68,17 +71,18 @@ export function Hero({
         className="pointer-events-none absolute inset-x-0 -top-40 h-96 bg-[radial-gradient(60%_100%_at_50%_0%,rgb(202_138_4/0.14),transparent_70%)]"
       />
 
-      {/* Cursor / touch trail.
+      {/* Cursor trail — DESKTOP ONLY.
 
-          No positioning classes are passed: the component renders a viewport
-          `fixed inset-0 z-40` layer and its coordinate maths depends on that,
-          so it owns those classes outright. Passing `absolute ... z-0` here
-          used to fight it — two `position` utilities of equal specificity, with
-          the winner decided by stylesheet order rather than by intent.
+          Not rendered at all at 768px and below. This is a mount gate, not a
+          CSS one: an unmounted component attaches no touch listeners, runs no
+          rAF, and puts nothing in the DOM, which is the only version of "off"
+          that can be trusted on a phone.
 
-          `hostRef` is still the hero section: the trail only *responds* inside
-          the hero, it just *renders* to the viewport. */}
-      <CursorTrail images={photos} hostRef={ref} />
+          The component owns its own positioning classes (a viewport-fixed
+          layer), so none are passed here. `hostRef` is the hero section: the
+          trail only *responds* inside the hero, it just *renders* to the
+          viewport. */}
+      {trailEnabled && <CursorTrail images={photos} hostRef={ref} />}
 
       <motion.div style={{ y, opacity }} className="relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-8">
         <div className="flex flex-col items-center text-center">
