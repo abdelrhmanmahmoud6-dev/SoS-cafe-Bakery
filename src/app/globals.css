@@ -424,6 +424,12 @@
    * job than it did on near-black — not de-banding, but giving the paper a
    * tooth so the flat areas read as stock rather than as screen. Dialled well
    * down, because dark speckle is far more visible on a light ground.
+   *
+   * The rect carries an explicit grey fill. An SVG <rect> with no fill defaults
+   * to BLACK, and this one relies entirely on the turbulence filter to replace
+   * its rendering — so any browser that fails to apply an SVG filter inside a
+   * data-URI background would paint a solid black sheet over the whole viewport
+   * at z-index 9999. The fill turns that failure mode into something invisible.
    */
   .grain::after {
     content: "";
@@ -437,7 +443,7 @@
        opacity is nudged up to compensate. The layer is dropped entirely below
        `md` — see the mobile block at the end of this file. */
     opacity: 0.03;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' fill='%23808080' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
   .animate-card-in {
@@ -513,6 +519,24 @@
 @media (min-width: 1024px) and (hover: hover) {
   body {
     background-attachment: fixed;
+  }
+}
+
+/**
+ * Hard kill for the cursor image trail on mobile.
+ *
+ * The component is already gated in JS and never mounts below 769px, so this
+ * should be unreachable. It exists because that guarantee only holds for the
+ * bundle currently executing: a phone running a cached older bundle, or a
+ * future call site that forgets the gate, would put the layer back. CSS costs
+ * nothing and closes both.
+ *
+ * 768px here rather than 767px: mobile is defined as 768 and below for this
+ * component, so the two boundaries meet with no one-pixel gap between them.
+ */
+@media (max-width: 768px) {
+  [data-cursor-trail] {
+    display: none !important;
   }
 }
 

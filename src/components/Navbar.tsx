@@ -82,8 +82,17 @@ export function Navbar() {
       >
         <nav
           className={cn(
-            "mx-auto flex max-w-7xl items-center justify-between gap-3 rounded-2xl px-3 transition-all duration-300 sm:px-4",
-            "mx-3 sm:mx-6 lg:mx-auto",
+            // Three zones: brand, links, actions. `justify-between` holds the
+            // ends apart below `lg` (where the links are hidden) and the links'
+            // own `flex-1` centres them above it.
+            //
+            // The margin utilities used to be split across two strings — an
+            // `mx-auto` in one and `mx-3 sm:mx-6 lg:mx-auto` in the other. Two
+            // competing values for the same property at equal specificity, with
+            // the winner decided by stylesheet order rather than intent, which
+            // is why the bar sat differently than it measured.
+            "flex max-w-7xl items-center justify-between gap-2 rounded-2xl px-3 transition-all duration-300",
+            "mx-3 sm:mx-6 sm:gap-3 sm:px-4 lg:mx-auto",
             scrolled
               ? "glass-strong h-14 shadow-float sm:h-16"
               : "h-16 border border-transparent bg-transparent sm:h-18"
@@ -107,7 +116,10 @@ export function Navbar() {
           </a>
 
           {/* Desktop links */}
-          <ul className="hidden items-center gap-1 lg:flex">
+          {/* `min-w-0` + `flex-1` makes this the one flexible zone: if the bar
+              ever runs short, the links absorb it instead of every zone
+              shrinking at once and spilling its contents over its neighbour. */}
+          <ul className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex">
             {LINKS.map((link) => {
               const label = t.nav[link.id as keyof typeof t.nav] as string;
               const isActive = active === link.id;
@@ -117,7 +129,7 @@ export function Navbar() {
                     href={link.href}
                     aria-current={isActive ? "page" : undefined}
                     className={cn(
-                      "relative cursor-pointer rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200",
+                      "relative block cursor-pointer whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200",
                       isActive ? "text-espresso" : "text-muted hover:text-espresso"
                     )}
                   >
@@ -135,13 +147,20 @@ export function Navbar() {
             })}
           </ul>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2">
+          {/* Actions.
+
+              `shrink-0` is the fix for the overlap: a flex item shrinks by
+              default, and these buttons have fixed heights and unwrappable
+              labels, so once the row ran short the container was squeezed
+              narrower than its contents and the children spilled across the
+              links beside them. Pinning the zone means it keeps its intrinsic
+              width and the links give way instead. */}
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             {/* Track order */}
             <Link
               href="/track"
               aria-label={sh.track.title}
-              className="hidden h-11 cursor-pointer items-center gap-2 rounded-2xl border border-sand-400 bg-sand-200/70 px-3 text-sm font-bold text-espresso transition-[transform,color,border-color] duration-200 hover:border-gold-500/60 hover:text-gold-800 active:scale-95 md:flex"
+              className="hidden h-11 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-2xl border border-sand-400 bg-sand-200/70 px-3 text-sm font-bold text-espresso transition-[transform,color,border-color] duration-200 hover:border-gold-500/60 hover:text-gold-800 active:scale-95 md:flex"
             >
               <PackageSearch aria-hidden className="size-4" />
               <span className="hidden xl:inline">{sh.track.title}</span>
@@ -155,7 +174,7 @@ export function Navbar() {
               type="button"
               onClick={toggleLang}
               aria-label={t.a11y.switchLang}
-              className="flex h-11 min-w-11 cursor-pointer items-center gap-1.5 rounded-2xl border border-sand-400 bg-sand-200/70 px-3 text-xs font-bold text-espresso transition-[transform,color,border-color,background-color] duration-200 hover:border-gold-500/60 hover:bg-sand-300 hover:text-gold-800 active:scale-95"
+              className="flex h-11 min-w-11 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-2xl border border-sand-400 bg-sand-200/70 px-3 text-xs font-bold text-espresso transition-[transform,color,border-color,background-color] duration-200 hover:border-gold-500/60 hover:bg-sand-300 hover:text-gold-800 active:scale-95"
             >
               <Languages aria-hidden className="size-4" />
               <span className="font-en">{lang === "ar" ? "EN" : "ع"}</span>
@@ -167,7 +186,7 @@ export function Navbar() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={t.nav.whatsapp}
-              className="hidden h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-sand-400 bg-sand-200/70 px-3 text-sm font-bold text-espresso transition-[transform,color,border-color,background-color] duration-200 hover:border-gold-500/60 hover:bg-sand-300 hover:text-gold-800 active:scale-95 sm:flex"
+              className="hidden h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-2xl border border-sand-400 bg-sand-200/70 px-3 text-sm font-bold text-espresso transition-[transform,color,border-color,background-color] duration-200 hover:border-gold-500/60 hover:bg-sand-300 hover:text-gold-800 active:scale-95 sm:flex"
             >
               <MessageCircle aria-hidden className="size-4" />
               <span className="hidden xl:inline">{t.nav.whatsapp}</span>
@@ -176,7 +195,7 @@ export function Navbar() {
             {/* Call Now — primary CTA */}
             <a
               href={STORE.phoneHref}
-              className="group hidden h-11 cursor-pointer items-center gap-2 rounded-full btn-espresso px-4 text-sm font-extrabold transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-0.5 hover:shadow-espresso-lg active:scale-95 sm:flex"
+              className="group hidden h-11 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full btn-espresso px-4 text-sm font-extrabold transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-0.5 hover:shadow-espresso-lg active:scale-95 sm:flex"
             >
               <Phone aria-hidden className="size-4 transition-transform duration-300 group-hover:rotate-12" />
               <span>{t.nav.callNow}</span>
@@ -189,7 +208,7 @@ export function Navbar() {
               aria-label={t.nav.openMenu}
               aria-expanded={open}
               aria-controls="mobile-drawer"
-              className="flex size-11 cursor-pointer items-center justify-center rounded-2xl border border-sand-400 bg-sand-200/70 text-espresso transition-[transform,color,border-color] duration-200 hover:border-gold-500/60 hover:text-gold-800 active:scale-90 lg:hidden"
+              className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl border border-sand-400 bg-sand-200/70 text-espresso transition-[transform,color,border-color] duration-200 hover:border-gold-500/60 hover:text-gold-800 active:scale-90 lg:hidden"
             >
               <MenuIcon aria-hidden className="size-5" />
             </button>

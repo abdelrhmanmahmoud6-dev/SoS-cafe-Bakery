@@ -291,6 +291,7 @@ export function CursorTrail({
     <div
       ref={layerRef}
       aria-hidden
+      data-cursor-trail
       className={`pointer-events-none fixed inset-0 z-40 overflow-hidden bg-transparent ${
         className ?? ""
       }`}

@@ -32,7 +32,7 @@ export function CartButton({ className = "" }: { className?: string }) {
       transition={{ type: "spring", stiffness: 600, damping: 20 }}
       className={
         className ||
-        "relative flex size-11 cursor-pointer items-center justify-center rounded-2xl border border-sand-400 bg-sand-200/70 text-espresso transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-800"
+        "relative flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl border border-sand-400 bg-sand-200/70 text-espresso transition-colors duration-200 hover:border-gold-500/60 hover:text-gold-800"
       }
     >
       <ShoppingBag aria-hidden className="size-5" />
