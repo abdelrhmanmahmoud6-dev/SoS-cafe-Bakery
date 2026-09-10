@@ -16,13 +16,17 @@ import {
   Store,
   Receipt,
   ChevronsRight,
+  Ban,
+  Check,
+  RotateCcw,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { listOrders, updateOrderStatus, type AdminOrder } from "@/app/actions/orders";
 import {
   ORDER_STATUSES,
+  STATUS_LABELS,
   STATUS_TONE,
-  cycleStatus,
+  nextStatus,
   statusLabel,
   ORDER_TYPE_LABELS,
   DELIVERY_AREA_LABELS,
@@ -409,25 +413,23 @@ function FilterPill({
 }
 
 /* -------------------------------------------------------------------------- */
-/*  StatusFlow — one button, cycling the order lifecycle                      */
+/*  StatusFlow — linear progress, with cancellation as a separate action      */
 /* -------------------------------------------------------------------------- */
 
 /**
- * A single badge that IS the control.
+ * Two controls, not one, because they are two different kinds of decision.
  *
- * It shows the status the order is in and, on click, advances to the next one:
- * received -> preparing -> on the way -> delivered -> cancelled -> back round.
- * There is nothing else to aim at, which is the point — the counter reads the
- * state and changes it in the same glance, one tap, without a dropdown to open
- * or a grid of look-alike buttons to pick from.
+ * Advancing is routine and repeated: one badge shows where the order is and one
+ * tap moves it on, received -> preparing -> on the way -> delivered, stopping
+ * there. Cancelling is exceptional and destructive, so it sits apart with its
+ * own button and its own colour, and it is NOT the step after delivered — an
+ * order is cancelled *instead of* progressing.
  *
- * Two details that keep a one-tap control honest:
- *
- * - The next stage is printed on the button itself, so the outcome is legible
- *   BEFORE the tap rather than discovered after it.
- * - The badge takes the status colour from STATUS_TONE, so the card changes
- *   appearance the moment the write lands and the change is visible from across
- *   the counter, not just in the text.
+ * A cancelled order drops the progress control entirely and shows a banner:
+ * there is no next stage to offer, and leaving a live-looking "advance" button
+ * on a cancelled order invites exactly the mistake the split is meant to
+ * prevent. Restore stays, because a one-tap destructive action with no undo is
+ * not something to leave a busy counter alone with.
  */
 function StatusFlow({
   order,
@@ -440,9 +442,49 @@ function StatusFlow({
 }) {
   const { sh, lang } = useI18n();
   const m = sh.admin.orders;
-  const upcoming = cycleStatus(order.status);
+
+  /* ---- Terminal: cancelled. No progression shown at all. ---- */
+  if (order.status === "CANCELLED") {
+    return (
+      <div>
+        <div className="mb-2 flex items-start gap-3 rounded-2xl border border-rose-300 bg-rose-50 p-3.5">
+          <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-900">
+            <Ban aria-hidden className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-rose-300 bg-rose-100 px-2.5 py-0.5 text-xs font-extrabold text-rose-900">
+                {STATUS_LABELS.CANCELLED[lang]}
+              </span>
+              <span className="text-xs font-extrabold text-rose-900">
+                {m.orderCancelled}
+              </span>
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-rose-800">
+              {m.cancelledHint}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onSet("PENDING")}
+          className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-sand-400 px-4 text-xs font-bold text-muted transition-colors duration-200 hover:border-espresso hover:text-espresso disabled:opacity-60"
+        >
+          {busy ? (
+            <Loader2 aria-hidden className="size-3.5 animate-spin" />
+          ) : (
+            <RotateCcw aria-hidden className="size-3.5" />
+          )}
+          {m.restoreOrder}
+        </button>
+      </div>
+    );
+  }
+
+  const upcoming = nextStatus(order.status);
   const currentText = statusLabel(order.status, order.orderType as OrderType)[lang];
-  const nextText = statusLabel(upcoming, order.orderType as OrderType)[lang];
 
   return (
     <div>
@@ -450,33 +492,62 @@ function StatusFlow({
         {m.statusFlow}
       </span>
 
+      {upcoming ? (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onSet(upcoming)}
+          // The accessible name carries both halves: where the order is, and
+          // what pressing will do.
+          aria-label={`${currentText} — ${m.advanceTo}: ${
+            statusLabel(upcoming, order.orderType as OrderType)[lang]
+          }`}
+          className={cn(
+            "flex w-full min-h-14 cursor-pointer items-center justify-between gap-3 rounded-2xl border px-4",
+            "transition-[transform,background-color,border-color] duration-200 hover:brightness-95 active:scale-[0.97] disabled:opacity-60",
+            STATUS_TONE[order.status]
+          )}
+        >
+          <span className="flex min-w-0 flex-col items-start text-start">
+            <span className="truncate text-sm font-extrabold">{currentText}</span>
+            {/* The next stage is printed before the tap, so the outcome is
+                legible in advance rather than discovered afterwards. */}
+            <span className="truncate text-[10px] font-bold opacity-70">
+              {m.advanceTo}:{" "}
+              {statusLabel(upcoming, order.orderType as OrderType)[lang]}
+            </span>
+          </span>
+          {busy ? (
+            <Loader2 aria-hidden className="size-5 shrink-0 animate-spin" />
+          ) : (
+            <ChevronsRight
+              aria-hidden
+              className="size-5 shrink-0 rtl:-scale-x-100"
+            />
+          )}
+        </button>
+      ) : (
+        /* Delivered: the end of the line. A static badge, not a dead button. */
+        <p
+          className={cn(
+            "flex min-h-14 items-center justify-center gap-2 rounded-2xl border px-4 text-sm font-extrabold",
+            STATUS_TONE[order.status]
+          )}
+        >
+          <Check aria-hidden className="size-4" strokeWidth={3} />
+          {m.orderDone}
+        </p>
+      )}
+
+      {/* Cancellation: separate control, separate colour, never a step. */}
       <button
         type="button"
         disabled={busy}
-        onClick={() => onSet(upcoming)}
-        // The accessible name carries both halves: a screen reader user gets
-        // the current state and what pressing will do, which is exactly what
-        // the sighted user reads off the two lines.
-        aria-label={`${currentText} — ${m.advanceTo}: ${nextText}`}
-        className={cn(
-          "flex w-full min-h-14 cursor-pointer items-center justify-between gap-3 rounded-2xl border px-4",
-          "transition-[transform,background-color,border-color] duration-200 active:scale-[0.97] disabled:opacity-60",
-          STATUS_TONE[order.status],
-          "hover:brightness-95"
-        )}
+        onClick={() => onSet("CANCELLED")}
+        className="mt-2 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-rose-300 bg-rose-50 px-4 text-xs font-bold text-rose-900 transition-[transform,background-color] duration-200 hover:bg-rose-100 active:scale-95 disabled:opacity-60"
       >
-        <span className="flex min-w-0 flex-col items-start text-start">
-          <span className="truncate text-sm font-extrabold">{currentText}</span>
-          <span className="truncate text-[10px] font-bold opacity-70">
-            {m.advanceTo}: {nextText}
-          </span>
-        </span>
-
-        {busy ? (
-          <Loader2 aria-hidden className="size-5 shrink-0 animate-spin" />
-        ) : (
-          <ChevronsRight aria-hidden className="size-5 shrink-0 rtl:-scale-x-100" />
-        )}
+        <Ban aria-hidden className="size-3.5" />
+        {m.markCancelled}
       </button>
     </div>
   );
