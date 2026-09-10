@@ -195,16 +195,34 @@ export const STATUS_TONE: Record<OrderStatus, string> = {
 /* -------------------------------------------------------------------------- */
 
 /**
- * The next step in the order lifecycle, or null when there is nowhere to go.
+ * Every status the admin's single status button steps through, in order.
  *
- * Returns null for DELIVERED (terminal) and for CANCELLED, which is not on the
- * timeline at all — `indexOf` gives -1 for it, and a cancelled order must never
- * silently advance into PREPARING.
+ * This is deliberately NOT `TRACKING_STEPS`. That array is the customer-facing
+ * timeline, which has exactly four stops and excludes CANCELLED because a
+ * cancelled order is a terminal state rather than a point on a journey. This
+ * one is the admin's control surface, and it includes CANCELLED so the counter
+ * can reach it without a second control.
  */
-export function nextStatus(current: OrderStatus): OrderStatus | null {
-  const i = TRACKING_STEPS.indexOf(current);
-  if (i === -1) return null;
-  return TRACKING_STEPS[i + 1] ?? null;
+export const STATUS_CYCLE: readonly OrderStatus[] = [
+  "PENDING",
+  "PREPARING",
+  "READY",
+  "DELIVERED",
+  "CANCELLED",
+];
+
+/**
+ * The status one click advances to.
+ *
+ * Wraps: CANCELLED steps back round to PENDING. Without the wrap a mis-tap on
+ * a delivered order would strand it as cancelled with no way back from this
+ * control, and the customer would be looking at a "ملغي" badge for an order
+ * they have already received.
+ */
+export function cycleStatus(current: OrderStatus): OrderStatus {
+  const i = STATUS_CYCLE.indexOf(current);
+  if (i === -1) return STATUS_CYCLE[0];
+  return STATUS_CYCLE[(i + 1) % STATUS_CYCLE.length];
 }
 
 /**

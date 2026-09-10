@@ -15,18 +15,14 @@ import {
   Bike,
   Store,
   Receipt,
-  Check,
   ChevronsRight,
-  RotateCcw,
-  XCircle,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { listOrders, updateOrderStatus, type AdminOrder } from "@/app/actions/orders";
 import {
   ORDER_STATUSES,
   STATUS_TONE,
-  TRACKING_STEPS,
-  nextStatus,
+  cycleStatus,
   statusLabel,
   ORDER_TYPE_LABELS,
   DELIVERY_AREA_LABELS,
@@ -413,22 +409,25 @@ function FilterPill({
 }
 
 /* -------------------------------------------------------------------------- */
-/*  StatusFlow — the clickable order lifecycle                                */
+/*  StatusFlow — one button, cycling the order lifecycle                      */
 /* -------------------------------------------------------------------------- */
 
 /**
- * Four checkboxes and an advance button, replacing the old status dropdown.
+ * A single badge that IS the control.
  *
- * A dropdown made every status equally reachable and equally invisible: the
- * counter had to open it, read five options and pick the right one, on every
- * order. The overwhelmingly common action is "move this one forward", so that
- * gets a single labelled button, and the four steps double as the progress
- * display they were already reading anyway.
+ * It shows the status the order is in and, on click, advances to the next one:
+ * received -> preparing -> on the way -> delivered -> cancelled -> back round.
+ * There is nothing else to aim at, which is the point — the counter reads the
+ * state and changes it in the same glance, one tap, without a dropdown to open
+ * or a grid of look-alike buttons to pick from.
  *
- * Any step remains directly clickable, which is what replaces the dropdown's
- * one genuine advantage — correcting a mis-tap without cycling all the way
- * round. Cancel and restore sit apart from the row, because they are not a
- * point on the timeline.
+ * Two details that keep a one-tap control honest:
+ *
+ * - The next stage is printed on the button itself, so the outcome is legible
+ *   BEFORE the tap rather than discovered after it.
+ * - The badge takes the status colour from STATUS_TONE, so the card changes
+ *   appearance the moment the write lands and the change is visible from across
+ *   the counter, not just in the text.
  */
 function StatusFlow({
   order,
@@ -441,104 +440,44 @@ function StatusFlow({
 }) {
   const { sh, lang } = useI18n();
   const m = sh.admin.orders;
-  const cancelled = order.status === "CANCELLED";
-  const current = TRACKING_STEPS.indexOf(order.status);
-  const upcoming = nextStatus(order.status);
+  const upcoming = cycleStatus(order.status);
+  const currentText = statusLabel(order.status, order.orderType as OrderType)[lang];
+  const nextText = statusLabel(upcoming, order.orderType as OrderType)[lang];
 
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-xs font-bold text-muted-dim">{m.statusFlow}</span>
-        {busy && (
-          <Loader2 aria-hidden className="size-4 animate-spin text-gold-800" />
+      <span className="mb-1.5 block text-xs font-bold text-muted-dim">
+        {m.statusFlow}
+      </span>
+
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => onSet(upcoming)}
+        // The accessible name carries both halves: a screen reader user gets
+        // the current state and what pressing will do, which is exactly what
+        // the sighted user reads off the two lines.
+        aria-label={`${currentText} — ${m.advanceTo}: ${nextText}`}
+        className={cn(
+          "flex w-full min-h-14 cursor-pointer items-center justify-between gap-3 rounded-2xl border px-4",
+          "transition-[transform,background-color,border-color] duration-200 active:scale-[0.97] disabled:opacity-60",
+          STATUS_TONE[order.status],
+          "hover:brightness-95"
         )}
-      </div>
+      >
+        <span className="flex min-w-0 flex-col items-start text-start">
+          <span className="truncate text-sm font-extrabold">{currentText}</span>
+          <span className="truncate text-[10px] font-bold opacity-70">
+            {m.advanceTo}: {nextText}
+          </span>
+        </span>
 
-      {/* The four lifecycle steps. A cancelled order shows them all inert:
-          `current` is -1, so nothing reads as reached. */}
-      <ol className="mb-3 grid grid-cols-2 gap-1.5">
-        {TRACKING_STEPS.map((step, i) => {
-          const reached = !cancelled && current >= i;
-          const isNext = !cancelled && current === i - 1;
-          return (
-            <li key={step}>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => onSet(step)}
-                aria-pressed={reached}
-                className={cn(
-                  "flex w-full min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-2.5 text-start text-[11px] font-bold",
-                  "transition-[transform,background-color,border-color] duration-200 active:scale-95 disabled:opacity-60",
-                  reached
-                    ? "border-transparent bg-espresso text-sand-50"
-                    : isNext
-                      ? "border-gold-600 bg-gold-500/20 text-espresso"
-                      : "border-sand-300 bg-sand-50 text-muted hover:border-sand-400"
-                )}
-              >
-                <span
-                  aria-hidden
-                  className={cn(
-                    "flex size-4 shrink-0 items-center justify-center rounded-[5px] border",
-                    reached
-                      ? "border-sand-50 bg-sand-50 text-espresso"
-                      : "border-sand-400 bg-transparent"
-                  )}
-                >
-                  {reached && <Check className="size-3" strokeWidth={3.5} />}
-                </span>
-                <span className="truncate">
-                  {statusLabel(step, order.orderType as OrderType)[lang]}
-                </span>
-              </button>
-            </li>
-          );
-        })}
-      </ol>
-
-      {/* Primary action: one tap moves the order on. Absent once there is
-          nowhere left to go, rather than sitting there disabled. */}
-      {upcoming && (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => onSet(upcoming)}
-          className="mb-2 flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full btn-espresso px-4 text-sm font-extrabold transition-[transform,box-shadow] duration-200 hover:shadow-espresso-lg active:scale-95 disabled:opacity-60"
-        >
-          <ChevronsRight aria-hidden className="size-4" />
-          {m.advanceTo}: {statusLabel(upcoming, order.orderType as OrderType)[lang]}
-        </button>
-      )}
-
-      {!upcoming && !cancelled && (
-        <p className="mb-2 flex min-h-10 items-center justify-center gap-2 rounded-full bg-emerald-100 px-4 text-xs font-extrabold text-emerald-900">
-          <Check aria-hidden className="size-4" strokeWidth={3} />
-          {m.orderDone}
-        </p>
-      )}
-
-      {cancelled ? (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => onSet("PENDING")}
-          className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-sand-400 px-4 text-xs font-bold text-muted transition-colors duration-200 hover:border-espresso hover:text-espresso disabled:opacity-60"
-        >
-          <RotateCcw aria-hidden className="size-3.5" />
-          {m.restoreOrder}
-        </button>
-      ) : (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => onSet("CANCELLED")}
-          className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-rose-300 bg-rose-50 px-4 text-xs font-bold text-rose-900 transition-colors duration-200 hover:bg-rose-100 disabled:opacity-60"
-        >
-          <XCircle aria-hidden className="size-3.5" />
-          {m.markCancelled}
-        </button>
-      )}
+        {busy ? (
+          <Loader2 aria-hidden className="size-5 shrink-0 animate-spin" />
+        ) : (
+          <ChevronsRight aria-hidden className="size-5 shrink-0 rtl:-scale-x-100" />
+        )}
+      </button>
     </div>
   );
 }
