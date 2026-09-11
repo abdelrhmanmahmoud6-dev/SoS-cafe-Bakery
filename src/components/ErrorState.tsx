@@ -59,7 +59,7 @@ export function ErrorState({
 
   if (retrying) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-sand-50 px-6 text-center">
+      <div className="flex min-h-svh flex-col items-center justify-center gap-4 bg-sand-50 px-6 text-center">
         <RefreshCw aria-hidden className="size-8 animate-spin text-gold-800" />
         <p className="text-muted" role="status">
           جاري إعادة المحاولة…
@@ -71,7 +71,7 @@ export function ErrorState({
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-sand-50 px-6 py-16 text-center">
+    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-sand-50 px-6 py-16 text-center">
       <span className="flex size-20 items-center justify-center rounded-3xl bg-gold-500/10 text-gold-800 ring-1 ring-gold-500/25">
         <WifiOff aria-hidden className="size-9" />
       </span>

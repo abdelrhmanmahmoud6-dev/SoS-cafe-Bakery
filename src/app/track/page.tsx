@@ -29,7 +29,7 @@ export default async function TrackPage({
       <Navbar />
       <main
         id="main"
-        className="relative isolate min-h-dvh overflow-hidden px-5 pb-24 pt-32 sm:px-8"
+        className="relative isolate min-h-svh overflow-hidden px-5 pb-24 pt-32 sm:px-8"
       >
         <div
           aria-hidden

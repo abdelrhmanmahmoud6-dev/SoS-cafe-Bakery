@@ -58,7 +58,7 @@ export function Hero({
     <section
       ref={ref}
       id="home"
-      className="relative isolate flex min-h-dvh scroll-mt-28 flex-col justify-center overflow-hidden pb-20 pt-28 sm:pt-32"
+      className="relative isolate flex min-h-svh scroll-mt-28 flex-col justify-center overflow-hidden pb-20 pt-28 sm:pt-32"
     >
       {/* Cursor trail. Sits above the ambience and below the content, so the
           photos pass behind the headline rather than over it, and z-0 keeps it

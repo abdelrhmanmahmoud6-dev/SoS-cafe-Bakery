@@ -16,7 +16,7 @@ export default async function AdminLoginPage() {
   if (session) redirect("/admin");
 
   return (
-    <main className="flex min-h-dvh items-center justify-center px-5 py-16">
+    <main className="flex min-h-svh items-center justify-center px-5 py-16">
       <LoginForm />
     </main>
   );

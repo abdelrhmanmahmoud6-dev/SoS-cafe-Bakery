@@ -10,7 +10,7 @@
  */
 export default function Loading() {
   return (
-    <div className="min-h-dvh bg-sand-50 px-5 pt-32 sm:px-8" aria-busy="true">
+    <div className="min-h-svh bg-sand-50 px-5 pt-32 sm:px-8" aria-busy="true">
       <span className="sr-only">جاري التحميل… / Loading…</span>
 
       <div className="mx-auto flex max-w-7xl flex-col items-center">

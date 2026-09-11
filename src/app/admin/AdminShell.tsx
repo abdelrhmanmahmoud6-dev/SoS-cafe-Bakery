@@ -55,7 +55,7 @@ export function AdminShell({
   }
 
   return (
-    <div className="min-h-dvh bg-sand-50">
+    <div className="min-h-svh bg-sand-50">
       {/* Top bar */}
       <header className="sticky top-0 z-50 border-b border-sand-300 bg-sand-50/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[100rem] items-center justify-between gap-4 px-4 py-3 sm:px-6">

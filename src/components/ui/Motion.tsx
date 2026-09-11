@@ -77,24 +77,25 @@ export function useSmallScreen(): boolean {
 }
 
 /**
- * Whether the pointer image trail may run at all.
+ * Whether the cursor image trail may run at all.
  *
- * Phrased as "is this a wide screen" rather than "is this not a small screen",
- * and that direction is the whole point. `useSmallScreen()` starts `false`,
- * meaning "not small", so gating the trail on `!small` would mount it on a
- * phone for the first tick — attaching its touch listeners and rendering its
- * layer before the media query had resolved. Starting from `false` here means
- * disabled is the default everywhere, and a viewport of 768px or less never
- * flips it on: the component is never mounted, no listeners are attached, and
- * no DOM is created.
+ * Two conditions, and both are needed:
  *
- * 769px because 768px and below is defined as mobile for this purpose. That is
- * one pixel wider than the CSS performance budget's `max-width: 767px`, which
- * only differs on a viewport that is exactly 768px — an iPad in portrait, where
- * disabling the trail is also what we want.
+ * - `(min-width: 769px)` — 768px and below is mobile by definition.
+ * - `(hover: hover) and (pointer: fine)` — the device's PRIMARY input is a
+ *   mouse or trackpad. Width alone is not enough: a phone rotated to landscape
+ *   is routinely 800-930px wide and would pass a width-only check, mounting the
+ *   trail on a touchscreen. It is a *cursor* trail; without a cursor there is
+ *   nothing for it to follow.
+ *
+ * Starts `false` and only turns true once both are confirmed, so disabled is
+ * the default everywhere and a touch device never flips it on: the component
+ * is never mounted, no listener is attached, and no DOM is created.
  */
 export function useTrailEnabled(): boolean {
-  return useMediaQuery("(min-width: 769px)");
+  return useMediaQuery(
+    "(min-width: 769px) and (hover: hover) and (pointer: fine)"
+  );
 }
 
 /* -------------------------------------------------------------------------- */

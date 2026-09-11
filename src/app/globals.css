@@ -533,8 +533,10 @@
  *
  * 768px here rather than 767px: mobile is defined as 768 and below for this
  * component, so the two boundaries meet with no one-pixel gap between them.
+ * `(hover: none)` and `(pointer: coarse)` cover a touchscreen whose viewport is
+ * wider than that — a phone in landscape — which a width test alone lets in.
  */
-@media (max-width: 768px) {
+@media (max-width: 768px), (hover: none), (pointer: coarse) {
   [data-cursor-trail] {
     display: none !important;
   }

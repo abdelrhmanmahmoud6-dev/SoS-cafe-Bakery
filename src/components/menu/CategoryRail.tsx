@@ -93,16 +93,47 @@ function CategoryRailImpl({
     return () => ro.disconnect();
   }, [measure, tiles.length]);
 
-  /** Keeps the selected card visible when the filter is changed from elsewhere. */
+  /**
+   * Keeps the selected tile centred in the rail when the filter changes.
+   *
+   * This scrolls the TRACK and nothing else. It used to call
+   * `card.scrollIntoView({ inline: "center", block: "nearest" })`, and
+   * scrollIntoView does not stop at the element's own scroll container — it
+   * scrolls every scrollable ancestor, the window included, until the element
+   * is on screen. `block: "nearest"` let it move the page vertically, and the
+   * effect ran on mount, when the rail sits below a full-height hero. So every
+   * page load glided the window down to the menu: the "page starts halfway
+   * down" bug on mobile.
+   *
+   * Now the offset is computed from the two rects and applied with
+   * `track.scrollBy`, which can only ever move the track. `scrollBy` with a
+   * physical `left` is correct in RTL too (negative means leftwards in both
+   * directions — see `nudge` below).
+   *
+   * It also skips the first run. On mount the selection is "all", the first
+   * tile, already at the start of the track; there is nothing to centre, and a
+   * layout read during hydration buys nothing.
+   */
+  const previousActive = useRef<string | null>(null);
   useEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    const card = el.querySelector<HTMLElement>(`[data-tile="${CSS.escape(active)}"]`);
-    card?.scrollIntoView({
-      behavior: reduced ? "auto" : "smooth",
-      inline: "center",
-      block: "nearest",
-    });
+    const isFirstRun = previousActive.current === null;
+    const changed = previousActive.current !== active;
+    previousActive.current = active;
+    if (isFirstRun || !changed) return;
+
+    const track = trackRef.current;
+    if (!track) return;
+    const card = track.querySelector<HTMLElement>(
+      `[data-tile="${CSS.escape(active)}"]`
+    );
+    if (!card) return;
+
+    const t = track.getBoundingClientRect();
+    const c = card.getBoundingClientRect();
+    const offset = c.left + c.width / 2 - (t.left + t.width / 2);
+    if (Math.abs(offset) < 2) return;
+
+    track.scrollBy({ left: offset, behavior: reduced ? "auto" : "smooth" });
   }, [active, reduced]);
 
   /** Negative `left` always means "physically leftwards", in both directions. */

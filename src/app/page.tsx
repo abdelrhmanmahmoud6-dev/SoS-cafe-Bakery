@@ -5,6 +5,7 @@ import { Menu } from "@/components/Menu";
 import { Contact } from "@/components/Contact";
 import { Footer } from "@/components/Footer";
 import { CartDrawer } from "@/components/shop/CartDrawer";
+import { ScrollReset } from "@/components/ScrollReset";
 import { getMenu } from "@/lib/menu-service";
 
 /**
@@ -43,6 +44,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <ScrollReset />
       <Navbar />
       <main id="main">
         <Hero
